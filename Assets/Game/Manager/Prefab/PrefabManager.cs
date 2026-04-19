@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using DevWorkbench;
 using UnityEngine;
 using VContainer.Unity;
-using DevWorkbench;
 
 // IPrefabHandle 是"钥匙"——由 PrefabManager 下发，业务拿着它去调 Manager API 操作挂载组件。
 // 额外信息（Key、Prefab 元数据等）一律通过 Manager 反查，不往钥匙上堆，保持单一职责。
@@ -245,10 +245,10 @@ internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncI
                   ?? gameObject.AddComponent<PhysicsBridge>();
         newPrefabData.Bridge = bridge;
 
-        bridge.TriggerEnter   += (_, other) => DispatchTriggerEnter(newPrefabData, other);
-        bridge.TriggerExit    += (_, other) => DispatchTriggerExit(newPrefabData, other);
-        bridge.CollisionEnter += (_, c)     => DispatchCollisionEnter(newPrefabData, c);
-        bridge.CollisionExit  += (_, c)     => DispatchCollisionExit(newPrefabData, c);
+        bridge.TriggerEnter += (_, other) => DispatchTriggerEnter(newPrefabData, other);
+        bridge.TriggerExit += (_, other) => DispatchTriggerExit(newPrefabData, other);
+        bridge.CollisionEnter += (_, c) => DispatchCollisionEnter(newPrefabData, c);
+        bridge.CollisionExit += (_, c) => DispatchCollisionExit(newPrefabData, c);
 
         foreach (var typeKey in data.InitialComponent)
         {

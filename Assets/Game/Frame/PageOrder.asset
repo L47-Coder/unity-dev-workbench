@@ -21,11 +21,11 @@ MonoBehaviour:
   - Title: Component
     Order: 1
     Tabs:
-    - Title: "\u751F\u6210"
-      Order: 0
     - Title: Order
-      Order: 1
+      Order: 0
     - Title: Viewer
+      Order: 1
+    - Title: Creator
       Order: 2
   - Title: Manager
     Order: 2

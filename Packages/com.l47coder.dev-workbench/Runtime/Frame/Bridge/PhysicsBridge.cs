@@ -46,9 +46,9 @@ namespace DevWorkbench
         internal event Action<GameObject, Collision> CollisionEnter;
         internal event Action<GameObject, Collision> CollisionExit;
 
-        private void OnTriggerEnter(Collider other)       => TriggerEnter?.Invoke(gameObject, other);
-        private void OnTriggerExit(Collider other)        => TriggerExit?.Invoke(gameObject, other);
+        private void OnTriggerEnter(Collider other) => TriggerEnter?.Invoke(gameObject, other);
+        private void OnTriggerExit(Collider other) => TriggerExit?.Invoke(gameObject, other);
         private void OnCollisionEnter(Collision collision) => CollisionEnter?.Invoke(gameObject, collision);
-        private void OnCollisionExit(Collision collision)  => CollisionExit?.Invoke(gameObject, collision);
+        private void OnCollisionExit(Collision collision) => CollisionExit?.Invoke(gameObject, collision);
     }
 }
