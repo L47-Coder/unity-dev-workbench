@@ -161,7 +161,7 @@ public sealed partial class TreeView
         else
         {
             var isSearching = !string.IsNullOrEmpty(_searchNormalized);
-            var displayName = node.Kind == NodeKind.Root && isSearching ? "搜索结果" : node.Name;
+            var displayName = node.Kind == NodeKind.Root && isSearching ? "Search results" : node.Name;
 
             var prevColor = GUI.contentColor;
             GUI.contentColor = isSelected ? new Color(1f, 1f, 1f, 1f) : NodeTextColor(node.Kind);

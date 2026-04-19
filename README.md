@@ -17,7 +17,7 @@ is used for developing and dogfooding the package.
 
 Dev Workbench is a Unity **Manager / Component** framework powered by
 `ScriptableObject` + `Addressables`, shipped with an in-editor **DevWorkbench**
-panel (`Tools → DevWorkbench`) that provides one-click creation and visual
+panel (`Tools → Dev Workbench`) that provides one-click creation and visual
 management of Managers, Components and Addressable groups.
 
 ## Repository layout
@@ -110,7 +110,7 @@ for upstream dependency licenses.
 
 Dev Workbench 是一个以 `ScriptableObject` + `Addressables` 为核心的 Unity
 运行期 **Manager / Component** 框架，内置 **DevWorkbench** 编辑器面板
-（`Tools → DevWorkbench`），支持对 Manager、Component、Addressable 分组的
+（`Tools → Dev Workbench`），支持对 Manager、Component、Addressable 分组的
 一键创建与可视化管理。
 
 ### 在自己的工程里安装

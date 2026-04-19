@@ -8,7 +8,7 @@ namespace DevWorkbench.Editor
 internal sealed class ComponentOrderPage : IPage
 {
     public string GroupTitle => "Component";
-    public string TabTitle => "顺序";
+    public string TabTitle => "Order";
 
     private ComponentOrderConfig _config;
     private readonly TableView _tableView = new() { CanAdd = false, CanRemove = false, SearchField = "Component", ShowToolbarButtons = false };
@@ -30,7 +30,7 @@ internal sealed class ComponentOrderPage : IPage
     {
         if (_config == null)
         {
-            GUI.Label(rect, "配置加载失败", EditorStyles.centeredGreyMiniLabel);
+            GUI.Label(rect, "Failed to load config.", EditorStyles.centeredGreyMiniLabel);
             return;
         }
 

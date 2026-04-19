@@ -6,12 +6,17 @@ using UnityEngine;
 using VContainer.Unity;
 using DevWorkbench;
 
-// IPrefabHandle 是"钥匙"——由 PrefabManager 下发，业务拿着它去调 Manager API 操作挂载组件。
-// 额外信息（Key、Prefab 元数据等）一律通过 Manager 反查，不往钥匙上堆，保持单一职责。
+// IPrefabHandle is a "key" issued by PrefabManager. Gameplay code holds it and
+// passes it back to the Manager API whenever it wants to operate on mounted
+// components. Extra information (Key, prefab metadata, ...) is always looked
+// up through the Manager rather than carried on the key itself, so the handle
+// stays single-purpose.
 public interface IPrefabHandle
 {
-    // 暴露 GameObject 是因为"Load 得到句柄后立刻放到场景/调整 transform"是极高频场景，
-    // 再强迫调 Manager 反查一次反而繁琐。除 GameObject 外钥匙不再携带任何信息。
+    // GameObject is exposed because "load a prefab, then place it in the
+    // scene or adjust its transform" is by far the most common flow, and
+    // round-tripping through the Manager for that would be tedious. Apart
+    // from GameObject, the handle deliberately carries no other data.
     GameObject GameObject { get; }
 }
 
@@ -22,8 +27,10 @@ public interface IPrefabManager
     UniTask DestroyPoolAsync(string key);
     UniTask DestroyAllPoolAsync();
 
-    // 由 GameObject 反查归属 handle。架构层（BaseComponent / PhysicsBridge）只持 GameObject，
-    // 业务订阅物理事件或从 component.GameObject 出发想拿 handle 时走这条路。
+    // Look up the owning handle from a GameObject. The architecture layer
+    // (BaseComponent / PhysicsBridge) only holds a GameObject, so this is the
+    // path gameplay code uses when subscribing to physics events or starting
+    // from component.GameObject and needing the handle back.
     bool TryGetHandle(GameObject gameObject, out IPrefabHandle handle);
 
     T AddComponent<T>(IPrefabHandle handle, string key) where T : BaseComponent;
@@ -68,7 +75,8 @@ internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncI
     private readonly Dictionary<string, PrefabManagerData> _managerDataDict = new();
     private readonly Dictionary<string, PoolCache> _poolCaches = new();
     private readonly HashSet<PrefabData> _activeInstances = new();
-    // GameObject → handle 反查表。LoadPrefabAsync 写入，Release / Destroy 清除。
+    // GameObject -> handle reverse lookup. Populated by LoadPrefabAsync,
+    // cleared by Release / Destroy.
     private readonly Dictionary<GameObject, PrefabHandle> _goToHandle = new();
 
     private readonly List<PrefabData> _tickInstanceBuffer = new();
@@ -127,7 +135,7 @@ internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncI
                 if (type.IsAbstract) continue;
                 if (!typeof(BaseComponent).IsAssignableFrom(type)) continue;
                 if (!_typeOrderIndex.ContainsKey(type.Name))
-                    Debug.LogWarning($"[PrefabManager] 组件类型未登记在 ComponentOrder 中，将排到末尾: {type.Name}");
+                    Debug.LogWarning($"[PrefabManager] Component type is not registered in ComponentOrder and will be placed at the end: {type.Name}");
             }
         }
     }
@@ -158,7 +166,7 @@ internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncI
     public async UniTask<IPrefabHandle> LoadPrefabAsync(string key)
     {
         if (string.IsNullOrEmpty(key) || !_managerDataDict.TryGetValue(key, out var data))
-            throw new Exception($"非法的键值: {key}");
+            throw new Exception($"Invalid key: {key}");
 
         if (!_poolCaches.TryGetValue(key, out var poolCache))
         {
@@ -184,7 +192,7 @@ internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncI
             await poolCache.AssetCompletion.Task;
 
         if (poolCache.AssetHandle == null)
-            throw new Exception("预制体句柄无效");
+            throw new Exception("Prefab handle is invalid.");
 
         if (poolCache.InactiveQueue.Count == 0)
             CreatePooledInstance(poolCache, data);
@@ -305,7 +313,7 @@ internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncI
     public async UniTask DestroyPoolAsync(string key)
     {
         if (string.IsNullOrEmpty(key) || !_managerDataDict.ContainsKey(key))
-            throw new Exception($"非法的键值: {key}");
+            throw new Exception($"Invalid key: {key}");
 
         if (!_poolCaches.TryGetValue(key, out var poolCache)) return;
 
@@ -362,7 +370,7 @@ internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncI
         var prefabData = Resolve(handle);
         var typeKey = $"{typeof(T).Name}_{key}";
         if (prefabData.Components.ContainsKey(typeKey))
-            throw new Exception($"重复的键值: {typeKey}");
+            throw new Exception($"Duplicate key: {typeKey}");
 
         var component = _componentManager.CreateComponent<T>(key);
         prefabData.Components[typeKey] = component;
@@ -460,11 +468,11 @@ internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncI
     private PrefabData Resolve(IPrefabHandle handle)
     {
         if (handle is not PrefabHandle prefabHandle)
-            throw new InvalidOperationException("非法的预制体句柄");
+            throw new InvalidOperationException("Invalid prefab handle.");
 
         if (!_poolCaches.TryGetValue(prefabHandle.Key, out var poolCache) ||
             !poolCache.PrefabHandles.Contains(prefabHandle))
-            throw new InvalidOperationException("物体已回池，禁止继续操作组件");
+            throw new InvalidOperationException("Prefab instance has been returned to the pool; further component operations are not allowed.");
 
         return prefabHandle.PrefabData;
     }

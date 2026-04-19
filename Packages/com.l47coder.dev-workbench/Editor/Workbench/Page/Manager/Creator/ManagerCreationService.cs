@@ -226,7 +226,7 @@ internal static class ManagerCreationService
         builder.AppendLine($"        var typed = ({plan.ConfigClassName})config;");
         builder.AppendLine("        var list = typed.EditorConfigs;");
         builder.AppendLine();
-        builder.AppendLine("        // TODO: 在此编写自定义刷新逻辑");
+        builder.AppendLine("        // TODO: implement the custom refresh logic here.");
         builder.AppendLine();
         builder.AppendLine("        EditorUtility.SetDirty(typed);");
         builder.AppendLine("        AssetDatabase.SaveAssets();");
@@ -265,7 +265,7 @@ internal static class ManagerCreationService
             var configType = FindType($"{managerName}ManagerConfig");
             if (configType == null)
             {
-                Debug.LogError($"[ManagerCreationService] 未找到配置类型: {managerName}ManagerConfig");
+                Debug.LogError($"[ManagerCreationService] Config type not found: {managerName}ManagerConfig");
                 return;
             }
 
@@ -277,7 +277,7 @@ internal static class ManagerCreationService
         var settings = AddressableAssetSettingsDefaultObject.Settings;
         if (settings == null)
         {
-            Debug.LogWarning("[ManagerCreationService] Addressable Settings 不存在，已跳过 Addressable 配置。");
+            Debug.LogWarning("[ManagerCreationService] AddressableAssetSettings not found; skipping Addressables configuration.");
             return;
         }
 
@@ -291,7 +291,7 @@ internal static class ManagerCreationService
 
         AssetDatabase.SaveAssets();
         ManagerAssetIndex.Invalidate();
-        Debug.Log($"[ManagerCreationService] {managerName}Manager 创建成功。");
+        Debug.Log($"[ManagerCreationService] {managerName}Manager created successfully.");
     }
 
     private static Type FindType(string typeName)

@@ -33,7 +33,7 @@ public sealed partial class TableView
     private void DrawStringListCell(Rect rect, List<string> listValue, int rowIndex, object rowItem)
     {
         var summary = listValue.Count == 0
-            ? "(空)"
+            ? "(empty)"
             : $"[{listValue.Count}] {string.Join(", ", listValue)}";
 
         if (GUI.Button(rect, summary, StringListSummaryStyle))
@@ -125,7 +125,7 @@ public sealed partial class TableView
             var labelRect = new Rect(headerRect.x, headerRect.y,
                 headerRect.width - BtnW - 4f, headerRect.height);
 
-            EditorGUI.LabelField(labelRect, $"字符串列表 ({_list.Count})", EditorStyles.miniBoldLabel);
+            EditorGUI.LabelField(labelRect, $"Strings ({_list.Count})", EditorStyles.miniBoldLabel);
 
             if (GUI.Button(addRect, "＋"))
             {

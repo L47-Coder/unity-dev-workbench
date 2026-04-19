@@ -8,7 +8,7 @@ namespace DevWorkbench.Editor
 internal sealed class ComponentCreatorPage : IPage
 {
     public string GroupTitle => "Component";
-    public string TabTitle => "生成";
+    public string TabTitle => "Creator";
 
     private const float HPad = 16f;
     private const float VPad = 16f;
@@ -89,9 +89,9 @@ internal sealed class ComponentCreatorPage : IPage
     private void DrawInputSection()
     {
         BeginCard();
-        DrawHeader("输入");
+        DrawHeader("Input");
 
-        var newName = DrawEditableField("组件名称", _state.InputComponentName, _state.GetInputStatus());
+        var newName = DrawEditableField("Component name", _state.InputComponentName, _state.GetInputStatus());
         if (newName != _state.InputComponentName)
             _state.SetInputComponentName(newName);
 
@@ -111,9 +111,9 @@ internal sealed class ComponentCreatorPage : IPage
         _scroll = EditorGUILayout.BeginScrollView(_scroll, GUILayout.ExpandHeight(true));
         try
         {
-            DrawPreviewCard("类型名称", _state.GetNamePreviewItems());
+            DrawPreviewCard("Type names", _state.GetNamePreviewItems());
             GUILayout.Space(SectionSpacing);
-            DrawPreviewCard("输出路径", _state.GetPathPreviewItems());
+            DrawPreviewCard("Output paths", _state.GetPathPreviewItems());
             GUILayout.Space(SectionSpacing);
             DrawPreviewCard("Addressables", _state.GetAddressablePreviewItems());
             GUILayout.Space(SectionSpacing + 2f);
@@ -147,7 +147,7 @@ internal sealed class ComponentCreatorPage : IPage
 
         using (new EditorGUI.DisabledScope(!_state.IsValid))
         {
-            if (GUILayout.Button("创建组件", GUILayout.Height(CreateButtonHeight)))
+            if (GUILayout.Button("Create Component", GUILayout.Height(CreateButtonHeight)))
             {
                 ComponentCreationService.Execute(_state);
                 _state.Reset();
@@ -312,9 +312,9 @@ internal sealed class ComponentCreatorPage : IPage
 
     private static readonly (Color color, string label)[] LegendItems =
     {
-        (CreateColor, "新建"),
-        (WriteColor,  "覆写"),
-        (SkipColor,   "跳过"),
+        (CreateColor, "Create"),
+        (WriteColor,  "Write"),
+        (SkipColor,   "Skip"),
     };
 
     private static void DrawLegendRow()

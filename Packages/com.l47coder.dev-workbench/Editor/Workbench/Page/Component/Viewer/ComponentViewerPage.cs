@@ -11,7 +11,7 @@ namespace DevWorkbench.Editor
 internal sealed class ComponentViewerPage : IPage
 {
     public string GroupTitle => "Component";
-    public string TabTitle => "查看";
+    public string TabTitle => "Viewer";
 
     private const float SplitterVisualW = 1f;
     private const float LeftPanelMin = 100f;
@@ -95,7 +95,7 @@ internal sealed class ComponentRightPanel
     {
         if (string.IsNullOrEmpty(_currentPath))
         {
-            GUI.Label(rect, "未选中任何项", EditorStyles.centeredGreyMiniLabel);
+            GUI.Label(rect, "Nothing selected", EditorStyles.centeredGreyMiniLabel);
             return;
         }
 
@@ -123,7 +123,7 @@ internal sealed class ComponentRightPanel
         if (_cachedCsPath != path)
         {
             _cachedCsPath = path;
-            _cachedCsText = File.Exists(path) ? File.ReadAllText(path) : "(文件读取失败)";
+            _cachedCsText = File.Exists(path) ? File.ReadAllText(path) : "(failed to read file)";
         }
         _csTextView.Draw(rect, _cachedCsText);
     }
@@ -156,7 +156,7 @@ internal sealed class ComponentRightPanel
 
         if (_cachedAsset == null || _cachedList == null || _cachedDrawMethod == null)
         {
-            GUI.Label(rect, "无法读取配置列表", EditorStyles.centeredGreyMiniLabel);
+            GUI.Label(rect, "Failed to read the config list.", EditorStyles.centeredGreyMiniLabel);
             return;
         }
 

@@ -11,7 +11,7 @@ namespace DevWorkbench.Editor
 internal sealed class ManagerViewerPage : IPage
 {
     public string GroupTitle => "Manager";
-    public string TabTitle => "查看";
+    public string TabTitle => "Viewer";
 
     private const float SplitterVisualW = 1f;
     private const float LeftPanelMin = 100f;
@@ -99,7 +99,7 @@ internal sealed class ManagerRightPanel
     {
         if (string.IsNullOrEmpty(_currentPath))
         {
-            GUI.Label(rect, "未选中任何项", EditorStyles.centeredGreyMiniLabel);
+            GUI.Label(rect, "Nothing selected", EditorStyles.centeredGreyMiniLabel);
             return;
         }
 
@@ -127,7 +127,7 @@ internal sealed class ManagerRightPanel
         if (_cachedCsPath != path)
         {
             _cachedCsPath = path;
-            _cachedCsText = File.Exists(path) ? File.ReadAllText(path) : "(文件读取失败)";
+            _cachedCsText = File.Exists(path) ? File.ReadAllText(path) : "(failed to read file)";
         }
         _csTextView.Draw(rect, _cachedCsText);
     }
@@ -169,7 +169,7 @@ internal sealed class ManagerRightPanel
 
         if (_cachedAsset == null || _cachedList == null || _cachedDrawMethod == null)
         {
-            GUI.Label(rect, "无法读取配置列表", EditorStyles.centeredGreyMiniLabel);
+            GUI.Label(rect, "Failed to read the config list.", EditorStyles.centeredGreyMiniLabel);
             return;
         }
 
@@ -196,7 +196,7 @@ internal sealed class ManagerRightPanel
     {
         if (_cachedRefresher == null || _cachedAsset == null)
         {
-            Debug.LogWarning("[ManagerViewerPage] 未找到刷新脚本或配置资产。");
+            Debug.LogWarning("[ManagerViewerPage] Refresher script or config asset was not found.");
             return;
         }
 
@@ -211,7 +211,7 @@ internal sealed class ManagerRightPanel
         if (_cachedRefresherScript != null)
             AssetDatabase.OpenAsset(_cachedRefresherScript);
         else
-            Debug.LogWarning("[ManagerViewerPage] 未找到刷新脚本。");
+            Debug.LogWarning("[ManagerViewerPage] Refresher script was not found.");
     }
 }
 }

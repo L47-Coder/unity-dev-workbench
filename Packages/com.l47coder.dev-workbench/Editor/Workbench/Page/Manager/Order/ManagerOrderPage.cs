@@ -8,7 +8,7 @@ namespace DevWorkbench.Editor
 internal sealed class ManagerOrderPage : IPage
 {
     public string GroupTitle => "Manager";
-    public string TabTitle => "顺序";
+    public string TabTitle => "Order";
 
     private ManagerOrderConfig _config;
     private readonly TableView _tableView = new() { CanAdd = false, CanRemove = false, SearchField = "Manager", ShowToolbarButtons = false };
@@ -30,7 +30,7 @@ internal sealed class ManagerOrderPage : IPage
     {
         if (_config == null)
         {
-            GUI.Label(rect, "配置加载失败", EditorStyles.centeredGreyMiniLabel);
+            GUI.Label(rect, "Failed to load config.", EditorStyles.centeredGreyMiniLabel);
             return;
         }
 

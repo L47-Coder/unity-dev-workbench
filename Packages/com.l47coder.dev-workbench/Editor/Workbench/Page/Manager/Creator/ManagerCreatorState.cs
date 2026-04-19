@@ -136,7 +136,7 @@ internal sealed class ManagerCreatorState
         var normalizedName = managerName.Trim();
         if (!ValidManagerNameRegex.IsMatch(normalizedName))
         {
-            ErrorMessage = "管理器名称必须符合 PascalCase，且只能包含字母和数字。";
+            ErrorMessage = "Manager name must be PascalCase and contain only letters and digits.";
             IsValid = false;
             ClearOutput();
             return;
@@ -172,21 +172,21 @@ internal sealed class ManagerCreatorState
 
         if (string.IsNullOrEmpty(normalizedParentPath))
         {
-            errorMessage = "无效的父文件夹";
+            errorMessage = "Invalid parent folder.";
             return false;
         }
 
         var normalizedRoot = RootAssetPath.Replace('\\', '/').TrimEnd('/');
         if (!normalizedParentPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
         {
-            errorMessage = "父文件夹必须在管理器根目录下";
+            errorMessage = "Parent folder must be inside the manager root.";
             return false;
         }
 
         EnsureFolder(normalizedParentPath);
         if (!AssetDatabase.IsValidFolder(normalizedParentPath))
         {
-            errorMessage = "无效的父文件夹";
+            errorMessage = "Invalid parent folder.";
             return false;
         }
 
@@ -264,41 +264,41 @@ internal sealed class ManagerCreatorState
         _namePreviewItems = IncludeConfig
             ? new[]
             {
-                new PreviewItem("接口类型名", ManagerInterfaceName, managerStatus),
-                new PreviewItem("管理器类名", ManagerClassName, managerStatus),
-                new PreviewItem("配置类名", ConfigClassName, generatedStatus),
-                new PreviewItem("数据类名", ManagerDataStructName, generatedStatus),
+                new PreviewItem("Interface", ManagerInterfaceName, managerStatus),
+                new PreviewItem("Manager class", ManagerClassName, managerStatus),
+                new PreviewItem("Config class", ConfigClassName, generatedStatus),
+                new PreviewItem("Data class", ManagerDataStructName, generatedStatus),
             }
             : new[]
             {
-                new PreviewItem("接口类型名", ManagerInterfaceName, managerStatus),
-                new PreviewItem("管理器类名", ManagerClassName, managerStatus),
+                new PreviewItem("Interface", ManagerInterfaceName, managerStatus),
+                new PreviewItem("Manager class", ManagerClassName, managerStatus),
             };
 
         _pathPreviewItems = IncludeConfig
             ? new[]
             {
-                new PreviewItem("管理器脚本", _managerFileExists ? _existingManagerFilePath : ManagerTargetFilePath, managerStatus),
-                new PreviewItem("生成目录", GeneratedFolderPath, generatedStatus),
-                new PreviewItem("资源文件", _assetExists ? _existingAssetPath : AssetTargetFilePath, assetStatus),
-                new PreviewItem("刷新脚本", _refresherFileExists ? _existingRefresherFilePath : RefresherFilePath, refresherStatus),
+                new PreviewItem("Manager script", _managerFileExists ? _existingManagerFilePath : ManagerTargetFilePath, managerStatus),
+                new PreviewItem("Generated folder", GeneratedFolderPath, generatedStatus),
+                new PreviewItem("Asset file", _assetExists ? _existingAssetPath : AssetTargetFilePath, assetStatus),
+                new PreviewItem("Refresher script", _refresherFileExists ? _existingRefresherFilePath : RefresherFilePath, refresherStatus),
             }
             : new[]
             {
-                new PreviewItem("管理器脚本", _managerFileExists ? _existingManagerFilePath : ManagerTargetFilePath, managerStatus),
-                new PreviewItem("生成目录", GeneratedFolderPath, generatedStatus),
+                new PreviewItem("Manager script", _managerFileExists ? _existingManagerFilePath : ManagerTargetFilePath, managerStatus),
+                new PreviewItem("Generated folder", GeneratedFolderPath, generatedStatus),
             };
 
         _addressablePreviewItems = IncludeConfig
             ? new[]
             {
-                new PreviewItem("资源分组", AddressableGroupName, assetStatus),
-                new PreviewItem("资源地址", AddressableAddressName, assetStatus),
+                new PreviewItem("Addressable group", AddressableGroupName, assetStatus),
+                new PreviewItem("Addressable address", AddressableAddressName, assetStatus),
             }
             : new[]
             {
-                new PreviewItem("资源分组", "—", PreviewStatus.Neutral),
-                new PreviewItem("资源地址", "（未启用配置）", PreviewStatus.Neutral),
+                new PreviewItem("Addressable group", "—", PreviewStatus.Neutral),
+                new PreviewItem("Addressable address", "(config disabled)", PreviewStatus.Neutral),
             };
     }
 

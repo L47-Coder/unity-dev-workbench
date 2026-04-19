@@ -22,7 +22,7 @@ Packages/
 
 Everything under `Assets/` is the host project: it exists so maintainers have
 something to click through while iterating on the package. On first launch of
-`Tools → DevWorkbench`, the workbench scaffolds the default layout under
+`Tools → Dev Workbench`, the workbench scaffolds the default layout under
 `Assets/Game/` from the templates in `Packages/com.l47coder.dev-workbench/Runtime~/DefaultManagers/`.
 
 ## Prerequisites
@@ -44,7 +44,7 @@ dependencies (Addressables, UniTask, VContainer) on first open.
 
 Then:
 
-1. Open `Tools → DevWorkbench`. If the side panel says *"Framework not
+1. Open `Tools → Dev Workbench`. If the side panel says *"Framework not
    initialised"*, click **Initialise** — this creates the three order assets
    and deploys the default Managers under `Assets/Game/`.
 2. Make your changes under `Packages/com.l47coder.dev-workbench/`.
@@ -93,6 +93,94 @@ The package follows [Semantic Versioning](https://semver.org/) and
   promoting the `Unreleased` section to the new version heading, and tagging
   the commit as `v<version>` (e.g. `v0.2.0`).
 
+## Release flow
+
+Every release follows the same six-step ritual. The tag name is always
+`v<version>`, taken verbatim from the value in `package.json` with a leading
+`v` — e.g. `version: "0.2.0"` → tag `v0.2.0`, `version: "1.0.0-rc.1"` → tag
+`v1.0.0-rc.1`.
+
+1. **Make sure `main` is clean and up-to-date.**
+
+   ```bash
+   git checkout main
+   git pull --ff-only
+   git status  # should be clean
+   ```
+
+2. **Bump the package version.** Edit
+   `Packages/com.l47coder.dev-workbench/package.json` and set `version` to the
+   new value. Follow [SemVer](https://semver.org/):
+   - `0.x` → public API may still break between minors
+   - pre-releases use `-preview.N`, `-rc.N`, `-beta.N` suffixes
+   - `1.0.0` is the first commitment to a stable public API
+
+3. **Promote the CHANGELOG entry.** In
+   `Packages/com.l47coder.dev-workbench/CHANGELOG.md`:
+   - rename the top `## [Unreleased]` section to
+     `## [<new-version>] — YYYY-MM-DD`
+   - open a fresh empty `## [Unreleased]` above it so future PRs have somewhere
+     to land
+
+4. **Commit and push.**
+
+   ```bash
+   git add Packages/com.l47coder.dev-workbench/package.json \
+           Packages/com.l47coder.dev-workbench/CHANGELOG.md
+   git commit -m "chore(release): v<new-version>"
+   git push origin main
+   ```
+
+5. **Create the tag.** Always use an annotated tag (not lightweight) so the
+   author and date are recorded:
+
+   ```bash
+   git tag -a v<new-version> -m "Dev Workbench <new-version>"
+   git push origin v<new-version>
+   ```
+
+   If you tagged the wrong commit *and* nobody has depended on it yet, delete
+   both sides before re-tagging:
+
+   ```bash
+   git tag -d v<new-version>
+   git push origin :refs/tags/v<new-version>
+   ```
+
+6. **Publish the GitHub Release.** Prefer the CLI:
+
+   ```bash
+   # Pre-release (preview / rc / beta) — keeps the "Latest" badge off
+   gh release create v<new-version> \
+     --title "v<new-version>" \
+     --notes-file release-notes.md \
+     --prerelease
+
+   # Stable release
+   gh release create v<new-version> \
+     --title "v<new-version>" \
+     --notes-file release-notes.md
+   ```
+
+   `release-notes.md` is a throwaway file holding the CHANGELOG section for
+   this version. If you don't want to curate it, `--generate-notes` will build
+   a PR-based summary automatically.
+
+   Alternatively, open
+   `https://github.com/L47-Coder/unity-dev-workbench/releases/new`, pick the
+   existing tag, paste the CHANGELOG entry, tick **Set as a pre-release** for
+   any `-preview` / `-rc` / `-beta` version, and publish.
+
+### Post-release verification
+
+- The tag appears at <https://github.com/L47-Coder/unity-dev-workbench/tags>.
+- The release appears at <https://github.com/L47-Coder/unity-dev-workbench/releases>.
+- UPM install with the tag works:
+
+  ```
+  https://github.com/L47-Coder/unity-dev-workbench.git?path=Packages/com.l47coder.dev-workbench#v<new-version>
+  ```
+
 ## Pull requests
 
 1. Open an issue first for non-trivial changes so we can agree on scope.
@@ -131,7 +219,7 @@ By contributing, you agree that your contributions will be licensed under the
 Unity 会即时识别，不需要重新安装。
 
 `Assets/` 下是宿主工程，用于维护者日常点测。首次打开
-`Tools → DevWorkbench` 时，工作台会把
+`Tools → Dev Workbench` 时，工作台会把
 `Packages/com.l47coder.dev-workbench/Runtime~/DefaultManagers/` 下的模板
 部署到 `Assets/Game/`。
 
@@ -149,7 +237,7 @@ git clone https://github.com/L47-Coder/unity-dev-workbench.git
 
 用 Unity Hub 打开根目录。打开后：
 
-1. 菜单栏 `Tools → DevWorkbench`，若提示"架构未完成"，点击"一键完成"。
+1. 菜单栏 `Tools → Dev Workbench`，若侧栏提示 *"Framework not initialised"*，点击 **Initialise**。
 2. 在 `Packages/com.l47coder.dev-workbench/` 下进行改动。
 3. 通过工作台面板或测试场景走一遍修改影响的流程。
 
@@ -185,6 +273,87 @@ git clone https://github.com/L47-Coder/unity-dev-workbench.git
   [`Packages/com.l47coder.dev-workbench/package.json`](./Packages/com.l47coder.dev-workbench/package.json)
   的 `version`，把 `Unreleased` 改为正式版本号，并打上 `v<version>` 的
   Git tag（例如 `v0.2.0`）。
+
+### 发版流程
+
+每次发版都按同一套六步走。tag 名永远是 `v<version>`，也就是 `package.json`
+里的 `version` 前面加个 `v`：`"0.2.0"` → `v0.2.0`，`"1.0.0-rc.1"` →
+`v1.0.0-rc.1`。
+
+1. **保证 `main` 是干净的。**
+
+   ```bash
+   git checkout main
+   git pull --ff-only
+   git status
+   ```
+
+2. **改包版本号。** 编辑
+   `Packages/com.l47coder.dev-workbench/package.json` 的 `version`。遵循
+   [SemVer](https://semver.org/lang/zh-CN/)：
+   - `0.x` 阶段，小版本之间允许破坏性变更
+   - 预发布用 `-preview.N` / `-rc.N` / `-beta.N` 后缀
+   - `1.0.0` 是对外正式承诺 API 稳定的第一版
+
+3. **推进 CHANGELOG。** 在
+   `Packages/com.l47coder.dev-workbench/CHANGELOG.md` 里：
+   - 把顶部的 `## [Unreleased]` 改为 `## [<新版本号>] — YYYY-MM-DD`
+   - 在它上面新开一个空的 `## [Unreleased]`，供下一批 PR 落脚
+
+4. **提交并推送。**
+
+   ```bash
+   git add Packages/com.l47coder.dev-workbench/package.json \
+           Packages/com.l47coder.dev-workbench/CHANGELOG.md
+   git commit -m "chore(release): v<新版本号>"
+   git push origin main
+   ```
+
+5. **打 tag。** 一律使用 annotated tag（不要用 lightweight tag）：
+
+   ```bash
+   git tag -a v<新版本号> -m "Dev Workbench <新版本号>"
+   git push origin v<新版本号>
+   ```
+
+   如果打错了 tag 且**还没有人依赖它**，可以先删再重打：
+
+   ```bash
+   git tag -d v<新版本号>
+   git push origin :refs/tags/v<新版本号>
+   ```
+
+6. **在 GitHub 上发 Release。** 推荐 CLI：
+
+   ```bash
+   # 预发布版本(preview / rc / beta)，保持侧栏 "Latest" 不被占用
+   gh release create v<新版本号> \
+     --title "v<新版本号>" \
+     --notes-file release-notes.md \
+     --prerelease
+
+   # 正式版本
+   gh release create v<新版本号> \
+     --title "v<新版本号>" \
+     --notes-file release-notes.md
+   ```
+
+   `release-notes.md` 是一个临时文件，内容就是 CHANGELOG 里本版本那一节。懒得
+   写可以用 `--generate-notes` 让 GitHub 按 PR 自动生成。
+
+   也可以走网页：`https://github.com/L47-Coder/unity-dev-workbench/releases/new`，
+   选上一步推上去的 tag，粘贴 CHANGELOG 那一节，`-preview` / `-rc` / `-beta`
+   版务必勾 **Set as a pre-release**，然后 Publish。
+
+#### 发版后的自检
+
+- tag 出现在 <https://github.com/L47-Coder/unity-dev-workbench/tags>
+- Release 出现在 <https://github.com/L47-Coder/unity-dev-workbench/releases>
+- 用 tag 锁版本装包可用：
+
+  ```
+  https://github.com/L47-Coder/unity-dev-workbench.git?path=Packages/com.l47coder.dev-workbench#v<新版本号>
+  ```
 
 ### Pull Request
 

@@ -324,7 +324,7 @@ public sealed partial class TableView
                 Event.current.Use();
             }
             else if (field == null)
-                EditorGUI.LabelField(PaddedRect(cell), $"缺少 {_columns[i].RelativePropertyPath}", EditorStyles.wordWrappedMiniLabel);
+                EditorGUI.LabelField(PaddedRect(cell), $"Missing field: {_columns[i].RelativePropertyPath}", EditorStyles.wordWrappedMiniLabel);
             else
             {
                 using (new EditorGUI.DisabledScope(!_columns[i].Editable || isDragFloating))

@@ -36,7 +36,7 @@ internal static class FrameAssetInstaller
         var settings = AddressableAssetSettingsDefaultObject.GetSettings(true);
         if (settings == null)
         {
-            Debug.LogError("[FrameAssetInstaller] 创建 AddressableAssetSettings 失败。");
+            Debug.LogError("[FrameAssetInstaller] Failed to create AddressableAssetSettings.");
             return false;
         }
 
@@ -91,7 +91,7 @@ internal static class FrameAssetInstaller
         var settings = AddressableAssetSettingsDefaultObject.Settings;
         if (settings == null)
         {
-            Debug.LogWarning($"[FrameAssetInstaller] Addressable Settings 不存在，跳过 {assetPath} 注册。");
+            Debug.LogWarning($"[FrameAssetInstaller] AddressableAssetSettings not found; skipping registration of {assetPath}.");
             return false;
         }
 

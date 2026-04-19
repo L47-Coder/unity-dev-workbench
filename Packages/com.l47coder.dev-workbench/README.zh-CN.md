@@ -15,7 +15,7 @@
 - **两层结构**：架构层（`DevWorkbench`）只管生命周期与契约；调度层
   （`Game.Managers`）住在宿主工程的 `Assets/Game/Manager/` 下，随时可改、可扩、
   可删。
-- **DevWorkbench 编辑器面板**：`Tools&nbsp;&rarr;&nbsp;DevWorkbench` 提供树 /
+- **DevWorkbench 编辑器面板**：`Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench` 提供树 /
   表 / 顺序三种视图管理 Manager、Component、Addressable 分组；Creator 页面一键
   生成 Manager（`.cs` + `Data` / `Config` partial + `ScriptableObject` 资产 +
   Addressable 入口）。
@@ -62,11 +62,11 @@ https://github.com/L47-Coder/unity-dev-workbench.git?path=Packages/com.l47coder.
 ## 快速上手
 
 1. 安装本包。
-2. 打开 `Tools&nbsp;&rarr;&nbsp;DevWorkbench`。首次打开时会自动创建：
+2. 打开 `Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench`。首次打开时会自动创建：
    - `Assets/Game/Frame/{ManagerOrder,ComponentOrder,PageOrder}.asset`
    - `Assets/Game/Manager/{Asset,Component,Prefab}/` 下的三个默认 Manager 与
      共用的 `Game.Managers.asmdef`。
-3. 如果侧栏提示"架构未完成"，点击"一键完成"。
+3. 如果侧栏提示 *"Framework not initialised"*，点击 **Initialise**。
 4. 在 *Manager&nbsp;/&nbsp;Creator* 页面创建自己的 Manager，或在
    *Component&nbsp;/&nbsp;Creator* 页面创建 Component。
 

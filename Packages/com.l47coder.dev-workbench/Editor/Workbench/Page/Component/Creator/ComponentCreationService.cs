@@ -187,7 +187,7 @@ internal static class ComponentCreationService
             var configType = FindType($"{componentName}ComponentConfig");
             if (configType == null)
             {
-                Debug.LogError($"[ComponentCreationService] 未找到配置类型: {componentName}ComponentConfig");
+                Debug.LogError($"[ComponentCreationService] Config type not found: {componentName}ComponentConfig");
                 return;
             }
 
@@ -199,7 +199,7 @@ internal static class ComponentCreationService
         var settings = AddressableAssetSettingsDefaultObject.Settings;
         if (settings == null)
         {
-            Debug.LogWarning("[ComponentCreationService] Addressable Settings 不存在，已跳过 Addressable 配置。");
+            Debug.LogWarning("[ComponentCreationService] AddressableAssetSettings not found; skipping Addressables configuration.");
             return;
         }
 
@@ -213,7 +213,7 @@ internal static class ComponentCreationService
 
         AssetDatabase.SaveAssets();
         ComponentAssetIndex.Invalidate();
-        Debug.Log($"[ComponentCreationService] {componentName}Component 创建成功。");
+        Debug.Log($"[ComponentCreationService] {componentName}Component created successfully.");
     }
 
     private static Type FindType(string typeName)

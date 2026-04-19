@@ -109,7 +109,7 @@ internal sealed class ComponentCreatorState
         var parent = (parentAssetPath ?? string.Empty).Replace('\\', '/').TrimEnd('/');
         if (string.IsNullOrEmpty(parent))
         {
-            ErrorMessage = "无效的父文件夹";
+            ErrorMessage = "Invalid parent folder.";
             IsValid = false;
             ClearDerived();
             return;
@@ -118,7 +118,7 @@ internal sealed class ComponentCreatorState
         var root = RootAssetPath.TrimEnd('/');
         if (!parent.StartsWith(root, StringComparison.OrdinalIgnoreCase))
         {
-            ErrorMessage = "父文件夹必须在组件根目录下";
+            ErrorMessage = "Parent folder must be inside the component root.";
             IsValid = false;
             ClearDerived();
             return;
@@ -127,7 +127,7 @@ internal sealed class ComponentCreatorState
         EnsureFolder(parent);
         if (!AssetDatabase.IsValidFolder(parent))
         {
-            ErrorMessage = "无效的父文件夹";
+            ErrorMessage = "Invalid parent folder.";
             IsValid = false;
             ClearDerived();
             return;
@@ -136,7 +136,7 @@ internal sealed class ComponentCreatorState
         var trimmed = name.Trim();
         if (!ValidName.IsMatch(trimmed))
         {
-            ErrorMessage = "组件名必须符合C#命名规范";
+            ErrorMessage = "Component name must follow C# naming conventions (PascalCase).";
             IsValid = false;
             ClearDerived();
             return;
@@ -173,21 +173,21 @@ internal sealed class ComponentCreatorState
 
         _nameItems = new[]
         {
-            new PreviewItem("组件类名", ComponentClassName,     cs),
-            new PreviewItem("数据类名", ComponentDataClassName, cs),
-            new PreviewItem("配置类名", ConfigClassName,        cfg),
+            new PreviewItem("Component class", ComponentClassName,     cs),
+            new PreviewItem("Data class",      ComponentDataClassName, cs),
+            new PreviewItem("Config class",    ConfigClassName,        cfg),
         };
         _pathItems = new[]
         {
-            new PreviewItem("组件脚本",
+            new PreviewItem("Component script",
                 _componentFileExists ? _existingComponentFile : ComponentFilePath, cs),
-            new PreviewItem("生成目录", GeneratedFolderPath, cfg),
-            new PreviewItem("资源文件", _assetExists ? _existingAsset : AssetFilePath, asset),
+            new PreviewItem("Generated folder", GeneratedFolderPath, cfg),
+            new PreviewItem("Asset file", _assetExists ? _existingAsset : AssetFilePath, asset),
         };
         _addressableItems = new[]
         {
-            new PreviewItem("资源分组", AddressableGroupName, asset),
-            new PreviewItem("资源地址", AddressableAddress,   asset),
+            new PreviewItem("Addressable group",   AddressableGroupName, asset),
+            new PreviewItem("Addressable address", AddressableAddress,   asset),
         };
     }
 

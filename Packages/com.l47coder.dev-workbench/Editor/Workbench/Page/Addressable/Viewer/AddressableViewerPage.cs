@@ -15,7 +15,7 @@ namespace DevWorkbench.Editor
 internal sealed class AddressableViewerPage : IPage
 {
     public string GroupTitle => "Addressable";
-    public string TabTitle => "查看";
+    public string TabTitle => "Viewer";
 
     private const float SplitterVisualW = 1f;
     private const float LeftPanelMin = 100f;
@@ -109,7 +109,7 @@ internal sealed class AddressableGroupPanel
         {
             var inner = new Rect(rect.x + 8f, rect.y + 8f, rect.width - 16f, rect.height - 16f);
             GUI.Label(inner,
-                "未找到 AddressableAssetSettings。\n请先通过菜单 Window → Asset Management → Addressables → Groups 创建配置。",
+                "AddressableAssetSettings not found.\nUse Window → Asset Management → Addressables → Groups to create the configuration first.",
                 EditorStyles.wordWrappedLabel);
             return;
         }
@@ -156,9 +156,9 @@ internal sealed class AddressableGroupPanel
         if (index < 0 || index >= _visibleGroups.Count) return;
         var group = _visibleGroups[index];
         if (!EditorUtility.DisplayDialog(
-                "确认删除",
-                $"确认删除组「{group.Name}」？组内的条目将被移除，但资产文件不受影响。",
-                "删除", "取消"))
+                "Confirm deletion",
+                $"Delete group \"{group.Name}\"? Its entries will be removed, but the underlying asset files will not be touched.",
+                "Delete", "Cancel"))
             return;
         var settings = AddressableAssetSettingsDefaultObject.Settings;
         if (settings == null) return;
@@ -316,7 +316,7 @@ internal sealed class AddressableGroupPanel
         }
         catch (Exception ex)
         {
-            Debug.LogWarning($"[AddressableViewerPage] SyncNativeGroupTreeSortOrder 失败：{ex.Message}");
+            Debug.LogWarning($"[AddressableViewerPage] SyncNativeGroupTreeSortOrder failed: {ex.Message}");
         }
     }
 
@@ -385,7 +385,7 @@ internal sealed class AddressableEntryPanel
         var group = _currentGroup;
         if (group == null)
         {
-            GUI.Label(rect, "未选中任何组", EditorStyles.centeredGreyMiniLabel);
+            GUI.Label(rect, "No group selected", EditorStyles.centeredGreyMiniLabel);
             return;
         }
 

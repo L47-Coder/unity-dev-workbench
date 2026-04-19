@@ -20,9 +20,9 @@ public sealed partial class TreeView
 
     // ── Configurable labels ─────────────────────────────────────────────
 
-    private string _searchPlaceholder = "搜索...";
-    private string _renameLabel = "重命名";
-    private string _deleteLabel = "删除";
+    private string _searchPlaceholder = "Search...";
+    private string _renameLabel = "Rename";
+    private string _deleteLabel = "Delete";
 
     // ── Core state ──────────────────────────────────────────────────────
 

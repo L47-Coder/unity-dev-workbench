@@ -57,10 +57,10 @@ public sealed partial class TableView
     private Action _onRefreshClicked;
     private Action _onViewRefresherClicked;
 
-    // ── Configurable labels (defaults: Chinese) ─────────────────────────
+    // ── Configurable labels ─────────────────────────────────────────────
 
-    private string _searchPlaceholder = "搜索...";
-    private string _copyLabel = "复制";
+    private string _searchPlaceholder = "Search...";
+    private string _copyLabel = "Copy";
 
     // ── Internal types ──────────────────────────────────────────────────
 

@@ -8,7 +8,7 @@ namespace DevWorkbench.Editor
 internal sealed class ManagerCreatorPage : IPage
 {
     public string GroupTitle => "Manager";
-    public string TabTitle => "生成";
+    public string TabTitle => "Creator";
 
     private const float HPad = 16f;
     private const float VPad = 16f;
@@ -95,9 +95,9 @@ internal sealed class ManagerCreatorPage : IPage
     private void DrawInputSection()
     {
         BeginCard();
-        DrawHeader("输入");
+        DrawHeader("Input");
 
-        var newName = DrawEditableField("管理器名称", _state.InputManagerName, _state.GetInputStatus());
+        var newName = DrawEditableField("Manager name", _state.InputManagerName, _state.GetInputStatus());
         if (newName != _state.InputManagerName)
             _state.SetInputManagerName(newName);
 
@@ -120,9 +120,9 @@ internal sealed class ManagerCreatorPage : IPage
         _scroll = EditorGUILayout.BeginScrollView(_scroll, GUILayout.ExpandHeight(true));
         try
         {
-            DrawPreviewCard("类型名称", _state.GetNamePreviewItems());
+            DrawPreviewCard("Type names", _state.GetNamePreviewItems());
             GUILayout.Space(SectionSpacing);
-            DrawPreviewCard("输出路径", _state.GetPathPreviewItems());
+            DrawPreviewCard("Output paths", _state.GetPathPreviewItems());
             if (_state.IncludeConfig)
             {
                 GUILayout.Space(SectionSpacing);
@@ -165,11 +165,11 @@ internal sealed class ManagerCreatorPage : IPage
             rect.y + (rect.height - EditorGUIUtility.singleLineHeight) * 0.5f,
             34f, EditorGUIUtility.singleLineHeight);
 
-        EditorGUI.LabelField(titleRect, "包含配置", ConfigTitleStyle);
+        EditorGUI.LabelField(titleRect, "Include config", ConfigTitleStyle);
         EditorGUI.LabelField(descRect,
             isOn
-                ? "将生成 Generated/ 下的配置、数据、管理器 partial 脚本，以及配置资产和 Addressables 信息。"
-                : "将生成主脚本与 Generated/ 下的管理器 partial 桩代码，无配置资产。",
+                ? "Generates the config, data and manager partials under Generated/, plus the config asset and Addressables entry."
+                : "Generates the main script and the manager partial stub under Generated/, without a config asset.",
             ConfigDescStyle);
 
         var next = EditorGUI.Toggle(toggleRect, isOn);
@@ -196,7 +196,7 @@ internal sealed class ManagerCreatorPage : IPage
 
         using (new EditorGUI.DisabledScope(!_state.IsValid))
         {
-            if (GUILayout.Button("创建管理器", GUILayout.Height(CreateButtonHeight)))
+            if (GUILayout.Button("Create Manager", GUILayout.Height(CreateButtonHeight)))
             {
                 ManagerCreationService.CreateManager(_state);
                 _state.Reset();
@@ -361,9 +361,9 @@ internal sealed class ManagerCreatorPage : IPage
 
     private static readonly (Color color, string label)[] LegendItems =
     {
-        (CreateColor, "新建"),
-        (WriteColor,  "覆写"),
-        (SkipColor,   "跳过"),
+        (CreateColor, "Create"),
+        (WriteColor,  "Write"),
+        (SkipColor,   "Skip"),
     };
 
     private static void DrawLegendRow()

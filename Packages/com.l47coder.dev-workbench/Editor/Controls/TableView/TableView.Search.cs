@@ -20,8 +20,8 @@ public sealed partial class TableView
 
         // 由表头文本（而非字段名）决定占位文本，用户可读性更高。
         var displayName = hasSearchCol ? searchCol.Value.Header : SearchField;
-        var placeholder = $"根据 {displayName} {_searchPlaceholder}";
-        var disabledHint = $"当前表格没有 {displayName} 字段";
+        var placeholder = $"Search by {displayName}...";
+        var disabledHint = $"No \"{displayName}\" column in this table";
 
         ControlsToolbar.DrawSearchBar(
             rect, ref _searchField, ref _searchText,

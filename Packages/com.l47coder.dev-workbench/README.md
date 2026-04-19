@@ -18,7 +18,7 @@ Addressable groups.
   lifecycle and contracts; the dispatch layer (`Game.Managers`) lives in your
   project under `Assets/Game/Manager/` and is free to be modified, extended or
   replaced.
-- **DevWorkbench editor panel.** Tools&nbsp;&rarr;&nbsp;DevWorkbench gives you
+- **DevWorkbench editor panel.** Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench gives you
   tree / table / order views for every Manager, Component and Addressable
   group, plus a Creator that scaffolds a new Manager (`.cs` + generated
   `Data` / `Config` partials + `ScriptableObject` asset + Addressable entry)
@@ -70,7 +70,7 @@ pick it up automatically as an embedded package.
 ## Quick Start
 
 1. Install the package.
-2. Open `Tools&nbsp;&rarr;&nbsp;DevWorkbench`. On first launch the workbench
+2. Open `Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench`. On first launch the workbench
    creates:
    - `Assets/Game/Frame/{ManagerOrder,ComponentOrder,PageOrder}.asset`
    - `Assets/Game/Manager/{Asset,Component,Prefab}/` with the three default

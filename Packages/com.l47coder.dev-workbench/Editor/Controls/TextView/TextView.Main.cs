@@ -11,7 +11,7 @@ public sealed partial class TextView
 {
     private static readonly Regex StripTagsRegex = new(@"<[^>]+>", RegexOptions.Compiled);
 
-    private string _copyLabel = "复制";
+    private string _copyLabel = "Copy";
 
     private static Color DefaultTextColor =>
         EditorGUIUtility.isProSkin

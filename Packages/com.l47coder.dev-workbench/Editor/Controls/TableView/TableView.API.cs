@@ -7,79 +7,82 @@ using DevWorkbench;
 namespace DevWorkbench.Editor
 {
 
-// TableColumnAttribute 已迁移至 Runtime 程序集（Runtime/Frame/Attribute/TableColumnAttribute.cs）。
+// TableColumnAttribute has moved to the Runtime assembly
+// (Runtime/Frame/Attribute/TableColumnAttribute.cs).
 
 #if UNITY_EDITOR
 /// <summary>
-/// IMGUI 表格控件，自带边框、工具栏（搜索 + 刷新 / 查看按钮）、列头 / 行编辑 / 拖拽排序。
-/// <para>通过 partial class 拆分为 State、API、Rendering、Search、Layout、Columns、Reorder。</para>
+/// IMGUI table control with its own border, toolbar (search + refresh / view-script
+/// buttons), column headers, inline row editing and drag-to-reorder.
+/// <para>The implementation is split across partial files: State, API, Rendering, Search,
+/// Layout, Columns and Reorder.</para>
 /// </summary>
 public sealed partial class TableView
 {
     // ── Properties ──────────────────────────────────────────────────────
 
-    /// <summary>是否允许拖拽排序行。</summary>
+    /// <summary>Whether rows can be reordered by dragging.</summary>
     public bool CanDrag { get; set; } = true;
 
-    /// <summary>是否允许在表头添加行。</summary>
+    /// <summary>Whether new rows can be added from the toolbar.</summary>
     public bool CanAdd { get; set; } = true;
 
-    /// <summary>是否允许删除行。</summary>
+    /// <summary>Whether rows can be removed.</summary>
     public bool CanRemove { get; set; } = true;
 
-    /// <summary>是否允许点击索引列选中行。</summary>
+    /// <summary>Whether clicking the index column selects the row.</summary>
     public bool CanSelect { get; set; } = true;
 
-    /// <summary>是否显示工具栏右侧的刷新 / 查看脚本按钮。</summary>
+    /// <summary>Whether to show the refresh / view-script buttons on the right of the toolbar.</summary>
     public bool ShowToolbarButtons { get; set; } = true;
 
-    /// <summary>按哪个字段搜索（字段名或列头名），默认 "Key"。</summary>
+    /// <summary>Field (field name or column header) used for searching. Defaults to "Key".</summary>
     public string SearchField { get; set; } = "Key";
 
-    /// <summary>当前选中行索引（-1 表示无选中）。</summary>
+    /// <summary>Index of the currently selected row (-1 if none).</summary>
     public int SelectedIndex
     {
         get => _selectedIndex;
         set => _selectedIndex = value;
     }
 
-    /// <summary>搜索栏占位文本，默认 "搜索..."。</summary>
+    /// <summary>Placeholder text for the search field. Defaults to "Search...".</summary>
     public string SearchPlaceholder
     {
         get => _searchPlaceholder;
-        set => _searchPlaceholder = value ?? "搜索...";
+        set => _searchPlaceholder = value ?? "Search...";
     }
 
-    /// <summary>右键菜单中"复制"的文本，默认 "复制"。</summary>
+    /// <summary>Label of the "Copy" entry in the context menu. Defaults to "Copy".</summary>
     public string CopyLabel
     {
         get => _copyLabel;
-        set => _copyLabel = value ?? "复制";
+        set => _copyLabel = value ?? "Copy";
     }
 
     // ── Event subscriptions ─────────────────────────────────────────────
 
-    /// <summary>行数据变更时触发，参数：(index, item)。</summary>
+    /// <summary>Fires when row data changes. Arguments: (index, item).</summary>
     public void OnRowChanged<T>(Action<int, T> callback) =>
         _onChange = callback != null ? (i, obj) => callback(i, (T)obj) : null;
 
-    /// <summary>行被选中时触发，参数：(index, item)。</summary>
+    /// <summary>Fires when a row is selected. Arguments: (index, item).</summary>
     public void OnRowSelected<T>(Action<int, T> callback) =>
         _onRowSelected = callback != null ? (i, obj) => callback(i, (T)obj) : null;
 
-    /// <summary>工具栏"刷新"按钮被点击时触发。</summary>
+    /// <summary>Fires when the toolbar "refresh" button is clicked.</summary>
     public void OnRefreshClicked(Action callback) =>
         _onRefreshClicked = callback;
 
-    /// <summary>工具栏"查看刷新脚本"按钮被点击时触发。</summary>
+    /// <summary>Fires when the toolbar "view refresher" button is clicked.</summary>
     public void OnViewRefresherClicked(Action callback) =>
         _onViewRefresherClicked = callback;
 
     // ── Draw ────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// 在给定 Rect 内绘制完整的 TableView（边框 → 工具栏 → 列头 → 表体）。
-    /// 每帧调用一次。
+    /// Draw the complete TableView inside the given rect (border → toolbar → header → body).
+    /// Call once per frame.
     /// </summary>
     public void Draw<T>(Rect rect, List<T> list)
     {

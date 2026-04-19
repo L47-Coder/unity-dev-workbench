@@ -224,7 +224,7 @@ public sealed partial class TreeView
         while (AssetDatabase.IsValidFolder($"{parent.FullPath}/{name}"))
             name = "NewFolder" + (++idx);
         var guid = AssetDatabase.CreateFolder(parent.FullPath, name);
-        if (string.IsNullOrEmpty(guid)) { Debug.LogWarning("[TreeView] 创建文件夹失败"); return; }
+        if (string.IsNullOrEmpty(guid)) { Debug.LogWarning("[TreeView] Failed to create folder."); return; }
         var newPath = $"{parent.FullPath}/{name}";
         RefreshTree(newPath);
         _onNodeCreated?.Invoke(newPath);
@@ -238,7 +238,7 @@ public sealed partial class TreeView
         var oldPath = node.FullPath;
         var destPath = $"{GetParentPath(oldPath)}/{newName}";
         var error = AssetDatabase.MoveAsset(oldPath, destPath);
-        if (!string.IsNullOrEmpty(error)) { Debug.LogWarning($"[TreeView] 重命名失败: {error}"); return; }
+        if (!string.IsNullOrEmpty(error)) { Debug.LogWarning($"[TreeView] Rename failed: {error}"); return; }
         if (string.Equals(_selectedPathBacking, oldPath, StringComparison.OrdinalIgnoreCase))
             _selectedPathBacking = destPath;
         RefreshTree(destPath);
@@ -248,11 +248,11 @@ public sealed partial class TreeView
     private void ExecuteDelete(TreeNode node)
     {
         if (!CanOperateNode(node)) return;
-        if (!EditorUtility.DisplayDialog("确认删除", $"确认删除「{node.Name}」？此操作不可撤销。", "删除", "取消"))
+        if (!EditorUtility.DisplayDialog("Confirm deletion", $"Delete \"{node.Name}\"? This operation cannot be undone.", "Delete", "Cancel"))
             return;
         var deletedPath = node.FullPath;
         if (!AssetDatabase.DeleteAsset(deletedPath))
-        { Debug.LogWarning($"[TreeView] 删除失败: {deletedPath}"); return; }
+        { Debug.LogWarning($"[TreeView] Delete failed: {deletedPath}"); return; }
         if (string.Equals(_selectedPathBacking, deletedPath, StringComparison.OrdinalIgnoreCase))
             _selectedPathBacking = null;
         RefreshTree(_cachedRootPath);
@@ -265,10 +265,10 @@ public sealed partial class TreeView
         var tgt = NormalizePath(targetDirPath);
         if (string.Equals(GetParentPath(src), tgt, StringComparison.OrdinalIgnoreCase)) return;
         if (tgt.StartsWith(src + "/", StringComparison.OrdinalIgnoreCase))
-        { Debug.LogWarning("[TreeView] 不能移动到自身子目录"); return; }
+        { Debug.LogWarning("[TreeView] Cannot move a folder into one of its own subfolders."); return; }
         var destPath = $"{tgt}/{Path.GetFileName(src)}";
         var error = AssetDatabase.MoveAsset(src, destPath);
-        if (!string.IsNullOrEmpty(error)) { Debug.LogWarning($"[TreeView] 移动失败: {error}"); return; }
+        if (!string.IsNullOrEmpty(error)) { Debug.LogWarning($"[TreeView] Move failed: {error}"); return; }
         if (string.Equals(_selectedPathBacking, src, StringComparison.OrdinalIgnoreCase))
             _selectedPathBacking = destPath;
         RefreshTree(destPath);

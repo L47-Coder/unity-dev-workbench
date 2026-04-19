@@ -24,7 +24,7 @@ First public preview release.
   - `ManagerOrderConfig`, `ComponentOrderConfig` &mdash; ordered configuration
     ScriptableObjects.
 - Editor layer (`DevWorkbench.Editor` assembly / namespace):
-  - `DevWindow` (`Tools&nbsp;&rarr;&nbsp;DevWorkbench`) with Addressable,
+  - `DevWindow` (`Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench`) with Addressable,
     Component and Manager pages, each exposing Viewer / Order / Creator tabs.
   - One-click **framework bootstrap** that provisions the three order assets,
     the three default Manager configs and the matching Addressable entries.
@@ -35,3 +35,12 @@ First public preview release.
     deployed on first load into `Assets/Game/Manager/` as plain source.
 - Package metadata: `LICENSE.md` (MIT), `Third Party Notices.md`, bilingual
   README (`README.md` / `README.zh-CN.md`).
+
+### Notes
+
+- All user-facing strings in the editor UI, the bootstrap overlay, dialogs,
+  `Debug.Log*` messages and runtime Manager template exceptions are in
+  English. Public API XML documentation on the reusable IMGUI controls
+  (`TreeView`, `ListView`, `TableView`, `TextView`) is also English-only.
+  Chinese is only kept in internal implementation comments that are not
+  surfaced to the user.

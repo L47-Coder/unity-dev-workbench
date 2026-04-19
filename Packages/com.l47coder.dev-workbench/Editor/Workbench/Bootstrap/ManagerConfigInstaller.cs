@@ -112,7 +112,7 @@ internal static class ManagerConfigInstaller
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ManagerConfigInstaller] 执行 {info.ManagerName}ManagerRefresher 失败：{ex}");
+                Debug.LogError($"[ManagerConfigInstaller] Running {info.ManagerName}ManagerRefresher failed: {ex}");
             }
         }
         return executed;
@@ -157,7 +157,7 @@ internal static class ManagerConfigInstaller
         try { return (IManagerRefresher)Activator.CreateInstance(refresherType); }
         catch (Exception ex)
         {
-            Debug.LogWarning($"[ManagerConfigInstaller] 实例化 {refresherType.Name} 失败：{ex.Message}");
+            Debug.LogWarning($"[ManagerConfigInstaller] Failed to instantiate {refresherType.Name}: {ex.Message}");
             return null;
         }
     }

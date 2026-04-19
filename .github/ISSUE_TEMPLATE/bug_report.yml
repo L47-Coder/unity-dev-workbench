@@ -38,7 +38,7 @@ body:
     attributes:
       label: What happened?
       description: A clear description of the bug and, if relevant, a stack trace.
-      placeholder: "When I click Tools → DevWorkbench → …"
+      placeholder: "When I click Tools → Dev Workbench → …"
     validations:
       required: true
   - type: textarea

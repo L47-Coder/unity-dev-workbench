@@ -3,7 +3,7 @@
   "displayName": "Dev Workbench",
   "version": "0.1.0-preview.1",
   "unity": "2022.3",
-  "description": "A Unity runtime Manager/Component framework powered by ScriptableObject + Addressables, shipped with an in-editor DevWorkbench that provides one-click creation and visual management of Managers, Components and Addressable groups.",
+  "description": "A Unity ScriptableObject + Addressables framework with an in-editor workbench for Managers, Components and Addressable groups.",
   "keywords": [
     "unity",
     "framework",
@@ -20,7 +20,7 @@
   },
   "license": "MIT",
   "documentationUrl": "https://github.com/L47-Coder/unity-dev-workbench",
-  "changelogUrl": "https://github.com/L47-Coder/unity-dev-workbench/blob/main/CHANGELOG.md",
+  "changelogUrl": "https://github.com/L47-Coder/unity-dev-workbench/blob/main/Packages/com.l47coder.dev-workbench/CHANGELOG.md",
   "licensesUrl": "https://github.com/L47-Coder/unity-dev-workbench/blob/main/LICENSE",
   "dependencies": {
     "com.unity.addressables": "1.23.1",

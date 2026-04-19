@@ -16,23 +16,23 @@ MonoBehaviour:
   - Title: Addressable
     Order: 0
     Tabs:
-    - Title: "\u67E5\u770B"
+    - Title: Viewer
       Order: 0
   - Title: Component
     Order: 1
     Tabs:
     - Title: "\u751F\u6210"
       Order: 0
-    - Title: "\u987A\u5E8F"
+    - Title: Order
       Order: 1
-    - Title: "\u67E5\u770B"
+    - Title: Viewer
       Order: 2
   - Title: Manager
     Order: 2
     Tabs:
-    - Title: "\u751F\u6210"
+    - Title: Creator
       Order: 0
-    - Title: "\u987A\u5E8F"
+    - Title: Order
       Order: 1
-    - Title: "\u67E5\u770B"
+    - Title: Viewer
       Order: 2

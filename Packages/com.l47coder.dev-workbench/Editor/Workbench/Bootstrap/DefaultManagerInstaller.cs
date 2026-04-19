@@ -46,7 +46,7 @@ internal static class DefaultManagerInstaller
         var sourceAbs = ResolveSourceAbsolute();
         if (string.IsNullOrEmpty(sourceAbs) || !Directory.Exists(sourceAbs))
         {
-            Debug.LogError($"[DefaultManagerInstaller] 未找到模板源目录：{PackageSourceRelative}");
+            Debug.LogError($"[DefaultManagerInstaller] Template source folder not found: {PackageSourceRelative}");
             return false;
         }
 
@@ -59,7 +59,7 @@ internal static class DefaultManagerInstaller
         SessionState.SetBool(SessionKeyRerunInitialize, true);
 
         AssetDatabase.Refresh();
-        Debug.Log("[DefaultManagerInstaller] 已投放三套默认 Manager 到 Assets/Game/Manager/。");
+        Debug.Log("[DefaultManagerInstaller] Deployed the three default Managers under Assets/Game/Manager/.");
         return true;
     }
 

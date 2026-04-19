@@ -69,10 +69,10 @@ internal sealed class DevWindow : EditorWindow
     private FrameworkBootstrapper.Status _bootstrapStatus;
     private Vector2 _overlayScroll;
 
-    [MenuItem("Tools/开发工作台")]
+    [MenuItem("Tools/Dev Workbench")]
     private static void Open()
     {
-        var window = GetWindow<DevWindow>("开发工作台", false);
+        var window = GetWindow<DevWindow>("Dev Workbench", false);
         window.minSize = new Vector2(MenuWidth, MenuWidth);
         window.position = SearchUtils.GetMainWindowCenteredPosition(new Vector2(StartWidth, StartHeight));
     }
@@ -164,7 +164,7 @@ internal sealed class DevWindow : EditorWindow
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[DevWindow] 无法实例化页面 {type.FullName}: {ex.Message}");
+                Debug.LogWarning($"[DevWindow] Failed to instantiate page {type.FullName}: {ex.Message}");
             }
         }
 
@@ -483,7 +483,7 @@ internal sealed class DevWindow : EditorWindow
 
         GUILayout.BeginArea(inner);
 
-        GUILayout.Label("架构不完整", _overlayTitleStyle);
+        GUILayout.Label("Framework not initialised", _overlayTitleStyle);
         GUILayout.Space(6f);
 
         var total = _bootstrapStatus.Checks.Count;
@@ -492,7 +492,7 @@ internal sealed class DevWindow : EditorWindow
             if (_bootstrapStatus.Checks[i].Passed) passed++;
 
         GUILayout.Label(
-            $"已完成 {passed} / {total} 项检查。点击下方按钮可一键修复剩余问题。",
+            $"{passed} / {total} checks passed. Click the button below to fix the remaining issues.",
             _overlaySubtitleStyle);
 
         GUILayout.Space(14f);
@@ -512,7 +512,7 @@ internal sealed class DevWindow : EditorWindow
         GUILayout.FlexibleSpace();
         var prevBg = GUI.backgroundColor;
         GUI.backgroundColor = OverlayAccentColor;
-        if (GUILayout.Button("一键修复", _overlayButtonStyle, GUILayout.MinWidth(220f)))
+        if (GUILayout.Button("Initialise", _overlayButtonStyle, GUILayout.MinWidth(220f)))
             RunInitialization();
         GUI.backgroundColor = prevBg;
         GUILayout.FlexibleSpace();
@@ -553,8 +553,8 @@ internal sealed class DevWindow : EditorWindow
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[DevWindow] 修复失败：{ex}");
-            EditorUtility.DisplayDialog("开发工作台", $"修复过程中发生异常：\n{ex.Message}", "好");
+            Debug.LogError($"[DevWindow] Initialisation failed: {ex}");
+            EditorUtility.DisplayDialog("Dev Workbench", $"Initialisation threw an exception:\n{ex.Message}", "OK");
         }
 
         _bootstrapStatus = FrameworkBootstrapper.CheckStatus();

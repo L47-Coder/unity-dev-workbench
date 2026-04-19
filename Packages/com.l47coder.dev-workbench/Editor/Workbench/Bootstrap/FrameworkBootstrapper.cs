@@ -29,7 +29,7 @@ internal static class FrameworkBootstrapper
         SessionState.EraseBool(DefaultManagerInstaller.SessionKeyRerunInitialize);
 
         try { InitializeAll(); }
-        catch (System.Exception ex) { Debug.LogError($"[FrameworkBootstrapper] 默认 Manager 投放后重跑失败：{ex}"); }
+        catch (System.Exception ex) { Debug.LogError($"[FrameworkBootstrapper] Rerun after default Manager install failed: {ex}"); }
     }
 
     public sealed class Check
@@ -54,30 +54,30 @@ internal static class FrameworkBootstrapper
         var defaultManagerInstalled = DefaultManagerInstaller.IsInstalled();
         status.Checks.Add(new Check
         {
-            Label = "默认 Manager 已投放",
+            Label = "Default Managers deployed",
             Passed = defaultManagerInstalled,
             Detail = defaultManagerInstalled
                 ? null
-                : $"{DefaultManagerInstaller.ManagerRootAssetPath}/ 下尚未投放默认 Manager，一键修复将从包中拷贝模板。",
+                : $"No default Managers found under {DefaultManagerInstaller.ManagerRootAssetPath}/. Initialise will copy the templates from the package.",
         });
 
         var settings = AddressableAssetSettingsDefaultObject.Settings;
         status.Checks.Add(new Check
         {
-            Label = "Addressable 系统已初始化",
+            Label = "Addressables initialised",
             Passed = settings != null,
-            Detail = settings != null ? null : "未找到 AddressableAssetSettings，一键修复将自动创建。",
+            Detail = settings != null ? null : "AddressableAssetSettings not found. Initialise will create it automatically.",
         });
 
         status.Checks.Add(CheckAssetRegistered(
             settings,
-            "ManagerOrder 资产已注册",
+            "ManagerOrder asset registered",
             FrameAssetInstaller.ManagerOrderAssetPath,
             FrameAssetInstaller.ManagerOrderAddress));
 
         status.Checks.Add(CheckAssetRegistered(
             settings,
-            "ComponentOrder 资产已注册",
+            "ComponentOrder asset registered",
             FrameAssetInstaller.ComponentOrderAssetPath,
             FrameAssetInstaller.ComponentOrderAddress));
 
@@ -92,28 +92,28 @@ internal static class FrameworkBootstrapper
         AddressableAssetSettings settings, string label, string assetPath, string address)
     {
         if (settings == null)
-            return new Check { Label = label, Passed = false, Detail = "Addressable 尚未初始化。" };
+            return new Check { Label = label, Passed = false, Detail = "Addressables are not initialised." };
 
         if (AssetDatabase.LoadAssetAtPath<ScriptableObject>(assetPath) == null)
-            return new Check { Label = label, Passed = false, Detail = $"{assetPath} 不存在。" };
+            return new Check { Label = label, Passed = false, Detail = $"{assetPath} does not exist." };
 
         var guid = AssetDatabase.AssetPathToGUID(assetPath);
         var entry = settings.FindAssetEntry(guid);
         if (entry == null)
-            return new Check { Label = label, Passed = false, Detail = $"{assetPath} 未注册到 Addressable。" };
+            return new Check { Label = label, Passed = false, Detail = $"{assetPath} is not registered as an Addressable entry." };
 
         if (entry.address != address)
-            return new Check { Label = label, Passed = false, Detail = $"地址应为 \"{address}\"，当前为 \"{entry.address}\"。" };
+            return new Check { Label = label, Passed = false, Detail = $"Address should be \"{address}\", but is currently \"{entry.address}\"." };
 
         return new Check { Label = label, Passed = true };
     }
 
     private static Check CheckManagerConfigs(AddressableAssetSettings settings)
     {
-        const string label = "所有 ManagerConfig 已注册";
+        const string label = "All ManagerConfigs registered";
 
         if (settings == null)
-            return new Check { Label = label, Passed = false, Detail = "Addressable 尚未初始化。" };
+            return new Check { Label = label, Passed = false, Detail = "Addressables are not initialised." };
 
         var infos = ManagerConfigInstaller.Collect();
         var pending = infos.Where(i => !i.AddressMatches).ToList();
@@ -123,15 +123,15 @@ internal static class FrameworkBootstrapper
             {
                 Label = label,
                 Passed = true,
-                Detail = infos.Count == 0 ? "未扫描到 ManagerConfig。" : $"共 {infos.Count} 项。",
+                Detail = infos.Count == 0 ? "No ManagerConfig was found." : $"{infos.Count} item(s) total.",
             };
 
-        var names = string.Join("、", pending.Select(p => p.ManagerName));
+        var names = string.Join(", ", pending.Select(p => p.ManagerName));
         return new Check
         {
             Label = label,
             Passed = false,
-            Detail = $"待注册 {pending.Count} 项：{names}",
+            Detail = $"{pending.Count} pending: {names}",
         };
     }
 
@@ -173,8 +173,8 @@ internal static class FrameworkBootstrapper
         }
 
         Debug.Log(justInstalled
-            ? "[FrameworkBootstrapper] 默认 Manager 已投放，等待 Unity 重新编译后自动补齐 asset。"
-            : "[FrameworkBootstrapper] 架构修复完成。");
+            ? "[FrameworkBootstrapper] Default Managers deployed. The remaining assets will be created automatically after Unity finishes recompiling."
+            : "[FrameworkBootstrapper] Framework initialisation complete.");
     }
 }
 }
