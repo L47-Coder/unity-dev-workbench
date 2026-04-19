@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Package README (EN)
+    url: https://github.com/L47-Coder/unity-dev-workbench/blob/main/Packages/com.l47coder.dev-workbench/README.md
+    about: Usage, installation and architecture overview.
+  - name: Package README (中文)
+    url: https://github.com/L47-Coder/unity-dev-workbench/blob/main/Packages/com.l47coder.dev-workbench/README.zh-CN.md
+    about: 中文文档入口。

@@ -1,0 +1,74 @@
+name: Bug report
+description: Report a reproducible problem with Dev Workbench.
+title: "[Bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug! Please fill out the
+        fields below so we can reproduce the issue quickly.
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version
+      description: Value from `Packages/com.l47coder.dev-workbench/package.json` → `version`.
+      placeholder: "0.1.0-preview.1"
+    validations:
+      required: true
+  - type: input
+    id: unity-version
+    attributes:
+      label: Unity version
+      placeholder: "2022.3.60f1"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Editor platform
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and, if relevant, a stack trace.
+      placeholder: "When I click Tools → DevWorkbench → …"
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Editor log / console output
+      description: Paste relevant log lines. Wrap long output in code fences.
+      render: shell
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Pre-submit checklist
+      options:
+        - label: I have searched existing issues and did not find a duplicate.
+          required: true
+        - label: I can reproduce this on a clean copy of the repository.
+          required: false

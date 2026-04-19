@@ -43,14 +43,17 @@ UniTask、VContainer 通常通过各自的官方 Git URL 引入。`package.json`
 package from git URL&hellip;`，粘贴：
 
 ```
-https://github.com/L47-Coder/unity-dev-workbench.git
+https://github.com/L47-Coder/unity-dev-workbench.git?path=Packages/com.l47coder.dev-workbench
 ```
 
 或直接编辑 `Packages/manifest.json`：
 
 ```json
-"com.l47coder.dev-workbench": "https://github.com/L47-Coder/unity-dev-workbench.git"
+"com.l47coder.dev-workbench": "https://github.com/L47-Coder/unity-dev-workbench.git?path=Packages/com.l47coder.dev-workbench"
 ```
+
+> 本仓库整体是一个 Unity 工程，因此 `?path=` 段**不能省略** &mdash;
+> 它告诉 UPM 包的 `package.json` 在哪个子目录。
 
 ### UPM &mdash; 本地路径
 

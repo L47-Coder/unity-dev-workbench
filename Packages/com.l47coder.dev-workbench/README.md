@@ -49,14 +49,18 @@ Open `Window&nbsp;&rarr;&nbsp;Package Manager`, click `+&nbsp;&rarr;&nbsp;Add
 package from git URL&hellip;` and paste:
 
 ```
-https://github.com/L47-Coder/unity-dev-workbench.git
+https://github.com/L47-Coder/unity-dev-workbench.git?path=Packages/com.l47coder.dev-workbench
 ```
 
 Or add the following entry to `Packages/manifest.json`:
 
 ```json
-"com.l47coder.dev-workbench": "https://github.com/L47-Coder/unity-dev-workbench.git"
+"com.l47coder.dev-workbench": "https://github.com/L47-Coder/unity-dev-workbench.git?path=Packages/com.l47coder.dev-workbench"
 ```
+
+> The repository is an entire Unity project, so the `?path=` segment is
+> **required** &mdash; it tells UPM which sub-directory actually contains
+> `package.json`.
 
 ### UPM &mdash; local path
 

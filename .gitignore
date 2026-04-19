@@ -57,6 +57,15 @@ mono_crash.*
 *.app
 crashlytics-build.properties
 
+# UPM pack artifacts (never commit generated tarballs)
+*.tgz
+*.nupkg
+
+# macOS resource forks
+._*
+.AppleDouble
+.LSOverride
+
 # TestRunner generated files
 InitTestScene*.unity*
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
