@@ -1,13 +1,11 @@
 using System;
 using System.IO;
 using System.Reflection;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     internal sealed class ComponentViewerPage : IPage
     {
         public string GroupTitle => "Component";
@@ -66,7 +64,7 @@ namespace DevWorkbench.Editor
 
         public void OnStart(Action<string> onSelected)
         {
-            _treeView.IgnoredNames = new() { "**/Generated" };
+            _treeView.IgnoredNames = new() { "**/Generated", "**/*.asmdef" };
             _treeView.OnNodeSelected(onSelected);
             _treeView.OnAddClicked(() => _treeView.CreateFolderAtSelected());
         }

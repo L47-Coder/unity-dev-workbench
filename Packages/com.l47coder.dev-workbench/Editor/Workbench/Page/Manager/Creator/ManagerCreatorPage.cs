@@ -1,10 +1,8 @@
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     internal sealed class ManagerCreatorPage : IPage
     {
         public string GroupTitle => "Manager";
@@ -15,7 +13,7 @@ namespace DevWorkbench.Editor
         private const float SectionSpacing = 10f;
         private const float CardPad = 14f;
         private const float CreateButtonHeight = 38f;
-        private const float LabelWidth = 95f;
+        private const float LabelWidth = 150f;
         private const float IncludeConfigCardHeight = 42f;
         private const float DotSize = 8f;
         private const float DotLeftPad = 4f;

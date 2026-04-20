@@ -1,13 +1,11 @@
 using System;
 using System.IO;
 using System.Reflection;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     internal sealed class ManagerViewerPage : IPage
     {
         public string GroupTitle => "Manager";
@@ -82,7 +80,9 @@ namespace DevWorkbench.Editor
         private string _cachedCsPath;
         private string _cachedCsText;
 
-        // .asset 文件缓存（管理器配置为 BaseManagerConfig，与 BaseComponentConfig 无继承关系）
+        // .asset 文件缓存（管理器配置为 BaseManagerConfig，与 BaseComponentConfig 无继承关系）。
+        // Addressable 地址合法性不在这里校验——由 DevWindow 打开时的 Bootstrap 蒙版统一兜底
+        // （见 FrameworkBootstrapper.CheckAllConfigsRegistered），出了问题一键 Initialise 修复。
         private string _cachedAssetPath;
         private BaseManagerConfig _cachedAsset;
         private object _cachedList;
@@ -181,15 +181,13 @@ namespace DevWorkbench.Editor
 
         private void ResolveRefresher(string assetPath)
         {
-            var configTypeName = _cachedAsset.GetType().Name;
-            if (!configTypeName.EndsWith("ManagerConfig")) return;
-
-            var managerName = configTypeName[..^"ManagerConfig".Length];
+            var managerName = ManagerAddressConvention.ManagerNameOf(_cachedAsset.GetType());
+            if (string.IsNullOrEmpty(managerName)) return;
 
             _cachedRefresherScript = ManagerRefresherLocator.FindRefresherScript(managerName, assetPath);
             var refresherType = ManagerRefresherLocator.FindRefresherType(managerName, assetPath);
             if (refresherType != null)
-                _cachedRefresher = (IManagerRefresher)System.Activator.CreateInstance(refresherType);
+                _cachedRefresher = (IManagerRefresher)Activator.CreateInstance(refresherType);
         }
 
         private void ExecuteRefresh()

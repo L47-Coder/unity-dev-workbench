@@ -1,13 +1,11 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     internal sealed class ManagerCreatorState
     {
         public const string RootAssetPath = "Assets/Game/Manager";
@@ -159,7 +157,7 @@ namespace DevWorkbench.Editor
             GeneratedConfigFilePath = IncludeConfig ? $"{GeneratedFolderPath}/{ConfigClassName}.cs" : string.Empty;
             GeneratedDataFilePath = IncludeConfig ? $"{GeneratedFolderPath}/{ManagerDataStructName}.cs" : string.Empty;
             AssetTargetFilePath = IncludeConfig ? $"{entityFolder}/{ConfigClassName}.asset" : string.Empty;
-            AddressableAddressName = IncludeConfig ? $"ManagerConfig/{InputManagerName}" : string.Empty;
+            AddressableAddressName = IncludeConfig ? ManagerAddressConvention.AddressOf(InputManagerName) : string.Empty;
             RefresherFilePath = IncludeConfig ? $"{entityFolder}/{InputManagerName}ManagerRefresher.cs" : string.Empty;
 
             RefreshPreviewCache();

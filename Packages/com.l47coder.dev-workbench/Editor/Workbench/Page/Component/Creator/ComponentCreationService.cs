@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using DevWorkbench;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
@@ -11,7 +10,6 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     // ── Creation Service ──────────────────────────────────────────────────────────
 
     internal static class ComponentCreationService
@@ -63,7 +61,7 @@ namespace DevWorkbench.Editor
             sb.AppendLine($"public sealed partial class {plan.ComponentClassName}");
             sb.AppendLine("{");
             sb.AppendLine($"    private readonly {plan.ComponentDataClassName} _componentData;");
-            sb.Append("}");
+            sb.AppendLine("}");
 
             EnsureFolder(Path.GetDirectoryName(plan.ComponentFilePath));
             File.WriteAllText(plan.ComponentFilePath, sb.ToString(), Encoding.UTF8);
@@ -100,7 +98,7 @@ namespace DevWorkbench.Editor
             sb.AppendLine($"    protected override Dictionary<string, BaseComponentData> GetComponentDataDict() => {f}");
             sb.AppendLine("        .Where(config => !string.IsNullOrWhiteSpace(config.Key))");
             sb.AppendLine($"        .ToDictionary(config => $\"{cc}_{{config.Key.Trim()}}\", config => (BaseComponentData)config);");
-            sb.Append("}");
+            sb.AppendLine("}");
 
             EnsureFolder(Path.GetDirectoryName(plan.GeneratedConfigFilePath));
             File.WriteAllText(plan.GeneratedConfigFilePath, sb.ToString(), Encoding.UTF8);
@@ -122,7 +120,7 @@ namespace DevWorkbench.Editor
             sb.AppendLine($"public sealed partial class {dc} : BaseComponentData");
             sb.AppendLine("{");
             sb.AppendLine($"    protected override BaseComponent CreateComponent() => new {cc}(({dc})MemberwiseClone());");
-            sb.Append("}");
+            sb.AppendLine("}");
 
             EnsureFolder(Path.GetDirectoryName(plan.GeneratedDataFilePath));
             File.WriteAllText(plan.GeneratedDataFilePath, sb.ToString(), Encoding.UTF8);
@@ -146,7 +144,7 @@ namespace DevWorkbench.Editor
             sb.AppendLine("        _ = _componentData;");
             sb.AppendLine("        _componentData = componentData;");
             sb.AppendLine("    }");
-            sb.Append("}");
+            sb.AppendLine("}");
 
             EnsureFolder(Path.GetDirectoryName(plan.GeneratedComponentPartialFilePath));
             File.WriteAllText(plan.GeneratedComponentPartialFilePath, sb.ToString(), Encoding.UTF8);

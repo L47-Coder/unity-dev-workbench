@@ -1,10 +1,8 @@
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     internal sealed class ManagerOrderPage : IPage
     {
         public string GroupTitle => "Manager";

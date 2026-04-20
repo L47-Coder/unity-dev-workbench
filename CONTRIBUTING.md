@@ -23,7 +23,7 @@ Packages/
 Everything under `Assets/` is the host project: it exists so maintainers have
 something to click through while iterating on the package. On first launch of
 `Tools → Dev Workbench`, the workbench scaffolds the default layout under
-`Assets/Game/` from the templates in `Packages/com.l47coder.dev-workbench/Runtime~/DefaultManagers/`.
+`Assets/Game/` from the templates in `Packages/com.l47coder.dev-workbench/Runtime~/Templates/`.
 
 ## Prerequisites
 
@@ -45,8 +45,9 @@ dependencies (Addressables, UniTask, VContainer) on first open.
 Then:
 
 1. Open `Tools → Dev Workbench`. If the side panel says *"Framework not
-   initialised"*, click **Initialise** — this creates the three order assets
-   and deploys the default Managers under `Assets/Game/`.
+   initialised"*, click **Initialise** — this creates the order assets and
+   the `Game.Managers.asmdef` container under `Assets/Game/`. Specific
+   Manager templates are imported on demand from the Installer tab.
 2. Make your changes under `Packages/com.l47coder.dev-workbench/`.
 3. Exercise the change through the workbench windows or a scratch scene.
 
@@ -61,9 +62,9 @@ Then:
   and must stay inside the `DevWorkbench` namespace. Editor-only code belongs
   in `Packages/com.l47coder.dev-workbench/Editor/` and uses the
   `DevWorkbench.Editor` namespace.
-- Default Manager templates (`Runtime~/DefaultManagers/`) are **source** that
-  ships to the user's `Assets/Game/Manager/` on first boot — treat them as
-  public API.
+- Manager templates (`Runtime~/Templates/Managers/`) are **source** that
+  ships to the user's `Assets/Game/Manager/` on demand from the Installer
+  window — treat them as public API.
 - Keep user-visible behavioural changes small and focused; a PR that mixes
   refactor + feature + doc update is hard to review.
 
@@ -220,8 +221,8 @@ Unity 会即时识别，不需要重新安装。
 
 `Assets/` 下是宿主工程，用于维护者日常点测。首次打开
 `Tools → Dev Workbench` 时，工作台会把
-`Packages/com.l47coder.dev-workbench/Runtime~/DefaultManagers/` 下的模板
-部署到 `Assets/Game/`。
+`Packages/com.l47coder.dev-workbench/Runtime~/Templates/` 下的模板
+按需部署到 `Assets/Game/`。
 
 ### 环境要求
 
@@ -249,8 +250,8 @@ git clone https://github.com/L47-Coder/unity-dev-workbench.git
   资源前请先 `git lfs install`。
 - 运行期契约放在 `Runtime/`，命名空间 `DevWorkbench`；编辑器代码放在
   `Editor/`，命名空间 `DevWorkbench.Editor`。
-- `Runtime~/DefaultManagers/` 里的默认 Manager 模板会被复制到用户工程的
-  `Assets/Game/Manager/`，请视为公共 API。
+- `Runtime~/Templates/Managers/` 里的 Manager 模板会由 Installer 窗口按需
+  复制到用户工程的 `Assets/Game/Manager/`，请视为公共 API。
 - 一次 PR 只做一件事，避免重构、特性、文档混在一起。
 
 ### 提交 & 分支约定

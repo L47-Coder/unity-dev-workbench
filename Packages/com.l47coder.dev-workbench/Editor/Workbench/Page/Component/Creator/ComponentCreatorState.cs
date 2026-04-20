@@ -1,13 +1,11 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     internal sealed class ComponentCreatorState
     {
         public const string RootAssetPath = "Assets/Game/Component";

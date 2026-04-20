@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using DevWorkbench;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
@@ -10,7 +9,6 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     // Frame 组 + ManagerOrder / ComponentOrder 资产的幂等安装器。
     // Page（ManagerOrderPage、ComponentOrderPage）和一键初始化流程共享此处逻辑。
     internal static class FrameAssetInstaller
@@ -20,6 +18,8 @@ namespace DevWorkbench.Editor
 
         public const string ManagerOrderAssetPath = "Assets/Game/Frame/ManagerOrder.asset";
         public const string ComponentOrderAssetPath = "Assets/Game/Frame/ComponentOrder.asset";
+        // PageOrder 属于 editor-only 偏好，不走 Addressables；放在这里只是登记"Frame 下有哪些 asset"。
+        public const string PageOrderAssetPath = "Assets/Game/Frame/PageOrder.asset";
         public const string FrameConfigFolder = "Assets/Game/Frame";
 
         public static readonly string ManagerOrderAddress =

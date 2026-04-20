@@ -20,7 +20,7 @@ go smoothly. Feel free to delete anything that is not applicable.
 
 - [ ] Runtime (`Packages/com.l47coder.dev-workbench/Runtime`)
 - [ ] Editor (`Packages/com.l47coder.dev-workbench/Editor`)
-- [ ] Default Manager templates (`Runtime~/DefaultManagers`)
+- [ ] Manager templates (`Runtime~/Templates/Managers`)
 - [ ] Host project (`Assets/`)
 - [ ] Repository tooling / docs
 
