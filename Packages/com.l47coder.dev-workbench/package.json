@@ -1,7 +1,7 @@
 {
   "name": "com.l47coder.dev-workbench",
   "displayName": "Dev Workbench",
-  "version": "0.1.0-preview.1",
+  "version": "0.1.0-preview.2",
   "unity": "2022.3",
   "description": "A Unity ScriptableObject + Addressables framework with an in-editor workbench for Managers, Components and Addressable groups.",
   "keywords": [

@@ -5,6 +5,30 @@ All notable changes to this package will be documented in this file.
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.0-preview.2] &mdash; 2026-04-20
+
+Second preview. Focuses on making default Managers optional, clarifying the
+framework boot sequence, and aligning documentation with the current editor
+flow.
+
+### Changed
+
+- **Default Managers are now on-demand templates.** The first-time
+  `Initialise` only provisions `Assets/Game/Frame/{ManagerOrder,ComponentOrder,
+  PageOrder}.asset` and two empty assembly containers &mdash;
+  `Assets/Game/Manager/Game.Managers.asmdef` and
+  `Assets/Game/Component/Game.Components.asmdef`. The bundled `Asset /
+  Component / Prefab` Managers are imported on demand from the
+  *Manager&nbsp;/&nbsp;Installer* tab and land in
+  `Assets/Game/Manager/{Asset,Component,Prefab}/` as plain source.
+- `GameBootstrap` gained a class-level XML doc describing its three-phase
+  sequence (config load &rarr; async init &rarr; `IGameBoot.OnGameStart`),
+  and dropped a stray startup `Debug.Log` that printed every Manager's type
+  name.
+- README / README.zh-CN: Highlights, Quick Start, Host Project Layout and
+  the Assembly table updated to reflect the Installer-driven flow and the
+  new `Game.Components` assembly.
+
 ## [0.1.0-preview.1] &mdash; 2026-04-19
 
 First public preview release.
@@ -12,53 +36,27 @@ First public preview release.
 ### Added
 
 - Runtime architecture layer (`DevWorkbench` assembly / namespace):
-  - `BaseManagerConfig`, `BaseManagerData`, `BaseManager`, `IGameBoot`,
-    `IAsyncInitManager`, `IManagerRefresher` &mdash; the Manager contract.
+  - `BaseManagerConfig`, `BaseManagerData`, `BaseManager`, `IAsyncInitManager`,
+    `IManagerRefresher` &mdash; the Manager contract.
   - `BaseComponentConfig`, `BaseComponentData`, `BaseComponent` &mdash; the
-    Component contract, with an `OnAdd / OnEnable / OnUpdate / OnDisable /
-    OnRemove` lifecycle driven by the owning Manager.
-  - `ComponentBridge` &mdash; cooperative lease broker so several Components
-    can share built-in Unity components on one `GameObject` without stepping
-    on each other.
-  - `PhysicsBridge` with `IOnTrigger` / `IOnCollision` &mdash; forwards Unity
-    physics callbacks as plain C# events, keeping Components out of the
-    `MonoBehaviour` hierarchy.
-  - `FrameworkLoader`, `ManagerAddressConvention`, `ManagerRefreshUtil` and
-    the `TableColumnAttribute` utility.
-  - `GameLifetimeScope` (VContainer) and `GameBootstrap` entry points that
-    boot the framework in three phases: config load &rarr; async init &rarr;
-    `IGameBoot.OnGameStart`.
+    Component contract.
+  - `ComponentBridge` / `PhysicsBridge` &mdash; MonoBehaviour bridges that
+    forward Unity lifecycle and physics callbacks into Components without
+    leaking Manager-layer concepts.
+  - `FrameworkLoader` and `ManagerRefreshUtil` utilities.
+  - `GameLifetimeScope` (VContainer) and `GameBootstrap` entry points.
   - `ManagerOrderConfig`, `ComponentOrderConfig` &mdash; ordered configuration
-    ScriptableObjects. `ManagerOrderConfig` drives DI registration order;
-    `ComponentOrderConfig` drives Component attach order inside Prefab
-    instances and editor UI.
+    ScriptableObjects.
 - Editor layer (`DevWorkbench.Editor` assembly / namespace):
-  - `DevWindow` (`Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench`) with Manager,
-    Component and Addressable pages, each exposing Viewer / Order / Creator /
-    Installer tabs where applicable.
-  - `PageOrder` ScriptableObject that persists the user-defined order of
-    DevWindow menu groups and tabs.
-  - One-click **framework bootstrap** (`FrameworkBootstrapper`) that
-    provisions the three Order assets, both `Game.Managers.asmdef` /
-    `Game.Components.asmdef` containers, and registers every discovered
-    Manager / Component config as an Addressable entry.
-  - Installer tabs that import the bundled Manager / Component templates on
-    demand, reading manifests from the package's `Runtime~/Templates/`
-    directory.
-  - Creator tabs that scaffold a new Manager or Component as
-    `.cs` + generated `Data` / `Config` partials + `ScriptableObject` asset +
-    Addressable entry.
-  - Reusable IMGUI controls: `TreeView`, `TableView`, `ListView`, `TextView`,
-    shared `BoxDrawer` / `ControlsToolbar` infrastructure.
-- Host project scaffolding:
-  - First-time `Initialise` creates `Assets/Game/Frame/{ManagerOrder,
-    ComponentOrder,PageOrder}.asset` and two empty assembly containers:
-    `Assets/Game/Manager/Game.Managers.asmdef` and
-    `Assets/Game/Component/Game.Components.asmdef`.
-  - The default `AssetManager`, `ComponentManager` and `PrefabManager` are
-    **not** pre-deployed &mdash; users import them on demand from the
-    *Manager&nbsp;/&nbsp;Installer* tab. Once imported, they land in
-    `Assets/Game/Manager/{Asset,Component,Prefab}/` as plain source.
+  - `DevWindow` (`Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench`) with Addressable,
+    Component and Manager pages, each exposing Viewer / Order / Creator tabs.
+  - One-click **framework bootstrap** that provisions the three order assets,
+    the three default Manager configs and the matching Addressable entries.
+  - Reusable IMGUI controls: `TreeView`, `TableView`, `ListView`, `TextView`
+    and tool bars.
+- Host project scaffolding (`Game.Managers` assembly):
+  - Default `AssetManager`, `ComponentManager` and `PrefabManager`
+    deployed on first load into `Assets/Game/Manager/` as plain source.
 - Package metadata: `LICENSE.md` (MIT), `Third Party Notices.md`, bilingual
   README (`README.md` / `README.zh-CN.md`).
 
