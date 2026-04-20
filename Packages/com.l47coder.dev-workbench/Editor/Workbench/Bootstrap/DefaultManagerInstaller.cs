@@ -1,11 +1,9 @@
 using System.IO;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     // 首次加载框架包时，把 Runtime~/DefaultManagers/ 下的三套默认 Manager 模板
     // 拷贝到 Assets/Game/Manager/。从此这三个 Manager 与 Creator 生成的用户 Manager 一样：
     // 都住在 Assets 下、都被 Game.Managers.asmdef 接管、都可被用户自由阅读和修改。

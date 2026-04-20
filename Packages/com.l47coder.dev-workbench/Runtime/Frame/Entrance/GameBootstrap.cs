@@ -7,7 +7,6 @@ using VContainer.Unity;
 
 namespace DevWorkbench
 {
-
     internal class GameBootstrap : IAsyncStartable
     {
         private readonly IObjectResolver _container;

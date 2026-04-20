@@ -1,13 +1,11 @@
 using System;
 using System.IO;
 using System.Reflection;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     internal sealed class ComponentViewerPage : IPage
     {
         public string GroupTitle => "Component";

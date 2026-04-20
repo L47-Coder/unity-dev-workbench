@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     internal sealed class ComponentCreatorPage : IPage
     {
         public string GroupTitle => "Component";
