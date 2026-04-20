@@ -5,13 +5,16 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // Manager / Installer Tab：展示 manifest.json 里登记的 Manager 模板，
+    // Component / Installer Tab：展示 manifest.json 里登记的 Component 模板，
     // 让用户勾选要导入哪些；已安装的模板显示"Installed"并禁用 Toggle。
-    // 点击 Import 后调用 ManagerTemplateInstaller.InstallPackages，Unity 重新编译完
+    // 点击 Import 后调用 ComponentTemplateInstaller.InstallPackages，Unity 重新编译完
     // FrameworkBootstrapper.TryRerunInitializeAfterReload 会把剩下的挂载补齐。
-    internal sealed class ManagerInstallerPage : IPage
+    //
+    // UI 形状刻意与 ManagerInstallerPage 对齐——两个 Installer 在视觉和交互上是同一种东西，
+    // 区别只在"列的是哪一份 manifest"。改动一侧时请同步考虑另一侧。
+    internal sealed class ComponentInstallerPage : IPage
     {
-        public string GroupTitle => "Manager";
+        public string GroupTitle => "Component";
         public string TabTitle => "Installer";
 
         private const float HPad = 16f;
@@ -46,7 +49,7 @@ namespace DevWorkbench.Editor
         private static readonly Color SelectAllTextColor = new(0.82f, 0.88f, 0.98f);
 
         private readonly HashSet<string> _selected = new();
-        private IReadOnlyList<ManagerTemplateInstaller.PackageInfo> _packages;
+        private IReadOnlyList<ComponentTemplateInstaller.PackageInfo> _packages;
         private Dictionary<string, bool> _installedState;
         private Vector2 _scroll;
 
@@ -58,11 +61,11 @@ namespace DevWorkbench.Editor
 
         private void RefreshState()
         {
-            ManagerTemplateInstaller.InvalidateManifestCache();
-            _packages = ManagerTemplateInstaller.LoadManifest();
+            ComponentTemplateInstaller.InvalidateManifestCache();
+            _packages = ComponentTemplateInstaller.LoadManifest();
             _installedState = _packages.ToDictionary(
                 p => p.id,
-                p => ManagerTemplateInstaller.IsPackageInstalled(p.id));
+                p => ComponentTemplateInstaller.IsPackageInstalled(p.id));
 
             _selected.RemoveWhere(id => !_installedState.ContainsKey(id) || _installedState[id]);
         }
@@ -186,22 +189,22 @@ namespace DevWorkbench.Editor
         private void DrawIntroCard()
         {
             BeginCard();
-            DrawHeader("Built-in Manager templates");
+            DrawHeader("Built-in Component templates");
             GUILayout.Label(
-                "Pick the Manager templates you want and click Import. These templates are optional; only the Game.Managers.asmdef container is created by the framework itself.",
+                "Pick the Component templates you want and click Import. These templates are optional; only the Game.Components.asmdef container is created by the framework itself.",
                 IntroStyle);
             if (_packages.Count == 0)
             {
                 GUILayout.Space(6f);
-                // 空 manifest 是合法状态（"这个版本的包没附带任何内置 Manager 模板"），
+                // 空 manifest 是合法状态（"这个版本的包没附带任何内置 Component 模板"），
                 // 用 Info 而非 Warning，避免吓到用户。
-                // 注意：Creator 的产物是"业务 Manager"，不是模板——模板只由包发布。
+                // 注意：Creator 的产物是"业务 Component"，不是模板——模板只由包发布。
                 // 所以这里的出口引导要明确区分这两者，别让用户误以为自己能造模板。
-                // manifest.json 真的损坏/缺失时，ManagerTemplateInstaller.LoadManifest
+                // manifest.json 真的损坏/缺失时，ComponentTemplateInstaller.LoadManifest
                 // 会自己打 error log，那边是更合适的报警点。
                 EditorGUILayout.HelpBox(
-                    "No built-in Manager templates ship with this package version. "
-                    + "Use the Creator tab to scaffold your own Manager classes under Assets/Game/Manager/.",
+                    "No built-in Component templates ship with this package version. "
+                    + "Use the Creator tab to scaffold your own Component classes under Assets/Game/Component/.",
                     MessageType.Info);
             }
             EndCard();
@@ -224,7 +227,7 @@ namespace DevWorkbench.Editor
             }
         }
 
-        private void DrawPackageRow(ManagerTemplateInstaller.PackageInfo pkg)
+        private void DrawPackageRow(ComponentTemplateInstaller.PackageInfo pkg)
         {
             var isInstalled = _installedState.TryGetValue(pkg.id, out var flag) && flag;
             // 已安装的行视觉上也显示为"勾选"——表达"这个包已经在项目里了"。
@@ -307,12 +310,12 @@ namespace DevWorkbench.Editor
             var ids = _selected.ToList();
             if (ids.Count == 0) return;
 
-            var installed = ManagerTemplateInstaller.InstallPackages(ids);
+            var installed = ComponentTemplateInstaller.InstallPackages(ids);
             _selected.Clear();
             RefreshState();
 
             if (installed > 0)
-                Debug.Log($"[ManagerInstallerPage] Imported {installed} Manager template(s). Unity will recompile and the remaining configuration will be applied automatically.");
+                Debug.Log($"[ComponentInstallerPage] Imported {installed} Component template(s). Unity will recompile and the remaining configuration will be applied automatically.");
         }
 
         // ── Chrome ────────────────────────────────────────────────────────────────

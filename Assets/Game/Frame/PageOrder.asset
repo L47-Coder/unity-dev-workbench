@@ -27,6 +27,8 @@ MonoBehaviour:
       Order: 1
     - Title: Viewer
       Order: 2
+    - Title: Installer
+      Order: 3
   - Title: Manager
     Order: 2
     Tabs:
