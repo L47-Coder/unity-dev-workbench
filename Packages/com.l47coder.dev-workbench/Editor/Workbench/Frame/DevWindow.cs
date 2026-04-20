@@ -68,6 +68,11 @@ namespace DevWorkbench.Editor
         private string _draggingGroupTitle;
         private string _draggingTabTitle;
 
+        // IPage 是接口，Unity 序列化扛不住 domain reload；但它们的 GroupTitle/TabTitle 是字符串，
+        // Unity 会把带 [SerializeField] 的字段跨 domain reload 保留下来，OnEnable 里据此恢复选中项。
+        [SerializeField] private string _persistedGroupTitle;
+        [SerializeField] private string _persistedTabTitle;
+
         private FrameworkBootstrapper.Status _bootstrapStatus;
         private Vector2 _overlayScroll;
 
@@ -109,8 +114,19 @@ namespace DevWorkbench.Editor
 
             pages = SyncAndSortPages(pages);
             _groups = BuildGroups(pages);
-            _currentGroup = _groups.FirstOrDefault();
-            _currentPage = _currentGroup?.Pages.FirstOrDefault();
+
+            // 尝试恢复上次选中的 group/tab；匹配不上时回落到第一个 group 的第一个 tab。
+            _currentGroup = (!string.IsNullOrEmpty(_persistedGroupTitle)
+                    ? _groups.FirstOrDefault(g => g.Title == _persistedGroupTitle)
+                    : null)
+                ?? _groups.FirstOrDefault();
+
+            _currentPage = (_currentGroup != null && !string.IsNullOrEmpty(_persistedTabTitle)
+                    ? _currentGroup.Pages.FirstOrDefault(p => p.TabTitle == _persistedTabTitle)
+                    : null)
+                ?? _currentGroup?.Pages.FirstOrDefault();
+
+            PersistCurrentSelection();
             if (_currentPage != null) ActivatePage(_currentPage);
         }
 
@@ -266,6 +282,7 @@ namespace DevWorkbench.Editor
             _currentPage?.OnLeave();
             _currentGroup = group;
             _currentPage = next;
+            PersistCurrentSelection();
             ActivatePage(_currentPage);
         }
 
@@ -275,7 +292,14 @@ namespace DevWorkbench.Editor
             _currentPage?.OnLeave();
             _currentGroup = _groups.FirstOrDefault(g => g.Title == page.GroupTitle);
             _currentPage = page;
+            PersistCurrentSelection();
             ActivatePage(_currentPage);
+        }
+
+        private void PersistCurrentSelection()
+        {
+            _persistedGroupTitle = _currentGroup?.Title;
+            _persistedTabTitle = _currentPage?.TabTitle;
         }
 
         private void SwapGroupOrder(string a, string b)

@@ -22,6 +22,7 @@ namespace DevWorkbench.Editor
         private const float RowSpacing = 8f;
         private const float ImportButtonHeight = 38f;
         private const float ToggleBoxSize = 18f;
+        private const float SelectAllRowHeight = 28f;
 
         private static readonly Color BgColor = new(0.17f, 0.17f, 0.17f);
         private static readonly Color CardBg = new(0.215f, 0.215f, 0.215f);
@@ -36,6 +37,13 @@ namespace DevWorkbench.Editor
         private static readonly Color HeaderTextColor = new(0.78f, 0.84f, 0.94f);
         private static readonly Color DimTextColor = new(0.65f, 0.65f, 0.65f);
         private static readonly Color OkTextColor = new(0.50f, 0.85f, 0.60f);
+
+        // 专门给"全选条"用的冷蓝灰色系，有别于 package 行的中性灰 / 深蓝。
+        private static readonly Color SelectAllBg = new(0.19f, 0.21f, 0.25f);
+        private static readonly Color SelectAllBgActive = new(0.22f, 0.30f, 0.42f);
+        private static readonly Color SelectAllBorder = new(0.32f, 0.40f, 0.55f);
+        private static readonly Color SelectAllBorderActive = new(0.45f, 0.70f, 1f);
+        private static readonly Color SelectAllTextColor = new(0.82f, 0.88f, 0.98f);
 
         private readonly HashSet<string> _selected = new();
         private IReadOnlyList<DefaultManagerInstaller.PackageInfo> _packages;
@@ -75,6 +83,11 @@ namespace DevWorkbench.Editor
             {
                 DrawIntroCard();
                 GUILayout.Space(SectionSpacing);
+                if (_packages.Count > 0)
+                {
+                    DrawSelectAllRow();
+                    GUILayout.Space(RowSpacing);
+                }
                 DrawPackageList();
                 GUILayout.FlexibleSpace();
                 GUILayout.Space(SectionSpacing);
@@ -85,6 +98,90 @@ namespace DevWorkbench.Editor
                 GUILayout.EndArea();
             }
         }
+
+        // "全选条"刻意做成扁扁的一行 + 冷蓝灰色调，和下面的 package 行在身形和配色上明显区分，
+        // 这样即便 ScrollView 出滚动条导致 package 行右边界向内收,两者的"错位"在视觉上也不突兀
+        // —— 用户会把它读成独立的控制条，而不是列表中"某一行"。
+        private void DrawSelectAllRow()
+        {
+            var installableCount = CountInstallable();
+            var allSelected = installableCount > 0 && _selected.Count >= installableCount;
+            var disabled = installableCount == 0;
+
+            var rect = GUILayoutUtility.GetRect(0f, SelectAllRowHeight, GUILayout.ExpandWidth(true));
+
+            var bg = allSelected && !disabled ? SelectAllBgActive : SelectAllBg;
+            var border = allSelected && !disabled ? SelectAllBorderActive : SelectAllBorder;
+
+            EditorGUI.DrawRect(rect, bg);
+            DrawOutline(rect, border);
+
+            // 跟下方 package 行用同一份 toggle rect（Unity 的 checkbox 是左对齐绘制、
+            // 尺寸由 skin 固定，rect 只影响点击区和文字列起点），这样"选框 + 文字"两列完全对齐。
+            var toggleRect = new Rect(
+                rect.x + 14f,
+                rect.y + (rect.height - ToggleBoxSize) * 0.5f,
+                ToggleBoxSize, ToggleBoxSize);
+            var countWidth = 90f;
+            var textLeft = toggleRect.xMax + 12f;
+            var labelRect = new Rect(
+                textLeft, rect.y,
+                rect.width - (textLeft - rect.x) - countWidth - 12f, rect.height);
+            var countRect = new Rect(rect.xMax - countWidth - 12f, rect.y, countWidth, rect.height);
+
+            using (new EditorGUI.DisabledScope(disabled))
+            {
+                var next = EditorGUI.Toggle(toggleRect, allSelected);
+                if (!disabled && next != allSelected)
+                    ToggleSelectAll(allSelected);
+            }
+
+            var labelText = disabled
+                ? "All packages installed — nothing to import"
+                : allSelected
+                    ? "All installable packages selected (click to clear)"
+                    : "Select all installable packages";
+            EditorGUI.LabelField(labelRect, labelText, SelectAllLabelStyle);
+
+            var countText = disabled ? "-" : $"{_selected.Count} selected";
+            EditorGUI.LabelField(countRect, countText, SelectAllCountStyle);
+
+            if (!disabled
+                && Event.current.type == EventType.MouseDown
+                && rect.Contains(Event.current.mousePosition)
+                && !toggleRect.Contains(Event.current.mousePosition))
+            {
+                ToggleSelectAll(allSelected);
+                GUI.FocusControl(null);
+                Event.current.Use();
+            }
+        }
+
+        private void ToggleSelectAll(bool currentlyAllSelected)
+        {
+            if (currentlyAllSelected) _selected.Clear();
+            else SelectAllInstallable();
+        }
+
+        private void SelectAllInstallable()
+        {
+            foreach (var pkg in _packages)
+            {
+                if (IsInstalled(pkg.id)) continue;
+                _selected.Add(pkg.id);
+            }
+        }
+
+        private int CountInstallable()
+        {
+            var n = 0;
+            foreach (var pkg in _packages)
+                if (!IsInstalled(pkg.id)) n++;
+            return n;
+        }
+
+        private bool IsInstalled(string id)
+            => _installedState != null && _installedState.TryGetValue(id, out var v) && v;
 
         private void DrawIntroCard()
         {
@@ -304,6 +401,22 @@ namespace DevWorkbench.Editor
         private static GUIStyle _optionalStatusStyle;
         private static GUIStyle OptionalStatusStyle => _optionalStatusStyle ??= new GUIStyle(EditorStyles.miniLabel)
         {
+            alignment = TextAnchor.MiddleRight,
+            normal = { textColor = DimTextColor },
+        };
+
+        private static GUIStyle _selectAllLabelStyle;
+        private static GUIStyle SelectAllLabelStyle => _selectAllLabelStyle ??= new GUIStyle(EditorStyles.miniBoldLabel)
+        {
+            fontSize = 11,
+            alignment = TextAnchor.MiddleLeft,
+            normal = { textColor = SelectAllTextColor },
+        };
+
+        private static GUIStyle _selectAllCountStyle;
+        private static GUIStyle SelectAllCountStyle => _selectAllCountStyle ??= new GUIStyle(EditorStyles.miniLabel)
+        {
+            fontSize = 11,
             alignment = TextAnchor.MiddleRight,
             normal = { textColor = DimTextColor },
         };
