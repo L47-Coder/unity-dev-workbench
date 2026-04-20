@@ -17,6 +17,11 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: a8453151c2a7001439d39860cdba0f52
   m_SerializeEntries:
+  - m_GUID: 03148b584a402d4468358503ce49fa72
+    m_Address: ManagerConfig/T
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7be3af9effceabb4ca9c137a9a6cac08
     m_Address: ManagerConfig/Component
     m_ReadOnly: 0

@@ -7,8 +7,13 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // 架构初始化单一入口。检测项全部以项目自身状态为准（不依赖任何持久化 flag），
-    // 因此可幂等重入、支持自愈（用户手动删了 Group / 资产后会自动再弹遮罩）。
+    // 架构初始化单一入口。检测项全部以项目自身状态为准（不依赖任何持久化 flag），因此可幂等重入。
+    //
+    // 检测时机说明：DevWindow 在一次 Unity 编辑器会话里只做一次 CheckStatus（首次打开时），
+    // 靠 SessionState 跨 domain reload 保留标记；不订阅 EditorApplication.projectChanged，
+    // 也不在每次 OnEnable 都跑。这样能规避两种瞬态噪音——删资产瞬间的"脚本已空但 asset 未清"、
+    // 以及 Creator 生成后 domain reload 的"脚本已编译但 post-compile asset 未建"。
+    // 结构真的坏了，靠用户重启 Unity 后下一次首开自检、或主动点 Initialise 修复。
     //
     // "Manager 程序集容器"这一项以 Assets/Game/Manager/Game.Managers.asmdef 的存在为准——
     // 无论用户是否安装了任一默认 Manager 包，只要想在 Assets/Game/Manager/ 下写 Manager，

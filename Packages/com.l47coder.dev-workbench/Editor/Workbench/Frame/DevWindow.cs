@@ -27,6 +27,10 @@ namespace DevWorkbench.Editor
         private const float MenuButtonHeight = 40f;
         private const string PageOrderAssetPath = "Assets/Game/Frame/PageOrder.asset";
 
+        // 一次 Unity 编辑器进程里只做一次完整性检测。用 SessionState 跨 domain reload 保留标记。
+        // 重启 Unity 时 SessionState 清空，下次打开 Workbench 会重新检查。
+        private const string SessionKeyBootstrapChecked = "DevWorkbench.DevWindow.BootstrapChecked";
+
         private static readonly Color MenuBgColor = new(0.14f, 0.14f, 0.14f);
         private static readonly Color ContentBgColor = new(0.18f, 0.18f, 0.18f);
         private static readonly Color DividerColor = new(0.11f, 0.11f, 0.11f);
@@ -70,6 +74,12 @@ namespace DevWorkbench.Editor
         [MenuItem("Tools/Dev Workbench")]
         private static void Open()
         {
+            // 用户主动打开窗口且当前没有存活实例时，清掉 SessionState 里的 checked flag，
+            // 使得接下来的 OnEnable 会跑一次完整性检测。其余路径（Unity 启动恢复 docked 窗口、
+            // Creator/删资产触发的 domain reload 重建）都不会走到这里。
+            if (!HasOpenInstances<DevWindow>())
+                SessionState.EraseBool(SessionKeyBootstrapChecked);
+
             var window = GetWindow<DevWindow>("Dev Workbench", false);
             window.minSize = new Vector2(MenuWidth, MenuWidth);
             window.position = SearchUtils.GetMainWindowCenteredPosition(new Vector2(StartWidth, StartHeight));
@@ -80,8 +90,18 @@ namespace DevWorkbench.Editor
             wantsMouseMove = true;
             _pageOrder = LoadOrCreatePageOrder();
 
-            RefreshBootstrapStatus();
-            EditorApplication.projectChanged += RefreshBootstrapStatus;
+            // 完整性检测策略：
+            //   - 每次用户主动从菜单打开窗口时检测一次（Open() 里清 flag 来驱动）。
+            //   - Unity 启动时自动恢复的 docked 窗口，SessionState 是空的，也会触发一次检测。
+            //   - 所有由 domain reload 引起的 OnEnable 自动重建都会看到 flag=true 而跳过，
+            //     彻底避开"脚本已改但 post-compile asset 还没铺好"的瞬态噪音。
+            //   - 不订阅 EditorApplication.projectChanged，避免删资产的瞬间被瞬态判定为"不完整"。
+            // 结构真的损坏了，靠重启 Unity 或用户主动关窗重开兜住；其余全交给 Initialise 按钮。
+            if (!SessionState.GetBool(SessionKeyBootstrapChecked, false))
+            {
+                SessionState.SetBool(SessionKeyBootstrapChecked, true);
+                RefreshBootstrapStatus();
+            }
 
             var pages = CollectPages();
             if (pages.Count == 0)
@@ -96,13 +116,14 @@ namespace DevWorkbench.Editor
 
         private void OnDisable()
         {
-            EditorApplication.projectChanged -= RefreshBootstrapStatus;
             _currentPage?.OnLeave();
         }
 
         private void OnGUI()
         {
-            if (_bootstrapStatus == null || !_bootstrapStatus.IsReady)
+            // _bootstrapStatus 为 null = 本会话已跳过检测（见 OnEnable 注释），视为就绪走主 UI。
+            // 只有真的检测过且不通过，才弹蒙版。
+            if (_bootstrapStatus != null && !_bootstrapStatus.IsReady)
             {
                 DrawBootstrapOverlay(new Rect(0f, 0f, position.width, position.height));
                 return;
@@ -446,16 +467,10 @@ namespace DevWorkbench.Editor
 
         private void DrawBootstrapOverlay(Rect rect)
         {
+            // 进入这里意味着 _bootstrapStatus != null 且 !IsReady（见 OnGUI 的守卫），
+            // 所以不需要再做 null 兜底 refresh——那会绕过"一次会话只检测一次"的约定。
             EnsureOverlayStyles();
             EditorGUI.DrawRect(rect, OverlayBgColor);
-
-            // 防御：若 OnEnable 早期抛异常，RefreshBootstrapStatus 没来得及跑，
-            // _bootstrapStatus 会保持 null，这里再次兜底以免掩盖真正的首发异常。
-            if (_bootstrapStatus == null)
-            {
-                RefreshBootstrapStatus();
-                if (_bootstrapStatus == null) return;
-            }
 
             const float maxCardW = 560f;
             const float minCardW = 320f;
