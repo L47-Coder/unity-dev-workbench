@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using DevWorkbench;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
+using DevWorkbench;
 
 internal sealed class ComponentManagerRefresher : IManagerRefresher
 {

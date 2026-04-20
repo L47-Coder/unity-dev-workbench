@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using DevWorkbench;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using DevWorkbench;
 
 public interface IAssetHandle<out T> where T : class
 {
@@ -50,7 +50,7 @@ internal sealed partial class AssetManager : IAssetManager
     public async UniTask<IAssetHandle<T>> LoadAssetAsync<T>(string key) where T : class
     {
         if (string.IsNullOrEmpty(key) || !_managerDataDict.TryGetValue(key, out var data))
-            throw new Exception($"非法的键值: {key}");
+            throw new Exception($"Invalid key: {key}");
 
         if (!_assetCaches.TryGetValue(key, out var assetCache))
         {
@@ -77,13 +77,13 @@ internal sealed partial class AssetManager : IAssetManager
             await assetCache.OperationCompletion.Task;
 
         if (!assetCache.OperationHandle.IsValid())
-            throw new Exception("资源句柄无效");
+            throw new Exception("Asset handle is invalid.");
 
         if (assetCache.OperationHandle.Status != AsyncOperationStatus.Succeeded)
-            throw new Exception("资源加载失败");
+            throw new Exception("Asset load failed.");
 
         if (assetCache.OperationHandle.Result is not T result)
-            throw new Exception("资源类型错误");
+            throw new Exception("Asset type mismatch.");
 
         var assetHandle = new AssetHandle<T>(key, result);
         assetCache.AssetHandles.Add(assetHandle);

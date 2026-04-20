@@ -9,13 +9,18 @@ namespace DevWorkbench.Editor
 {
     // 架构初始化单一入口。检测项全部以项目自身状态为准（不依赖任何持久化 flag），
     // 因此可幂等重入、支持自愈（用户手动删了 Group / 资产后会自动再弹遮罩）。
-    // "默认 Manager 已投放"这一项以 Assets/Game/Manager/Game.Managers.asmdef 的存在为准——
-    // 该 asmdef 是投放内容的一部分，它在 = 程序集已建立 = 默认 Manager 已投放。
+    //
+    // "Manager 程序集容器"这一项以 Assets/Game/Manager/Game.Managers.asmdef 的存在为准——
+    // 无论用户是否安装了任一默认 Manager 包，只要想在 Assets/Game/Manager/ 下写 Manager，
+    // 就需要这个 asmdef 先就位，所以它作为"框架基础设施"的一部分由本类负责投放。
+    //
+    // 具体"哪些默认 Manager 包被安装了"不再是 Bootstrap 的关注点，
+    // 改由 ManagerInstallerPage 驱动用户按需选择安装。
     [InitializeOnLoad]
     internal static class FrameworkBootstrapper
     {
-        // 投放过默认 Manager 后，Unity 会重新编译；编译完 domain reload 会走到这里，
-        // 我们再跑一次 InitializeAll 把三个默认 ManagerConfig 的 asset / Addressable 补齐。
+        // 用户通过 Installer 安装任一默认包后，Unity 会重新编译；编译完 domain reload
+        // 会走到这里，我们再跑一次 InitializeAll 把新包里的 ManagerConfig 的 asset / Addressable 补齐。
         static FrameworkBootstrapper()
         {
             EditorApplication.delayCall += TryRerunInitializeAfterReload;
@@ -27,7 +32,7 @@ namespace DevWorkbench.Editor
             SessionState.EraseBool(DefaultManagerInstaller.SessionKeyRerunInitialize);
 
             try { InitializeAll(); }
-            catch (System.Exception ex) { Debug.LogError($"[FrameworkBootstrapper] Rerun after default Manager install failed: {ex}"); }
+            catch (System.Exception ex) { Debug.LogError($"[FrameworkBootstrapper] Rerun after default package install failed: {ex}"); }
         }
 
         public sealed class Check
@@ -49,14 +54,14 @@ namespace DevWorkbench.Editor
         {
             var status = new Status();
 
-            var defaultManagerInstalled = DefaultManagerInstaller.IsInstalled();
+            var containerReady = DefaultManagerInstaller.IsContainerInstalled();
             status.Checks.Add(new Check
             {
-                Label = "Default Managers deployed",
-                Passed = defaultManagerInstalled,
-                Detail = defaultManagerInstalled
+                Label = "Manager assembly ready",
+                Passed = containerReady,
+                Detail = containerReady
                     ? null
-                    : $"No default Managers found under {DefaultManagerInstaller.ManagerRootAssetPath}/. Initialise will copy the templates from the package.",
+                    : $"{DefaultManagerInstaller.AsmdefAssetPath} is missing. Initialise will create it so that Assets/Game/Manager/ becomes a compile-ready assembly.",
             });
 
             var settings = AddressableAssetSettingsDefaultObject.Settings;
@@ -137,11 +142,10 @@ namespace DevWorkbench.Editor
 
         public static void InitializeAll()
         {
-            // Step 0：首次投放三套默认 Manager 到 Assets/Game/Manager/。
-            // 投放只写文件（不走 AssetDatabase.CreateAsset），所以无需在 StartAssetEditing 块内。
-            // 投放后 Unity 会重新编译，编译完的 domain reload 会触发 TryRerunInitializeAfterReload
-            // 把剩下的 Step 2–5 再跑一遍（那时三个默认 ManagerConfig 类型已经可见）。
-            var justInstalled = DefaultManagerInstaller.EnsureInstalled();
+            // Step 0：投放 Game.Managers.asmdef 容器（= Manager 程序集）。
+            // 只写一个文件（不走 AssetDatabase.CreateAsset），不依赖脚本编译，所以无需让后续步骤等 domain reload。
+            // 具体的默认 Manager 包此处不再强推，改由 ManagerInstallerPage 让用户按需安装。
+            DefaultManagerInstaller.EnsureContainerInstalled();
 
             AssetDatabase.StartAssetEditing();
             try
@@ -170,9 +174,7 @@ namespace DevWorkbench.Editor
                 AssetDatabase.Refresh();
             }
 
-            Debug.Log(justInstalled
-                ? "[FrameworkBootstrapper] Default Managers deployed. The remaining assets will be created automatically after Unity finishes recompiling."
-                : "[FrameworkBootstrapper] Framework initialisation complete.");
+            Debug.Log("[FrameworkBootstrapper] Framework initialisation complete.");
         }
     }
 }

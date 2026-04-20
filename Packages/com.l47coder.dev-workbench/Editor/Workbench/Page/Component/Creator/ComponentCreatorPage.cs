@@ -14,7 +14,7 @@ namespace DevWorkbench.Editor
         private const float SectionSpacing = 10f;
         private const float CardPad = 14f;
         private const float CreateButtonHeight = 38f;
-        private const float LabelWidth = 85f;
+        private const float LabelWidth = 150f;
         private const float DotSize = 8f;
         private const float DotLeftPad = 4f;
         private const float FieldSpacing = 4f;

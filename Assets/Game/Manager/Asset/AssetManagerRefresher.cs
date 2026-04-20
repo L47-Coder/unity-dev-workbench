@@ -1,9 +1,9 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using DevWorkbench;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
+using DevWorkbench;
 
 internal sealed class AssetManagerRefresher : IManagerRefresher
 {

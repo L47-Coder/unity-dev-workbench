@@ -38,7 +38,7 @@ internal sealed partial class ComponentManager : IComponentManager, IAsyncInitMa
         var typeKey = $"{typeof(T).Name}_{key}";
         var component = CreateComponent(typeKey);
         if (component is not T result)
-            throw new Exception($"组件类型错误: {typeKey}");
+            throw new Exception($"Component type mismatch: {typeKey}");
 
         return result;
     }
@@ -46,7 +46,7 @@ internal sealed partial class ComponentManager : IComponentManager, IAsyncInitMa
     public BaseComponent CreateComponent(string typeKey)
     {
         if (string.IsNullOrEmpty(typeKey) || !_componentDataDict.TryGetValue(typeKey, out var componentData))
-            throw new Exception($"非法的键值: {typeKey}");
+            throw new Exception($"Invalid key: {typeKey}");
 
         return componentData.InternalCreateComponent();
     }
