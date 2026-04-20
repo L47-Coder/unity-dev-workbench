@@ -15,18 +15,19 @@ Addressable groups.
   standardises data loading, lifecycle and dependency injection, so gameplay
   code only ever sees well-typed, ready-to-use services.
 - **Two-layer separation.** The architecture layer (`DevWorkbench`) owns
-  lifecycle and contracts; the dispatch layer (`Game.Managers`) lives in your
-  project under `Assets/Game/Manager/` and is free to be modified, extended or
-  replaced.
+  lifecycle and contracts; the dispatch layer (`Game.Managers` /
+  `Game.Components`) lives in your project under `Assets/Game/` and is free
+  to be modified, extended or replaced.
 - **DevWorkbench editor panel.** Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench gives you
-  tree / table / order views for every Manager, Component and Addressable
-  group, plus a Creator that scaffolds a new Manager (`.cs` + generated
-  `Data` / `Config` partials + `ScriptableObject` asset + Addressable entry)
-  with a single click.
-- **Default Managers ship as templates, not binaries.** The bundled `Asset /
-  Component / Prefab` Managers are installed on first load into
-  `Assets/Game/Manager/` as plain source &mdash; you can read them, tweak them,
-  or delete them.
+  Viewer / Order / Creator / Installer tabs for every Manager, Component and
+  Addressable group. The Creator scaffolds a new Manager or Component
+  (`.cs` + generated `Data` / `Config` partials + `ScriptableObject` asset +
+  Addressable entry) with a single click.
+- **Default Managers ship as on-demand templates.** On first launch the
+  workbench only provisions the Order assets and two empty `asmdef`
+  containers. The bundled `Asset / Component / Prefab` Managers are imported
+  from the *Manager&nbsp;/&nbsp;Installer* tab as plain source you own and can
+  modify or delete.
 
 ## Requirements
 
@@ -70,14 +71,17 @@ pick it up automatically as an embedded package.
 ## Quick Start
 
 1. Install the package.
-2. Open `Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench`. On first launch the workbench
-   creates:
+2. Open `Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench`. If the side panel says
+   *"Framework not initialised"*, click **Initialise**. This creates:
    - `Assets/Game/Frame/{ManagerOrder,ComponentOrder,PageOrder}.asset`
-   - `Assets/Game/Manager/{Asset,Component,Prefab}/` with the three default
-     Managers and a shared `Game.Managers.asmdef`.
-3. If the side panel says *"Framework not initialised"*, click **Initialise**.
-4. Use the *Manager&nbsp;/&nbsp;Creator* page to scaffold your own Manager, or
-   the *Component&nbsp;/&nbsp;Creator* page for a Component.
+   - `Assets/Game/Manager/Game.Managers.asmdef` and
+     `Assets/Game/Component/Game.Components.asmdef` as empty containers.
+3. Open the *Manager&nbsp;/&nbsp;Installer* tab and import the default
+   `Asset / Component / Prefab` Managers on demand. They land under
+   `Assets/Game/Manager/{Asset,Component,Prefab}/` as plain source you can
+   modify or delete.
+4. Use the *Manager&nbsp;/&nbsp;Creator* or *Component&nbsp;/&nbsp;Creator*
+   tab to scaffold your own Manager / Component.
 
 ## Host Project Layout
 
@@ -91,28 +95,32 @@ Assets/
     │   ├── ManagerOrder.asset
     │   ├── ComponentOrder.asset
     │   └── PageOrder.asset
-    └── Manager/
-        ├── Game.Managers.asmdef
-        ├── Asset/    AssetManagerConfig.asset    + source
-        ├── Component/ ComponentManagerConfig.asset + source
-        └── Prefab/   PrefabManagerConfig.asset   + source
+    ├── Manager/
+    │   ├── Game.Managers.asmdef
+    │   ├── Asset/      (installed on demand)
+    │   ├── Component/  (installed on demand)
+    │   └── Prefab/     (installed on demand)
+    └── Component/
+        └── Game.Components.asmdef
 ```
 
-The `Game.Managers` assembly has an `[InternalsVisibleTo]` bridge into
-`DevWorkbench`, so user-written Managers can access the framework's internal
-dispatch hooks (e.g. `BaseComponent.InternalSetGameObject`).
+`Game.Managers` and `Game.Components` both have an `[InternalsVisibleTo]`
+bridge into `DevWorkbench`, so user-written Managers and Components can access
+the framework's internal dispatch hooks (e.g.
+`BaseComponent.InternalSetGameObject`).
 
 ## Assembly & Namespace Layout
 
-| Assembly (`.asmdef`)   | Namespace             | Purpose                                            |
-| ---------------------- | --------------------- | -------------------------------------------------- |
-| `DevWorkbench`         | `DevWorkbench`        | Runtime contracts, bridges, loader utilities.      |
-| `DevWorkbench.Editor`  | `DevWorkbench.Editor` | Editor-only DevWorkbench panel and bootstrapper.   |
-| `Game.Managers`        | *global*              | Host-project Managers (default + user-authored).   |
+| Assembly (`.asmdef`)   | Namespace             | Purpose                                                  |
+| ---------------------- | --------------------- | -------------------------------------------------------- |
+| `DevWorkbench`         | `DevWorkbench`        | Runtime contracts, bridges, loader utilities.            |
+| `DevWorkbench.Editor`  | `DevWorkbench.Editor` | Editor-only DevWorkbench panel and bootstrapper.         |
+| `Game.Managers`        | *global*              | Host-project Managers (default + user-authored).         |
+| `Game.Components`      | *global*              | Host-project Components, scaffolded by the Creator.      |
 
-The Manager layer intentionally stays in the global namespace so that
-scaffolded templates read naturally and gameplay code does not need an extra
-`using`.
+The Manager / Component layers intentionally stay in the global namespace so
+that scaffolded templates read naturally and gameplay code does not need an
+extra `using`.
 
 ## License
 

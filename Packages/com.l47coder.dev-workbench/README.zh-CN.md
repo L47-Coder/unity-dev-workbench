@@ -13,15 +13,16 @@
 - **约束清晰的运行期核心**：`BaseManager` / `BaseComponent` 一对基类统一了
   数据装载、生命周期与依赖注入，业务代码只看到强类型、开箱即用的服务。
 - **两层结构**：架构层（`DevWorkbench`）只管生命周期与契约；调度层
-  （`Game.Managers`）住在宿主工程的 `Assets/Game/Manager/` 下，随时可改、可扩、
-  可删。
-- **DevWorkbench 编辑器面板**：`Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench` 提供树 /
-  表 / 顺序三种视图管理 Manager、Component、Addressable 分组；Creator 页面一键
-  生成 Manager（`.cs` + `Data` / `Config` partial + `ScriptableObject` 资产 +
-  Addressable 入口）。
-- **默认 Manager 以模板形式投放**：内置的 `Asset / Component / Prefab` 三个
-  默认 Manager，首次加载时会被拷贝成源码投放到 `Assets/Game/Manager/`，
-  用户可自由查看、修改甚至删除。
+  （`Game.Managers` / `Game.Components`）住在宿主工程的 `Assets/Game/` 下，
+  随时可改、可扩、可删。
+- **DevWorkbench 编辑器面板**：`Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench` 为
+  Manager、Component、Addressable 分组各自提供 Viewer / Order / Creator /
+  Installer 四个 Tab；Creator 一键生成 Manager 或 Component（`.cs` + `Data` /
+  `Config` partial + `ScriptableObject` 资产 + Addressable 入口）。
+- **默认 Manager 以按需模板形式投放**：首次初始化只铺 Order 资产和两个空的
+  `asmdef` 容器；内置的 `Asset / Component / Prefab` 三个默认 Manager 由
+  *Manager&nbsp;/&nbsp;Installer* 页面按需导入，落地后即用户自有的源码，可自由
+  查看、修改或删除。
 
 ## 先决条件
 
@@ -62,13 +63,16 @@ https://github.com/L47-Coder/unity-dev-workbench.git?path=Packages/com.l47coder.
 ## 快速上手
 
 1. 安装本包。
-2. 打开 `Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench`。首次打开时会自动创建：
+2. 打开 `Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench`。若侧栏提示
+   *"Framework not initialised"*，点击 **Initialise**，此时会创建：
    - `Assets/Game/Frame/{ManagerOrder,ComponentOrder,PageOrder}.asset`
-   - `Assets/Game/Manager/{Asset,Component,Prefab}/` 下的三个默认 Manager 与
-     共用的 `Game.Managers.asmdef`。
-3. 如果侧栏提示 *"Framework not initialised"*，点击 **Initialise**。
-4. 在 *Manager&nbsp;/&nbsp;Creator* 页面创建自己的 Manager，或在
-   *Component&nbsp;/&nbsp;Creator* 页面创建 Component。
+   - `Assets/Game/Manager/Game.Managers.asmdef` 与
+     `Assets/Game/Component/Game.Components.asmdef` 两个空容器。
+3. 打开 *Manager&nbsp;/&nbsp;Installer* 页面，按需导入内置的
+   `Asset / Component / Prefab` 三个默认 Manager，它们会以源码形式落在
+   `Assets/Game/Manager/{Asset,Component,Prefab}/`，用户可自由修改或删除。
+4. 在 *Manager&nbsp;/&nbsp;Creator* 或 *Component&nbsp;/&nbsp;Creator*
+   页面创建自己的 Manager / Component。
 
 ## 宿主工程目录约定
 
@@ -81,27 +85,30 @@ Assets/
     │   ├── ManagerOrder.asset
     │   ├── ComponentOrder.asset
     │   └── PageOrder.asset
-    └── Manager/
-        ├── Game.Managers.asmdef
-        ├── Asset/     AssetManagerConfig.asset     + 源码
-        ├── Component/ ComponentManagerConfig.asset + 源码
-        └── Prefab/    PrefabManagerConfig.asset    + 源码
+    ├── Manager/
+    │   ├── Game.Managers.asmdef
+    │   ├── Asset/      （按需导入）
+    │   ├── Component/  （按需导入）
+    │   └── Prefab/     （按需导入）
+    └── Component/
+        └── Game.Components.asmdef
 ```
 
-`Game.Managers` 程序集通过 `[InternalsVisibleTo]` 桥接到 `DevWorkbench`，
-使用户自定 Manager 能访问框架的内部调度钩子（如
-`BaseComponent.InternalSetGameObject`）。
+`Game.Managers` 与 `Game.Components` 都通过 `[InternalsVisibleTo]` 桥接到
+`DevWorkbench`，使用户自定 Manager 与 Component 能访问框架的内部调度钩子
+（如 `BaseComponent.InternalSetGameObject`）。
 
 ## 程序集与命名空间
 
-| 程序集（`.asmdef`）    | 命名空间              | 职责                                               |
-| --------------------- | -------------------- | -------------------------------------------------- |
-| `DevWorkbench`        | `DevWorkbench`       | 运行期契约、桥接器、加载工具。                      |
-| `DevWorkbench.Editor` | `DevWorkbench.Editor`| 编辑器专用的 DevWorkbench 面板与 Bootstrap。        |
-| `Game.Managers`       | *全局*               | 宿主工程的 Manager（默认 + 用户自定）。             |
+| 程序集（`.asmdef`）    | 命名空间              | 职责                                                  |
+| --------------------- | -------------------- | ----------------------------------------------------- |
+| `DevWorkbench`        | `DevWorkbench`       | 运行期契约、桥接器、加载工具。                          |
+| `DevWorkbench.Editor` | `DevWorkbench.Editor`| 编辑器专用的 DevWorkbench 面板与 Bootstrap。            |
+| `Game.Managers`       | *全局*               | 宿主工程的 Manager（默认 + 用户自定）。                 |
+| `Game.Components`     | *全局*               | 宿主工程的 Component，由 Creator 按需生成。             |
 
-Manager 层特意保持在全局命名空间，使生成的模板读起来更自然，业务代码也无需
-额外 `using`。
+Manager / Component 层特意保持在全局命名空间，使生成的模板读起来更自然，
+业务代码也无需额外 `using`。
 
 ## 许可证
 
