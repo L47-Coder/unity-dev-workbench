@@ -6,26 +6,25 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // Manager 模板仓（Runtime~/Templates/Managers）里分两层东西：
-    //   1. Game.Managers.asmdef —— "Manager 容器"程序集，与具体某个模板包无关。
-    //      Creator 生成的用户 Manager 也靠它接管，因此无论用户是否安装任一模板，
-    //      只要想在 Assets/Game/Manager/ 下写 Manager，就需要它先就位。
+    // Component 模板仓（Runtime~/Templates/Components）与 Manager 模板仓结构对称：
+    //   1. Game.Components.asmdef —— "Component 容器"程序集，与具体某个模板包无关。
+    //      Creator 生成的用户 Component 都落在 Assets/Game/Component/ 下，需要这个
+    //      asmdef 先就位，以免 Component 被吸进 Assembly-CSharp 和业务代码一起重编译。
     //      => 由 FrameworkBootstrapper 的 Step 0（EnsureContainerInstalled）负责。
-    //   2. Asset / Component / Prefab 等子目录 —— 每个子目录就是一个"内置 Manager 模板"，
-    //      manifest.json 描述它们的元信息；由 ManagerInstallerPage 驱动用户按需安装。
+    //   2. manifest.json 记录的内置 Component 模板 —— 每个 id 对应一个可选模板包；
+    //      由（未来的）ComponentInstallerPage 驱动用户按需安装。
     //
-    // 注意：Unity 会忽略任何以 `~` 结尾的目录，所以包里 Runtime~ 的内容不会被当作 asset 编译，
-    // 这正是"模板仓"该有的行为。未来加 Component 模板会平级新建 Runtime~/Templates/Components/，
-    // 配套一个 ComponentTemplateInstaller，与本类职责对称。
-    internal static class ManagerTemplateInstaller
+    // API 形状刻意与 ManagerTemplateInstaller 对齐（LoadManifest / IsPackageInstalled /
+    // InstallPackages / EnsureContainerInstalled），待第三种模板出现时再考虑抽共用基座。
+    internal static class ComponentTemplateInstaller
     {
         private const string TemplateSourceRelative =
-            "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Managers";
+            "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Components";
         private const string ManifestFileName = "manifest.json";
-        private const string AsmdefFileName = "Game.Managers.asmdef";
+        private const string AsmdefFileName = "Game.Components.asmdef";
 
-        public const string ManagerRootAssetPath = "Assets/Game/Manager";
-        public const string AsmdefAssetPath = ManagerRootAssetPath + "/" + AsmdefFileName;
+        public const string ComponentRootAssetPath = "Assets/Game/Component";
+        public const string AsmdefAssetPath = ComponentRootAssetPath + "/" + AsmdefFileName;
 
         // ── Manifest ──────────────────────────────────────────────────────────────
 
@@ -53,7 +52,7 @@ namespace DevWorkbench.Editor
             var manifestAbs = ResolveSourceAbsolute(ManifestFileName);
             if (string.IsNullOrEmpty(manifestAbs) || !File.Exists(manifestAbs))
             {
-                Debug.LogWarning($"[ManagerTemplateInstaller] manifest.json not found at {TemplateSourceRelative}/{ManifestFileName}.");
+                // 允许 manifest 文件缺失——视为"暂时没有内置 Component 模板"。
                 _cachedManifest = new List<PackageInfo>();
                 return _cachedManifest;
             }
@@ -66,7 +65,7 @@ namespace DevWorkbench.Editor
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ManagerTemplateInstaller] Failed to parse manifest.json: {ex.Message}");
+                Debug.LogError($"[ComponentTemplateInstaller] Failed to parse manifest.json: {ex.Message}");
                 _cachedManifest = new List<PackageInfo>();
             }
 
@@ -79,7 +78,7 @@ namespace DevWorkbench.Editor
 
         public static bool IsContainerInstalled() => File.Exists(ToAbsolute(AsmdefAssetPath));
 
-        // 只投放 Game.Managers.asmdef（= Manager 容器程序集）。不拷任何模板包。
+        // 只投放 Game.Components.asmdef（= Component 容器程序集）。不拷任何模板包。
         // 供 FrameworkBootstrapper Step 0 使用。
         public static bool EnsureContainerInstalled()
         {
@@ -88,11 +87,11 @@ namespace DevWorkbench.Editor
             var sourceAbs = ResolveSourceAbsolute(AsmdefFileName);
             if (string.IsNullOrEmpty(sourceAbs) || !File.Exists(sourceAbs))
             {
-                Debug.LogError($"[ManagerTemplateInstaller] Container asmdef missing in template: {TemplateSourceRelative}/{AsmdefFileName}.");
+                Debug.LogError($"[ComponentTemplateInstaller] Container asmdef missing in template: {TemplateSourceRelative}/{AsmdefFileName}.");
                 return false;
             }
 
-            FrameAssetInstaller.EnsureFolder(ManagerRootAssetPath);
+            FrameAssetInstaller.EnsureFolder(ComponentRootAssetPath);
 
             var targetAbs = ToAbsolute(AsmdefAssetPath);
             var targetDir = Path.GetDirectoryName(targetAbs);
@@ -101,30 +100,26 @@ namespace DevWorkbench.Editor
 
             File.Copy(sourceAbs, targetAbs, overwrite: false);
             AssetDatabase.Refresh();
-            Debug.Log("[ManagerTemplateInstaller] Game.Managers.asmdef container deployed.");
+            Debug.Log("[ComponentTemplateInstaller] Game.Components.asmdef container deployed.");
             return true;
         }
 
         // ── 可选模板包 ────────────────────────────────────────────────────────────
 
-        // 以"主脚本文件是否存在"作为"这个模板是否已安装"的判据。
-        // 比只看目录存在更稳：用户如果把目录里的文件清空了，我们也认为要重装。
+        // 判据：{packageId}Component.cs 是否存在——和 Creator 生成的命名规则
+        // ({Name}Component.cs) 对齐，便于未来内置模板判断"是否已被用户侧安装过"。
         public static bool IsPackageInstalled(string packageId)
         {
             if (string.IsNullOrEmpty(packageId)) return false;
-            var marker = ToAbsolute($"{ManagerRootAssetPath}/{packageId}/{packageId}Manager.cs");
+            var marker = ToAbsolute($"{ComponentRootAssetPath}/{packageId}/{packageId}Component.cs");
             return File.Exists(marker);
         }
 
         // 批量安装指定模板包（幂等：已安装的直接跳过）。
-        // 返回值：实际新安装了几个包。若 >0 会设置 SessionKeyRerunInitialize，
-        // 让 FrameworkBootstrapper 在编译完成后重跑 InitializeAll 以挂载 Addressables/Order/Refresher。
         public static int InstallPackages(IEnumerable<string> packageIds)
         {
             if (packageIds == null) return 0;
 
-            // 先确保容器 asmdef 存在（Installer 作为入口被单独触发时的兜底，
-            // 一般来说到得了 Installer 页 Bootstrap 就已经跑过了，但多一份保险不亏）。
             EnsureContainerInstalled();
 
             var installed = 0;
@@ -136,20 +131,20 @@ namespace DevWorkbench.Editor
                 var sourceAbs = ResolveSourceAbsolute(id);
                 if (string.IsNullOrEmpty(sourceAbs) || !Directory.Exists(sourceAbs))
                 {
-                    Debug.LogError($"[ManagerTemplateInstaller] Template folder missing: {TemplateSourceRelative}/{id}");
+                    Debug.LogError($"[ComponentTemplateInstaller] Template folder missing: {TemplateSourceRelative}/{id}");
                     continue;
                 }
 
-                var targetAbs = ToAbsolute($"{ManagerRootAssetPath}/{id}");
+                var targetAbs = ToAbsolute($"{ComponentRootAssetPath}/{id}");
                 CopyDirectory(sourceAbs, targetAbs);
                 installed++;
-                Debug.Log($"[ManagerTemplateInstaller] Installed Manager template \"{id}\".");
+                Debug.Log($"[ComponentTemplateInstaller] Installed Component template \"{id}\".");
             }
 
             if (installed > 0)
             {
                 // 让 FrameworkBootstrapper 在 domain reload 之后重跑 InitializeAll，
-                // 把新包里的 ManagerConfig 类型挂到 Addressables、同步 Order、跑 Refresher。
+                // 把新包里可能引入的 ComponentConfig 类型挂到 Addressables、同步 Order。
                 SessionState.SetBool(FrameworkBootstrapper.SessionKeyRerunInitialize, true);
                 AssetDatabase.Refresh();
             }

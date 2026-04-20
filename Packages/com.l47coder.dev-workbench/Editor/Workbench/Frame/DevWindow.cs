@@ -25,7 +25,7 @@ namespace DevWorkbench.Editor
         private const float HeaderHeight = 25f;
         private const float DividerWidth = 1f;
         private const float MenuButtonHeight = 40f;
-        private const string PageOrderAssetPath = "Assets/Game/Frame/PageOrder.asset";
+        private const string PageOrderAssetPath = FrameAssetInstaller.PageOrderAssetPath;
 
         // 一次 Unity 编辑器进程里只做一次完整性检测。用 SessionState 跨 domain reload 保留标记。
         // 重启 Unity 时 SessionState 清空，下次打开 Workbench 会重新检查。

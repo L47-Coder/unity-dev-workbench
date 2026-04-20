@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // Manager / Installer Tab：展示 manifest.json 里登记的可选默认 Manager 包，
-    // 让用户勾选要导入哪些；已安装的包显示"Installed"并禁用 Toggle。
-    // 点击 Import 后调用 DefaultManagerInstaller.InstallPackages，Unity 重新编译完
+    // Manager / Installer Tab：展示 manifest.json 里登记的 Manager 模板，
+    // 让用户勾选要导入哪些；已安装的模板显示"Installed"并禁用 Toggle。
+    // 点击 Import 后调用 ManagerTemplateInstaller.InstallPackages，Unity 重新编译完
     // FrameworkBootstrapper.TryRerunInitializeAfterReload 会把剩下的挂载补齐。
     internal sealed class ManagerInstallerPage : IPage
     {
@@ -46,7 +46,7 @@ namespace DevWorkbench.Editor
         private static readonly Color SelectAllTextColor = new(0.82f, 0.88f, 0.98f);
 
         private readonly HashSet<string> _selected = new();
-        private IReadOnlyList<DefaultManagerInstaller.PackageInfo> _packages;
+        private IReadOnlyList<ManagerTemplateInstaller.PackageInfo> _packages;
         private Dictionary<string, bool> _installedState;
         private Vector2 _scroll;
 
@@ -58,11 +58,11 @@ namespace DevWorkbench.Editor
 
         private void RefreshState()
         {
-            DefaultManagerInstaller.InvalidateManifestCache();
-            _packages = DefaultManagerInstaller.LoadManifest();
+            ManagerTemplateInstaller.InvalidateManifestCache();
+            _packages = ManagerTemplateInstaller.LoadManifest();
             _installedState = _packages.ToDictionary(
                 p => p.id,
-                p => DefaultManagerInstaller.IsPackageInstalled(p.id));
+                p => ManagerTemplateInstaller.IsPackageInstalled(p.id));
 
             _selected.RemoveWhere(id => !_installedState.ContainsKey(id) || _installedState[id]);
         }
@@ -186,9 +186,9 @@ namespace DevWorkbench.Editor
         private void DrawIntroCard()
         {
             BeginCard();
-            DrawHeader("Default Manager packages");
+            DrawHeader("Built-in Manager templates");
             GUILayout.Label(
-                "Pick the default Managers you want and click Import. These packages are optional; only the Game.Managers.asmdef container is created by the framework itself.",
+                "Pick the Manager templates you want and click Import. These templates are optional; only the Game.Managers.asmdef container is created by the framework itself.",
                 IntroStyle);
             if (_packages.Count == 0)
             {
@@ -217,7 +217,7 @@ namespace DevWorkbench.Editor
             }
         }
 
-        private void DrawPackageRow(DefaultManagerInstaller.PackageInfo pkg)
+        private void DrawPackageRow(ManagerTemplateInstaller.PackageInfo pkg)
         {
             var isInstalled = _installedState.TryGetValue(pkg.id, out var flag) && flag;
             // 已安装的行视觉上也显示为"勾选"——表达"这个包已经在项目里了"。
@@ -300,12 +300,12 @@ namespace DevWorkbench.Editor
             var ids = _selected.ToList();
             if (ids.Count == 0) return;
 
-            var installed = DefaultManagerInstaller.InstallPackages(ids);
+            var installed = ManagerTemplateInstaller.InstallPackages(ids);
             _selected.Clear();
             RefreshState();
 
             if (installed > 0)
-                Debug.Log($"[ManagerInstallerPage] Imported {installed} default Manager package(s). Unity will recompile and the remaining configuration will be applied automatically.");
+                Debug.Log($"[ManagerInstallerPage] Imported {installed} Manager template(s). Unity will recompile and the remaining configuration will be applied automatically.");
         }
 
         // ── Chrome ────────────────────────────────────────────────────────────────
