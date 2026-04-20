@@ -12,7 +12,6 @@ namespace DevWorkbench.Editor
     // 同时提供批量执行 IManagerRefresher 的能力，免去用户挨个点刷新按钮。
     internal static class ManagerConfigInstaller
     {
-        private const string ConfigClassSuffix = "ManagerConfig";
         private const string ManagerRootAssetPath = "Assets/Game/Manager";
 
         public sealed class ConfigEntryInfo
@@ -35,14 +34,11 @@ namespace DevWorkbench.Editor
 
             foreach (var type in EnumerateConcreteConfigTypes())
             {
-                var typeName = type.Name;
-                if (!typeName.EndsWith(ConfigClassSuffix, StringComparison.Ordinal)) continue;
-
-                var managerName = typeName[..^ConfigClassSuffix.Length];
+                var managerName = ManagerAddressConvention.ManagerNameOf(type);
                 if (string.IsNullOrEmpty(managerName)) continue;
 
-                var assetPath = LocateConfigAssetPath(typeName, managerName);
-                var address = $"{FrameAssetInstaller.ManagerConfigGroupName}/{managerName}";
+                var assetPath = LocateConfigAssetPath(type.Name, managerName);
+                var address = ManagerAddressConvention.AddressOf(managerName);
 
                 var info = new ConfigEntryInfo
                 {

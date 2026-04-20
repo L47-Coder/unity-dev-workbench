@@ -161,8 +161,9 @@ namespace DevWorkbench.Editor
             return File.Exists(abs);
         }
 
-        // 按用户设计："只看是否挂 Addressable，不强制 address 字面对齐"——允许用户手动改
-        // address 做 A/B 测试之类的操作而不被蒙版拦住；但若连 entry 都没挂，那必然是要修的。
+        // Config 的 address 是"生成代码里硬编码 + 框架按约定反推"的——entry 缺失、address 漂移、
+        // asset 不存在，三者都会让运行时 FrameworkLoader.LoadAsync 失败。因此全部计入 pending，
+        // 统一交给 Initialise 按钮一把修（EnsureAllRegistered 本来就能把漂移纠回约定地址）。
         private static Check CheckAllConfigsRegistered(AddressableAssetSettings settings)
         {
             const string label = "All configs registered";
@@ -175,10 +176,10 @@ namespace DevWorkbench.Editor
 
             var pending = new List<string>();
             foreach (var info in managerInfos)
-                if (!info.AssetExists || !info.HasAddressableEntry)
+                if (!info.AssetExists || !info.HasAddressableEntry || !info.AddressMatches)
                     pending.Add($"{info.ManagerName} (Manager)");
             foreach (var info in componentInfos)
-                if (!info.AssetExists || !info.HasAddressableEntry)
+                if (!info.AssetExists || !info.HasAddressableEntry || !info.AddressMatches)
                     pending.Add($"{info.ComponentName} (Component)");
 
             var total = managerInfos.Count + componentInfos.Count;

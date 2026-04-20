@@ -64,7 +64,7 @@ namespace DevWorkbench.Editor
 
         public void OnStart(Action<string> onSelected)
         {
-            _treeView.IgnoredNames = new() { "**/Generated" };
+            _treeView.IgnoredNames = new() { "**/Generated", "**/*.asmdef" };
             _treeView.OnNodeSelected(onSelected);
             _treeView.OnAddClicked(() => _treeView.CreateFolderAtSelected());
         }
