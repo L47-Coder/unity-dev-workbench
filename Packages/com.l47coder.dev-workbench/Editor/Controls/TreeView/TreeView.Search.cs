@@ -1,13 +1,11 @@
 #if UNITY_EDITOR
 using System;
 using System.Linq;
-using DevWorkbench;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     public sealed partial class TreeView
     {
         private SearchField _searchField;
@@ -42,5 +40,5 @@ namespace DevWorkbench.Editor
             return fi == filter.Length;
         }
     }
-#endif
 }
+#endif

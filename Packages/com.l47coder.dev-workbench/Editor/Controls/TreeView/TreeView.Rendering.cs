@@ -1,13 +1,11 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     public sealed partial class TreeView
     {
         // ── Toolbar drawing ─────────────────────────────────────────────────
@@ -232,5 +230,5 @@ namespace DevWorkbench.Editor
             if (hasFocus) _renameHadFocus = true;
         }
     }
-#endif
 }
+#endif

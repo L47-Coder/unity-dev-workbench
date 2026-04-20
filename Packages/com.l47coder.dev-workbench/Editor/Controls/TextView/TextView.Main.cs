@@ -1,12 +1,10 @@
 #if UNITY_EDITOR
 using System.Text.RegularExpressions;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     public sealed partial class TextView
     {
         private static readonly Regex StripTagsRegex = new(@"<[^>]+>", RegexOptions.Compiled);
@@ -72,5 +70,5 @@ namespace DevWorkbench.Editor
             evt.Use();
         }
     }
-#endif
 }
+#endif

@@ -1,10 +1,8 @@
 #if UNITY_EDITOR
-using DevWorkbench;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     /// <summary>
     /// IMGUI text-display control with its own border, scrolling, rich-text and
     /// right-click copy support.
@@ -96,5 +94,5 @@ namespace DevWorkbench.Editor
             GUI.EndScrollView();
         }
     }
-#endif
 }
+#endif

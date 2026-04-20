@@ -1,13 +1,11 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     public sealed partial class TableView
     {
         // ── Pending dirty flag ─────────────────────────────────────────────
@@ -182,5 +180,5 @@ namespace DevWorkbench.Editor
             }
         }
     }
-#endif
 }
+#endif

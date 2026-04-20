@@ -1,13 +1,11 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     public sealed partial class TableView
     {
         // ── Layout constants ────────────────────────────────────────────────
@@ -135,5 +133,5 @@ namespace DevWorkbench.Editor
                 ? new Color(0.17f, 0.37f, 0.62f, 1f)
                 : new Color(0.24f, 0.48f, 0.90f, 1f);
     }
-#endif
 }
+#endif

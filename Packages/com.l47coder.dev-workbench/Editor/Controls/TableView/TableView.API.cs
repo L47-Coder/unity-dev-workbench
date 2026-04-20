@@ -1,16 +1,11 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
-    // TableColumnAttribute has moved to the Runtime assembly
-    // (Runtime/Frame/Attribute/TableColumnAttribute.cs).
-
-#if UNITY_EDITOR
     /// <summary>
     /// IMGUI table control with its own border, toolbar (search + refresh / view-script
     /// buttons), column headers, inline row editing and drag-to-reorder.
@@ -143,5 +138,5 @@ namespace DevWorkbench.Editor
             }
         }
     }
-#endif
 }
+#endif

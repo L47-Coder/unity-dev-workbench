@@ -2,13 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     public sealed partial class TreeView
     {
         private enum NodeKind { Root, Branch, FolderLeaf, FileLeaf, ReadOnlyFile, ReadOnlyFolder }
@@ -380,5 +378,5 @@ namespace DevWorkbench.Editor
             return null;
         }
     }
-#endif
 }
+#endif

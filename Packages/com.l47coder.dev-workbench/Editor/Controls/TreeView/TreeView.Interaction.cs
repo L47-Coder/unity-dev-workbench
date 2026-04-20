@@ -2,13 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     public sealed partial class TreeView
     {
         private string _renamingPath;
@@ -346,5 +344,5 @@ namespace DevWorkbench.Editor
                 menu.ShowAsContext();
         }
     }
-#endif
 }
+#endif

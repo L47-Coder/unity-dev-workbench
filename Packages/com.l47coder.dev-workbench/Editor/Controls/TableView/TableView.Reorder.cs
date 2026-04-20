@@ -1,13 +1,11 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     public sealed partial class TableView
     {
         private void HandleRowReorderInput(int controlId, Rect handleRect, Rect rowRect, int rowIndex, int arraySize, float rowHeight)
@@ -292,5 +290,5 @@ namespace DevWorkbench.Editor
             return Mathf.Clamp(dt, 0.0025f, 0.05f);
         }
     }
-#endif
 }
+#endif

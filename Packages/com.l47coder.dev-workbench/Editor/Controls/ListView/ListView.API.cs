@@ -1,12 +1,10 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using DevWorkbench;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     /// <summary>
     /// IMGUI list control with its own border, toolbar (search + custom buttons) and support
     /// for row selection, rename, delete, external drag-and-drop and internal reordering.
@@ -160,5 +158,5 @@ namespace DevWorkbench.Editor
             GUI.EndGroup();
         }
     }
-#endif
 }
+#endif

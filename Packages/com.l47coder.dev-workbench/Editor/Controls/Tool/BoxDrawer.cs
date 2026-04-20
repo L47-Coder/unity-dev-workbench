@@ -1,11 +1,9 @@
 #if UNITY_EDITOR
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     /// <summary>
     /// 共享的 box 边框绘制工具。ListView、TextView 等控件统一调用。
     /// </summary>
@@ -77,5 +75,5 @@ namespace DevWorkbench.Editor
             EditorGUI.DrawRect(new Rect(x + w - bw, y, bw, h), _borderColor);
         }
     }
-#endif
 }
+#endif

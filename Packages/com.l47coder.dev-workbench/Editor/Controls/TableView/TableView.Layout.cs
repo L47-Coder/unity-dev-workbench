@@ -1,11 +1,9 @@
 #if UNITY_EDITOR
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     public sealed partial class TableView
     {
         /// <summary>
@@ -94,5 +92,5 @@ namespace DevWorkbench.Editor
             Mathf.Max(0f, outer.width - CellPadding * 2f),
             Mathf.Max(0f, outer.height - CellPadding * 2f));
     }
-#endif
 }
+#endif

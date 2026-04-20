@@ -1,12 +1,10 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
-using DevWorkbench;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     public sealed partial class ListView
     {
         private SearchField _searchField;
@@ -75,5 +73,5 @@ namespace DevWorkbench.Editor
             return ti == text.Length && pi == pattern.Length;
         }
     }
-#endif
 }
+#endif

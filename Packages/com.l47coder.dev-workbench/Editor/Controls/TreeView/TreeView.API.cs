@@ -1,12 +1,10 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using DevWorkbench;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     /// <summary>
     /// IMGUI tree-view control with its own border, toolbar (search + add button), file-system
     /// backing, drag-and-drop, rename and delete support.
@@ -150,5 +148,5 @@ namespace DevWorkbench.Editor
             GUI.EndGroup();
         }
     }
-#endif
 }
+#endif

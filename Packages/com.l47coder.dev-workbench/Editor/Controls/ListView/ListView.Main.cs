@@ -1,12 +1,10 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using DevWorkbench;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     public sealed partial class ListView
     {
         private const float RowHeight = 22f;
@@ -135,5 +133,5 @@ namespace DevWorkbench.Editor
         private bool _pendingBeginRename;
         private bool _pendingDelete;
     }
-#endif
 }
+#endif

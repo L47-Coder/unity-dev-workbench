@@ -3,14 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using DevWorkbench;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     public sealed partial class TableView
     {
         // ── Toolbar icons (table-specific) ──────────────────────────────────
@@ -512,5 +510,5 @@ namespace DevWorkbench.Editor
             return result;
         }
     }
-#endif
 }
+#endif

@@ -2,12 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using DevWorkbench;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     public sealed partial class TreeView
     {
         private const string LeafMarkerFileName = "_leaf.json";
@@ -65,5 +63,5 @@ namespace DevWorkbench.Editor
             return normalized;
         }
     }
-#endif
 }
+#endif

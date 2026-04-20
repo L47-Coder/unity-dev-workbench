@@ -1,12 +1,10 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     public sealed partial class ListView
     {
         // ── Toolbar drawing ─────────────────────────────────────────────────
@@ -416,5 +414,5 @@ namespace DevWorkbench.Editor
             EditorGUI.DrawRect(new Rect(0f, y - 1f, innerW, 2f), ControlsToolbar.DropIndicatorColor);
         }
     }
-#endif
 }
+#endif

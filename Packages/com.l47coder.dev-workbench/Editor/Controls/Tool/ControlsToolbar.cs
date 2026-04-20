@@ -1,12 +1,10 @@
 #if UNITY_EDITOR
-using DevWorkbench;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-
     /// <summary>
     /// ListView / TreeView / TableView 共用的工具栏 / 滚动条 / 搜索栏基础设施。
     /// 在此集中管理常量、样式和绘制函数，避免各控件各写一份导致像素级不一致。
@@ -196,5 +194,5 @@ namespace DevWorkbench.Editor
             return true;
         }
     }
-#endif
 }
+#endif
