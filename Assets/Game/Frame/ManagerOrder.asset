@@ -13,4 +13,6 @@ MonoBehaviour:
   m_Name: ManagerOrder
   m_EditorClassIdentifier: 
   _entries:
-  - Name: TManager
+  - Name: AssetManager
+  - Name: ComponentManager
+  - Name: PrefabManager

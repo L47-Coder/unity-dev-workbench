@@ -13,7 +13,6 @@ public interface IPrefabHandle
 
 public interface IPrefabManager
 {
-    
     UniTask<IPrefabHandle> LoadPrefabAsync(string key);
     UniTask ReleasePrefabAsync(IPrefabHandle handle);
     UniTask DestroyPoolAsync(string key);
