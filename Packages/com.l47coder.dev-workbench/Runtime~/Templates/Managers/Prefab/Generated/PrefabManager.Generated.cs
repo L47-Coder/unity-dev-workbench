@@ -9,7 +9,7 @@ internal sealed partial class PrefabManager : BaseManager
 {
     protected override async UniTask SetManagerDataDict()
     {
-        var config = await FrameworkLoader.LoadAsync<PrefabManagerConfig>(ConfigAddress);
+        var config = await FrameworkLoader.LoadAsync<PrefabManagerConfig>("ManagerConfig/Prefab");
         _managerDataDict.Clear();
         foreach (var kv in config.ExportManagerDataDict())
             _managerDataDict[kv.Key] = (PrefabManagerData)kv.Value;

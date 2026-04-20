@@ -38,18 +38,13 @@ namespace DevWorkbench
 
     /// <summary>
     /// Base class for every Manager registered into the Dev Workbench lifetime scope.
-    /// A Manager owns a <see cref="BaseManagerConfig"/> addressed by
-    /// <see cref="ConfigAddress"/> and populates its internal state in
-    /// <see cref="SetManagerDataDict"/> before the game starts.
+    /// A Manager typically owns a <see cref="BaseManagerConfig"/> and populates its
+    /// internal state in <see cref="SetManagerDataDict"/> before the game starts.
+    /// The Addressable address of that config is baked into the generated partial
+    /// (by DevWorkbench's Creator) and is no longer part of the base contract.
     /// </summary>
     public abstract class BaseManager
     {
-        /// <summary>
-        /// Addressable address of the <see cref="BaseManagerConfig"/> this Manager
-        /// consumes at start-up.
-        /// </summary>
-        protected abstract string ConfigAddress { get; }
-
         /// <summary>
         /// Loads the Manager's configuration (via <see cref="FrameworkLoader"/>)
         /// and populates the in-memory data dictionary. Called once during

@@ -6,33 +6,19 @@ using UnityEngine;
 using VContainer.Unity;
 using DevWorkbench;
 
-// IPrefabHandle is a "key" issued by PrefabManager. Gameplay code holds it and
-// passes it back to the Manager API whenever it wants to operate on mounted
-// components. Extra information (Key, prefab metadata, ...) is always looked
-// up through the Manager rather than carried on the key itself, so the handle
-// stays single-purpose.
 public interface IPrefabHandle
 {
-    // GameObject is exposed because "load a prefab, then place it in the
-    // scene or adjust its transform" is by far the most common flow, and
-    // round-tripping through the Manager for that would be tedious. Apart
-    // from GameObject, the handle deliberately carries no other data.
     GameObject GameObject { get; }
 }
 
 public interface IPrefabManager
 {
+    
     UniTask<IPrefabHandle> LoadPrefabAsync(string key);
     UniTask ReleasePrefabAsync(IPrefabHandle handle);
     UniTask DestroyPoolAsync(string key);
     UniTask DestroyAllPoolAsync();
-
-    // Look up the owning handle from a GameObject. The architecture layer
-    // (BaseComponent / PhysicsBridge) only holds a GameObject, so this is the
-    // path gameplay code uses when subscribing to physics events or starting
-    // from component.GameObject and needing the handle back.
     bool TryGetHandle(GameObject gameObject, out IPrefabHandle handle);
-
     T AddComponent<T>(IPrefabHandle handle, string key) where T : BaseComponent;
     bool RemoveComponent<T>(IPrefabHandle handle, string key) where T : BaseComponent;
     bool TryGetComponent<T>(IPrefabHandle handle, string key, out T component) where T : BaseComponent;
@@ -71,12 +57,9 @@ internal sealed partial class PrefabManagerData
 
 internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncInitManager
 {
-    protected override string ConfigAddress => "ManagerConfig/Prefab";
     private readonly Dictionary<string, PrefabManagerData> _managerDataDict = new();
     private readonly Dictionary<string, PoolCache> _poolCaches = new();
     private readonly HashSet<PrefabData> _activeInstances = new();
-    // GameObject -> handle reverse lookup. Populated by LoadPrefabAsync,
-    // cleared by Release / Destroy.
     private readonly Dictionary<GameObject, PrefabHandle> _goToHandle = new();
 
     private readonly List<PrefabData> _tickInstanceBuffer = new();

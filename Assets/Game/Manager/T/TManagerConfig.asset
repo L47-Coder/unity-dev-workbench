@@ -9,8 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4d01a9b8f92cf4549a96cb7e6b0ff560, type: 3}
-  m_Name: ManagerOrder
+  m_Script: {fileID: 11500000, guid: 26f0b0014f9a7814dbdd26fd53f9cc6f, type: 3}
+  m_Name: TManagerConfig
   m_EditorClassIdentifier: 
-  _entries:
-  - Name: TManager
+  _configs: []

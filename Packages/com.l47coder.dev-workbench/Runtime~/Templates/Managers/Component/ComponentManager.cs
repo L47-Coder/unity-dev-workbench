@@ -18,7 +18,6 @@ internal sealed partial class ComponentManagerData
 
 internal sealed partial class ComponentManager : IComponentManager, IAsyncInitManager
 {
-    protected override string ConfigAddress => "ManagerConfig/Component";
     private readonly Dictionary<string, ComponentManagerData> _managerDataDict = new();
     private readonly Dictionary<string, BaseComponentData> _componentDataDict = new();
 

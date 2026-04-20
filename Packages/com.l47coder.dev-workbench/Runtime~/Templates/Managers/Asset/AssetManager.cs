@@ -36,7 +36,6 @@ internal sealed partial class AssetManagerData
 
 internal sealed partial class AssetManager : IAssetManager
 {
-    protected override string ConfigAddress => "ManagerConfig/Asset";
     private readonly Dictionary<string, AssetManagerData> _managerDataDict = new();
     private readonly Dictionary<string, AssetCache> _assetCaches = new();
 

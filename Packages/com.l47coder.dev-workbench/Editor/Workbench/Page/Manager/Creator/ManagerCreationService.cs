@@ -96,7 +96,6 @@ namespace DevWorkbench.Editor
                 builder.AppendLine();
                 builder.AppendLine($"internal sealed partial class {plan.ManagerClassName} : {plan.ManagerInterfaceName}");
                 builder.AppendLine("{");
-                builder.AppendLine($"    protected override string ConfigAddress => \"{EscapeCSharpStringLiteral(plan.AddressableAddressName)}\";");
                 builder.AppendLine($"    private readonly Dictionary<string, {plan.ManagerDataStructName}> _managerDataDict = new();");
                 builder.AppendLine("}");
             }
@@ -105,7 +104,7 @@ namespace DevWorkbench.Editor
                 builder.AppendLine($"internal partial class {plan.ManagerClassName} : {plan.ManagerInterfaceName}");
                 builder.AppendLine("{");
                 builder.AppendLine();
-                builder.Append("}");
+                builder.AppendLine("}");
             }
 
             EnsureFolder(Path.GetDirectoryName(plan.ManagerTargetFilePath));
@@ -139,7 +138,7 @@ namespace DevWorkbench.Editor
             builder.AppendLine($"    protected override Dictionary<string, BaseManagerData> GetManagerDataDict() => {GeneratedConfigListFieldName}");
             builder.AppendLine("        .Where(static c => !string.IsNullOrWhiteSpace(c.Key))");
             builder.AppendLine("        .ToDictionary(static c => c.Key.Trim(), static c => (BaseManagerData)c, StringComparer.Ordinal);");
-            builder.Append("}");
+            builder.AppendLine("}");
 
             EnsureFolder(Path.GetDirectoryName(plan.GeneratedConfigFilePath));
             File.WriteAllText(plan.GeneratedConfigFilePath, builder.ToString(), Encoding.UTF8);
@@ -155,7 +154,7 @@ namespace DevWorkbench.Editor
             builder.AppendLine("using DevWorkbench;");
             builder.AppendLine();
             builder.AppendLine("[Serializable]");
-            builder.Append($"internal sealed partial class {plan.ManagerDataStructName} : BaseManagerData {{ }}");
+            builder.AppendLine($"internal sealed partial class {plan.ManagerDataStructName} : BaseManagerData {{ }}");
 
             EnsureFolder(Path.GetDirectoryName(plan.GeneratedDataFilePath));
             File.WriteAllText(plan.GeneratedDataFilePath, builder.ToString(), Encoding.UTF8);
@@ -177,20 +176,19 @@ namespace DevWorkbench.Editor
                 builder.AppendLine("{");
                 builder.AppendLine("    protected override async UniTask SetManagerDataDict()");
                 builder.AppendLine("    {");
-                builder.AppendLine($"        var config = await FrameworkLoader.LoadAsync<{plan.ConfigClassName}>(ConfigAddress);");
+                builder.AppendLine($"        var config = await FrameworkLoader.LoadAsync<{plan.ConfigClassName}>(\"{EscapeCSharpStringLiteral(plan.AddressableAddressName)}\");");
                 builder.AppendLine("        _managerDataDict.Clear();");
                 builder.AppendLine("        foreach (var kv in config.ExportManagerDataDict())");
                 builder.AppendLine($"            _managerDataDict[kv.Key] = ({plan.ManagerDataStructName})kv.Value;");
                 builder.AppendLine("    }");
-                builder.Append("}");
+                builder.AppendLine("}");
             }
             else
             {
                 builder.AppendLine($"internal partial class {plan.ManagerClassName} : BaseManager");
                 builder.AppendLine("{");
-                builder.AppendLine("    protected override string ConfigAddress => null;");
                 builder.AppendLine("    protected override UniTask SetManagerDataDict() => UniTask.CompletedTask;");
-                builder.Append("}");
+                builder.AppendLine("}");
             }
 
             EnsureFolder(Path.GetDirectoryName(plan.GeneratedManagerPartialFilePath));
@@ -230,7 +228,7 @@ namespace DevWorkbench.Editor
             builder.AppendLine("        AssetDatabase.SaveAssets();");
             builder.AppendLine("    }");
             builder.AppendLine("}");
-            builder.Append("#endif");
+            builder.AppendLine("#endif");
 
             EnsureFolder(Path.GetDirectoryName(plan.RefresherFilePath));
             File.WriteAllText(plan.RefresherFilePath, builder.ToString(), Encoding.UTF8);
