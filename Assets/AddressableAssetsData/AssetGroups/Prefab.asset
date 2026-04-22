@@ -10,25 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
-  m_Name: ManagerConfig
+  m_Name: Prefab
   m_EditorClassIdentifier: 
-  m_GroupName: ManagerConfig
+  m_GroupName: Prefab
   m_Data:
     m_SerializedData: []
-  m_GUID: a8453151c2a7001439d39860cdba0f52
+  m_GUID: 2633488bf637b6d4289a85305182ea26
   m_SerializeEntries:
-  - m_GUID: 5b672c5b11126894fb93b40f73d6509e
-    m_Address: ManagerConfig/Prefab
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b545b69e0ada21c43bb0d192577fdf25
-    m_Address: ManagerConfig/Component
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ffdf8994718acc2489b37f0b1b96feb2
-    m_Address: ManagerConfig/Asset
+  - m_GUID: 54433b0fa3a0c2843b8620a88cd690e6
+    m_Address: Prefab/Red
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

@@ -27,7 +27,7 @@ namespace DevWorkbench
     /// </summary>
     public interface IGameBoot
     {
-        void OnGameStart();
+        UniTask OnGameStart();
     }
 
 #if UNITY_EDITOR

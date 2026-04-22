@@ -35,7 +35,7 @@ namespace DevWorkbench
             if (gameBoot == null) return;
 
             _container.Inject(gameBoot);
-            gameBoot.OnGameStart();
+            await gameBoot.OnGameStart();
         }
 
         // 按 IGameBoot 接口扫描场景里所有 MonoBehaviour；不依赖具体实现类型的符号，
