@@ -106,8 +106,11 @@ namespace DevWorkbench.Editor
             if (!ComponentTemplateInstaller.IsContainerInstalled())
                 issues.Add($"{ComponentTemplateInstaller.AsmdefAssetPath} is missing.");
 
-            if (!ManagerTemplateInstaller.IsGameBootInstalled())
-                issues.Add($"{ManagerTemplateInstaller.GameBootAssetPath} is missing.");
+            if (!FrameTemplateInstaller.IsContainerInstalled())
+                issues.Add($"{FrameTemplateInstaller.AsmdefAssetPath} is missing.");
+
+            if (!FrameTemplateInstaller.IsGameBootInstalled())
+                issues.Add($"{FrameTemplateInstaller.GameBootAssetPath} is missing.");
 
             AppendOrderAssetIssues(settings, issues,
                 FrameAssetInstaller.ManagerOrderAssetPath,
@@ -207,17 +210,21 @@ namespace DevWorkbench.Editor
 
         public static void InitializeAll()
         {
-            // Step 0：投放容器 asmdef。
+            // Step 0：投放三个容器 asmdef + 默认 GameBoot。
             //   - Game.Managers.asmdef   → Assets/Game/Manager/
             //   - Game.Components.asmdef → Assets/Game/Component/
+            //   - Game.Frame.asmdef      → Assets/Game/Frame/  （GameBoot 归属的程序集）
+            //   - GameBoot.cs            → Assets/Game/Frame/GameBoot.cs
             // 只写文件（不走 AssetDatabase.CreateAsset），不依赖脚本编译，所以无需让后续步骤等 domain reload。
-            // 具体的模板此处不再强推，改由对应的 InstallerPage 让用户按需安装。
+            // 可选 Manager/Component 模板不在这里强推，改由对应的 InstallerPage 让用户按需安装。
             ManagerTemplateInstaller.EnsureContainerInstalled();
             ComponentTemplateInstaller.EnsureContainerInstalled();
+            FrameTemplateInstaller.EnsureContainerInstalled();
 
-            // 默认 GameBoot 也属于"框架基础设施"：每个项目都必需，全局只需一份，
-            // 因此和容器 asmdef 同时无条件投放。用户已有则保留不覆盖。
-            ManagerTemplateInstaller.EnsureGameBootInstalled();
+            // GameBoot 是"启动入口"，每个项目都必需且全局唯一。若历史版本曾把它投放在
+            // Game.Managers 程序集目录，FrameTemplateInstaller 会用 AssetDatabase.MoveAsset
+            // 保留 GUID 迁到 Game.Frame，场景里已挂的 GameBoot MonoBehaviour 引用不会丢。
+            FrameTemplateInstaller.EnsureGameBootInstalled();
 
             AssetDatabase.StartAssetEditing();
             try
@@ -226,8 +233,11 @@ namespace DevWorkbench.Editor
                 FrameAssetInstaller.EnsureAddressablesInitialized();
 
                 // Step 2：Frame 资产存在 + 标记为 Addressable（分组不存在时按需创建）。
+                // PageOrder 也在这里统一创建——它是 editor-only 偏好，不走 Addressables；
+                // 创建权集中在 Initialise 流程里，避免 DevWindow 打开即产生未经授意的资产写入。
                 var managerOrder = FrameAssetInstaller.EnsureManagerOrderAsset();
                 var componentOrder = FrameAssetInstaller.EnsureComponentOrderAsset();
+                FrameAssetInstaller.EnsurePageOrderAsset();
 
                 // Step 3：批量挂载所有 *ManagerConfig.asset 和 *ComponentConfig.asset 到 Addressable
                 // （同上，按需建组）。Component 侧没有 Refresher 机制，只需要 EnsureAllRegistered。

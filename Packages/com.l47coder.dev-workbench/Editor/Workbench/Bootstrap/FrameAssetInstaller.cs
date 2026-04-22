@@ -70,6 +70,20 @@ namespace DevWorkbench.Editor
             return EnsureOrderAsset<ComponentOrderConfig>(ComponentOrderAssetPath, ComponentOrderAddress);
         }
 
+        // PageOrder 仅记录 DevWindow 的菜单/标签排序，属于 editor-only 偏好，
+        // 不走 Addressables，因此单独一个重载：只负责"asset 存在"，不注册 entry。
+        public static PageOrder EnsurePageOrderAsset()
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<PageOrder>(PageOrderAssetPath);
+            if (asset != null) return asset;
+
+            EnsureFolder(FrameConfigFolder);
+            asset = ScriptableObject.CreateInstance<PageOrder>();
+            AssetDatabase.CreateAsset(asset, PageOrderAssetPath);
+            AssetDatabase.SaveAssets();
+            return asset;
+        }
+
         private static T EnsureOrderAsset<T>(string assetPath, string address) where T : ScriptableObject
         {
             var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);

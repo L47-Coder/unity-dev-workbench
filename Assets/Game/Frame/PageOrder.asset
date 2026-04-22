@@ -13,30 +13,30 @@ MonoBehaviour:
   m_Name: PageOrder
   m_EditorClassIdentifier: 
   _groups:
-  - Title: Component
+  - Title: Addressable
     Order: 0
     Tabs:
     - Title: Viewer
       Order: 0
-    - Title: Creator
-      Order: 1
-    - Title: Order
-      Order: 2
-    - Title: Installer
-      Order: 3
-  - Title: Manager
+  - Title: Component
     Order: 1
     Tabs:
-    - Title: Viewer
-      Order: 0
     - Title: Creator
+      Order: 0
+    - Title: Installer
       Order: 1
     - Title: Order
       Order: 2
-    - Title: Installer
+    - Title: Viewer
       Order: 3
-  - Title: Addressable
+  - Title: Manager
     Order: 2
     Tabs:
-    - Title: Viewer
+    - Title: Creator
       Order: 0
+    - Title: Installer
+      Order: 1
+    - Title: Order
+      Order: 2
+    - Title: Viewer
+      Order: 3

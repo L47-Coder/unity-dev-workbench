@@ -93,7 +93,7 @@ namespace DevWorkbench.Editor
         private void OnEnable()
         {
             wantsMouseMove = true;
-            _pageOrder = LoadOrCreatePageOrder();
+            _pageOrder = TryLoadPageOrder();
 
             // 完整性检测策略：
             //   - 每次用户主动从菜单打开窗口时检测一次（Open() 里清 flag 来驱动）。
@@ -108,6 +108,15 @@ namespace DevWorkbench.Editor
                 RefreshBootstrapStatus();
             }
 
+            // PageOrder 缺失意味着框架还没 Initialise 过——此时 Bootstrap 检测必然失败，
+            // OnGUI 会走 overlay 分支不渲染主 UI，因此直接短路不构建 page 树也安全。
+            // 真正的构建由 RunInitialization 在初始化完成后补上。
+            if (_pageOrder != null)
+                BuildPageTree();
+        }
+
+        private void BuildPageTree()
+        {
             var pages = CollectPages();
             if (pages.Count == 0)
                 return;
@@ -164,23 +173,11 @@ namespace DevWorkbench.Editor
 
         // ── Setup ────────────────────────────────────────────────────────────────
 
-        private static PageOrder LoadOrCreatePageOrder()
+        // 只加载，不再自动创建。PageOrder 的创建权统一归 FrameworkBootstrapper.InitializeAll，
+        // 避免"打开窗口即产生未经用户授意的资产写入"。
+        private static PageOrder TryLoadPageOrder()
         {
-            var asset = AssetDatabase.LoadAssetAtPath<PageOrder>(PageOrderAssetPath);
-            if (asset != null)
-                return asset;
-
-            // PageOrder 记录用户对 DevWindow 菜单/标签的排序，属于"用户工程数据"，
-            // 必须落在 Assets/ 下而不能放进包里（包在 PackageCache 下是只读的）。
-            // 新工程可能还没有这个父目录，按需创建。
-            var folder = System.IO.Path.GetDirectoryName(PageOrderAssetPath)?.Replace('\\', '/');
-            FrameAssetInstaller.EnsureFolder(folder);
-
-            asset = CreateInstance<PageOrder>();
-            AssetDatabase.CreateAsset(asset, PageOrderAssetPath);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            return asset;
+            return AssetDatabase.LoadAssetAtPath<PageOrder>(PageOrderAssetPath);
         }
 
         private static List<IPage> CollectPages()
@@ -596,12 +593,22 @@ namespace DevWorkbench.Editor
 
             _bootstrapStatus = FrameworkBootstrapper.CheckStatus();
 
-            // 初始化完成后，已激活的 Page 可能在未就绪状态下跑过 OnStart 且拿不到资产，
-            // 清掉标记让它们在下次激活时重跑一遍。
+            // 初始化完成后：
+            //   - PageOrder 此时才由 InitializeAll 创建出来，若之前 OnEnable 拿不到需要补载 + 构建 page 树。
+            //   - 已激活的 Page 可能在未就绪状态下跑过 OnStart 且拿不到资产，清标记让它们下次激活时重跑。
             if (_bootstrapStatus.IsReady)
             {
-                _initializedPages.Clear();
-                if (_currentPage != null) ActivatePage(_currentPage);
+                if (_pageOrder == null)
+                {
+                    _pageOrder = TryLoadPageOrder();
+                    if (_pageOrder != null)
+                        BuildPageTree();
+                }
+                else
+                {
+                    _initializedPages.Clear();
+                    if (_currentPage != null) ActivatePage(_currentPage);
+                }
             }
 
             Repaint();

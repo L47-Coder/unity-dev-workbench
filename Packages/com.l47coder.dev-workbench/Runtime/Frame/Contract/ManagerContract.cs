@@ -20,8 +20,8 @@ namespace DevWorkbench
     }
 
     /// <summary>
-    /// 游戏启动入口契约。具体实现由宿主工程在 Game.Managers 程序集里提供
-    /// （默认模板会投放到 Assets/Game/Manager/GameBoot.cs），挂到场景任意
+    /// 游戏启动入口契约。具体实现由宿主工程在 Game.Frame 程序集里提供
+    /// （框架初始化时代码生成 Assets/Game/Frame/GameBoot.cs），挂到场景任意
     /// GameObject 上；Bootstrap 完成所有 Manager 初始化后按接口类型扫描场景
     /// 并调用 OnGameStart。
     /// </summary>

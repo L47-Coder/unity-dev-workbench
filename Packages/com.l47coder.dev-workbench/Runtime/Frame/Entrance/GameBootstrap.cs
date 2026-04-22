@@ -39,7 +39,7 @@ namespace DevWorkbench
         }
 
         // 按 IGameBoot 接口扫描场景里所有 MonoBehaviour；不依赖具体实现类型的符号，
-        // 因此具体 GameBoot 类可以住在 Game.Managers 等上层程序集里。
+        // 因此具体 GameBoot 类可以住在 Game.Frame 等上层程序集里。
         private static IGameBoot ResolveGameBoot()
         {
             var behaviours = Object.FindObjectsByType<MonoBehaviour>(
