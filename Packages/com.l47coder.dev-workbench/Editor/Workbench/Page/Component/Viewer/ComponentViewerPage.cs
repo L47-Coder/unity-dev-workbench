@@ -22,7 +22,22 @@ namespace DevWorkbench.Editor
         private float _splitterX = LeftPanelStart;
         private bool _dragging;
 
-        public void OnStart() => _leftPanel.OnStart(_rightPanel.SetPath);
+        // Component 模块对"项目结构完整性"的贡献——由 FrameworkBootstrapper.RunFullEnsure
+        // 通过 WorkbenchPageRunner 在开窗时统一调度。Frame 层已经保证了容器 asmdef、
+        // Addressables settings 和 Order 资产，所以本方法只做 Frame 层管不到的两件事：
+        //   - EnsureAllRegistered: 扫新编译出的 <Name>ComponentConfig 子类，创建 .asset、
+        //     挂到 Addressables "ComponentConfig" 组、对齐地址；
+        //   - SyncComponentOrderEntries: 按 BaseComponent 子类增量补行、移除陈旧项。
+        // 两个都幂等，资产齐全时零写盘。
+        public void OnWorkbenchOpen()
+        {
+            ComponentConfigInstaller.EnsureAllRegistered();
+
+            var order = AssetDatabase.LoadAssetAtPath<ComponentOrderConfig>(FrameAssetInstaller.ComponentOrderAssetPath);
+            if (order != null) FrameAssetInstaller.SyncComponentOrderEntries(order);
+        }
+
+        public void OnFirstEnter() => _leftPanel.OnFirstEnter(_rightPanel.SetPath);
 
         public void OnGUI(Rect rect)
         {
@@ -62,7 +77,7 @@ namespace DevWorkbench.Editor
     {
         private readonly TreeView _treeView = new();
 
-        public void OnStart(Action<string> onSelected)
+        public void OnFirstEnter(Action<string> onSelected)
         {
             _treeView.IgnoredNames = new() { "**/Generated", "**/*.asmdef" };
             _treeView.OnNodeSelected(onSelected);

@@ -11,7 +11,18 @@ namespace DevWorkbench.Editor
     {
         string GroupTitle { get; }
         string TabTitle { get; }
-        void OnStart() { }
+
+        // 窗体打开（以及 domain reload 后 Installer rerun、Tools/Sync Runtime 菜单）时被统一调用，
+        // 用于各模块自己贡献"项目结构性前置条件"。默认空实现；只有真正有前置条件要兜底的 Page
+        // （当前是 ManagerViewerPage / ComponentViewerPage）才 override。
+        //
+        // 实现上必须：幂等、无覆盖用户合法数据、不依赖 UI 字段（会被独立反射实例化后调一次就丢弃）。
+        void OnWorkbenchOpen() { }
+
+        // 该 Page 第一次被激活（点开进入）时调用，负责 UI 一次性初始化——绑回调、建 TableView 之类。
+        // 和 OnWorkbenchOpen 严格分开，不承担前置条件兜底职责。
+        void OnFirstEnter() { }
+
         void OnEnter() { }
         void OnGUI(Rect rect) { }
         void OnLeave() { }
@@ -27,9 +38,9 @@ namespace DevWorkbench.Editor
         private const float MenuButtonHeight = 40f;
         private const string PageOrderAssetPath = FrameAssetInstaller.PageOrderAssetPath;
 
-        // 一次 Unity 编辑器进程里只做一次完整性检测。用 SessionState 跨 domain reload 保留标记。
-        // 重启 Unity 时 SessionState 清空，下次打开 Workbench 会重新检查。
-        private const string SessionKeyBootstrapChecked = "DevWorkbench.DevWindow.BootstrapChecked";
+        // 一次 Unity 编辑器会话里只跑一次"完整 ensure"（Frame 层 + 所有 Page.OnWorkbenchOpen）。
+        // 用 SessionState 跨 domain reload 保留标记；重启 Unity 时清空，下次开窗会重新跑。
+        private const string SessionKeyWorkbenchBooted = "DevWorkbench.Workbench.Booted";
 
         private static readonly Color MenuBgColor = new(0.14f, 0.14f, 0.14f);
         private static readonly Color ContentBgColor = new(0.18f, 0.18f, 0.18f);
@@ -73,17 +84,14 @@ namespace DevWorkbench.Editor
         [SerializeField] private string _persistedGroupTitle;
         [SerializeField] private string _persistedTabTitle;
 
-        private FrameworkBootstrapper.Status _bootstrapStatus;
-        private Vector2 _overlayScroll;
-
-        [MenuItem("Tools/Dev Workbench")]
+        [MenuItem("Tools/Dev Workbench/Dev")]
         private static void Open()
         {
-            // 用户主动打开窗口且当前没有存活实例时，清掉 SessionState 里的 checked flag，
-            // 使得接下来的 OnEnable 会跑一次完整性检测。其余路径（Unity 启动恢复 docked 窗口、
-            // Creator/删资产触发的 domain reload 重建）都不会走到这里。
+            // 用户主动从菜单打开窗口且当前没有存活实例时，清掉 SessionState 里的 booted flag，
+            // 使得接下来的 OnEnable 会重新跑一次 RunFullEnsure。其余路径（Unity 启动恢复 docked
+            // 窗口、Creator/删资产触发的 domain reload 重建）都不会走到这里。
             if (!HasOpenInstances<DevWindow>())
-                SessionState.EraseBool(SessionKeyBootstrapChecked);
+                SessionState.EraseBool(SessionKeyWorkbenchBooted);
 
             var window = GetWindow<DevWindow>("Dev Workbench", false);
             window.minSize = new Vector2(MenuWidth, MenuWidth);
@@ -93,24 +101,20 @@ namespace DevWorkbench.Editor
         private void OnEnable()
         {
             wantsMouseMove = true;
-            _pageOrder = TryLoadPageOrder();
 
-            // 完整性检测策略：
-            //   - 每次用户主动从菜单打开窗口时检测一次（Open() 里清 flag 来驱动）。
-            //   - Unity 启动时自动恢复的 docked 窗口，SessionState 是空的，也会触发一次检测。
-            //   - 所有由 domain reload 引起的 OnEnable 自动重建都会看到 flag=true 而跳过，
-            //     彻底避开"脚本已改但 post-compile asset 还没铺好"的瞬态噪音。
-            //   - 不订阅 EditorApplication.projectChanged，避免删资产的瞬间被瞬态判定为"不完整"。
-            // 结构真的损坏了，靠重启 Unity 或用户主动关窗重开兜住；其余全交给 Initialise 按钮。
-            if (!SessionState.GetBool(SessionKeyBootstrapChecked, false))
+            // 一会话一次地跑完整 ensure：Frame 层 + 所有 Page 的 OnWorkbenchOpen。
+            // 幂等无惊喜：东西都齐全时几乎不写盘；缺什么自动补。
+            // domain reload 之后回来的 OnEnable 看到 flag=true 会跳过，避免每次编译都重扫。
+            if (!SessionState.GetBool(SessionKeyWorkbenchBooted, false))
             {
-                SessionState.SetBool(SessionKeyBootstrapChecked, true);
-                RefreshBootstrapStatus();
+                SessionState.SetBool(SessionKeyWorkbenchBooted, true);
+                FrameworkBootstrapper.RunFullEnsure();
             }
 
-            // PageOrder 缺失意味着框架还没 Initialise 过——此时 Bootstrap 检测必然失败，
-            // OnGUI 会走 overlay 分支不渲染主 UI，因此直接短路不构建 page 树也安全。
-            // 真正的构建由 RunInitialization 在初始化完成后补上。
+            _pageOrder = TryLoadPageOrder();
+
+            // 正常情况下 RunFullEnsure 里的 EnsureFrame 已经把 PageOrder.asset 创建好了；
+            // 这里兜底：真的没加载到就短路，OnGUI 画空白——理论上只会出现在 EnsureFrame 异常路径。
             if (_pageOrder != null)
                 BuildPageTree();
         }
@@ -146,14 +150,6 @@ namespace DevWorkbench.Editor
 
         private void OnGUI()
         {
-            // _bootstrapStatus 为 null = 本会话已跳过检测（见 OnEnable 注释），视为就绪走主 UI。
-            // 只有真的检测过且不通过，才弹蒙版。
-            if (_bootstrapStatus != null && !_bootstrapStatus.IsReady)
-            {
-                DrawBootstrapOverlay(new Rect(0f, 0f, position.width, position.height));
-                return;
-            }
-
             if (_groups.Count == 0 || _currentGroup == null || _currentPage == null)
                 return;
 
@@ -173,7 +169,7 @@ namespace DevWorkbench.Editor
 
         // ── Setup ────────────────────────────────────────────────────────────────
 
-        // 只加载，不再自动创建。PageOrder 的创建权统一归 FrameworkBootstrapper.InitializeAll，
+        // 只加载，不创建。PageOrder 的创建权在 FrameworkBootstrapper.EnsureFrame，
         // 避免"打开窗口即产生未经用户授意的资产写入"。
         private static PageOrder TryLoadPageOrder()
         {
@@ -267,7 +263,7 @@ namespace DevWorkbench.Editor
         private void ActivatePage(IPage page)
         {
             if (_initializedPages.Add(page))
-                page.OnStart();
+                page.OnFirstEnter();
             page.OnEnter();
         }
 
@@ -417,201 +413,6 @@ namespace DevWorkbench.Editor
 
             if (evt.rawType == EventType.MouseUp)
                 _draggingTabTitle = null;
-        }
-
-        // ── Bootstrap Overlay ────────────────────────────────────────────────────
-
-        private static readonly Color OverlayBgColor = new(0.06f, 0.06f, 0.06f, 0.92f);
-        private static readonly Color OverlayCardColor = new(0.18f, 0.18f, 0.18f);
-        private static readonly Color OverlayCardBorderColor = new(0.28f, 0.28f, 0.28f);
-        private static readonly Color OverlayDividerColor = new(0.24f, 0.24f, 0.24f);
-        private static readonly Color OverlayOkColor = new(0.42f, 0.82f, 0.54f);
-        private static readonly Color OverlayBadColor = new(0.96f, 0.50f, 0.50f);
-        private static readonly Color OverlayAccentColor = new(0.30f, 0.55f, 0.95f);
-        private static readonly Color OverlayTitleColor = new(0.95f, 0.95f, 0.95f);
-        private static readonly Color OverlayBodyColor = new(0.84f, 0.84f, 0.84f);
-        private static readonly Color OverlayDimColor = new(0.62f, 0.62f, 0.62f);
-
-        private GUIStyle _overlayTitleStyle;
-        private GUIStyle _overlaySubtitleStyle;
-        private GUIStyle _overlayItemLabelStyle;
-        private GUIStyle _overlayItemDetailStyle;
-        private GUIStyle _overlayIconStyle;
-        private GUIStyle _overlayButtonStyle;
-
-        private void EnsureOverlayStyles()
-        {
-            if (_overlayTitleStyle != null) return;
-
-            _overlayTitleStyle = new GUIStyle(EditorStyles.boldLabel)
-            {
-                fontSize = 18,
-                alignment = TextAnchor.MiddleLeft,
-                normal = { textColor = OverlayTitleColor },
-            };
-            _overlaySubtitleStyle = new GUIStyle(EditorStyles.label)
-            {
-                fontSize = 12,
-                wordWrap = true,
-                normal = { textColor = OverlayDimColor },
-            };
-            _overlayItemLabelStyle = new GUIStyle(EditorStyles.label)
-            {
-                fontSize = 12,
-                normal = { textColor = OverlayBodyColor },
-            };
-            _overlayItemDetailStyle = new GUIStyle(EditorStyles.miniLabel)
-            {
-                fontSize = 11,
-                wordWrap = true,
-                normal = { textColor = OverlayDimColor },
-            };
-            _overlayIconStyle = new GUIStyle(EditorStyles.boldLabel)
-            {
-                fontSize = 14,
-                alignment = TextAnchor.MiddleCenter,
-            };
-            _overlayButtonStyle = new GUIStyle(GUI.skin.button)
-            {
-                fontSize = 13,
-                fontStyle = FontStyle.Bold,
-                padding = new RectOffset(24, 24, 10, 10),
-                alignment = TextAnchor.MiddleCenter,
-            };
-        }
-
-        private void RefreshBootstrapStatus()
-        {
-            _bootstrapStatus = FrameworkBootstrapper.CheckStatus();
-            Repaint();
-        }
-
-        private void DrawBootstrapOverlay(Rect rect)
-        {
-            // 进入这里意味着 _bootstrapStatus != null 且 !IsReady（见 OnGUI 的守卫），
-            // 所以不需要再做 null 兜底 refresh——那会绕过"一次会话只检测一次"的约定。
-            EnsureOverlayStyles();
-            EditorGUI.DrawRect(rect, OverlayBgColor);
-
-            const float maxCardW = 560f;
-            const float minCardW = 320f;
-            const float cardPadding = 28f;
-            const float cardMarginY = 36f;
-
-            var cardW = Mathf.Clamp(rect.width - 80f, minCardW, maxCardW);
-            var cardH = Mathf.Min(rect.height - cardMarginY * 2f, 500f);
-            var cardRect = new Rect(
-                rect.x + (rect.width - cardW) * 0.5f,
-                rect.y + (rect.height - cardH) * 0.5f,
-                cardW, cardH);
-
-            var borderRect = new Rect(cardRect.x - 1f, cardRect.y - 1f, cardRect.width + 2f, cardRect.height + 2f);
-            EditorGUI.DrawRect(borderRect, OverlayCardBorderColor);
-            EditorGUI.DrawRect(cardRect, OverlayCardColor);
-
-            var inner = new Rect(
-                cardRect.x + cardPadding,
-                cardRect.y + cardPadding,
-                cardRect.width - cardPadding * 2f,
-                cardRect.height - cardPadding * 2f);
-
-            GUILayout.BeginArea(inner);
-
-            GUILayout.Label("Framework not initialised", _overlayTitleStyle);
-            GUILayout.Space(6f);
-
-            var total = _bootstrapStatus.Checks.Count;
-            var passed = 0;
-            for (var i = 0; i < total; i++)
-                if (_bootstrapStatus.Checks[i].Passed) passed++;
-
-            GUILayout.Label(
-                $"{passed} / {total} checks passed. Click the button below to fix the remaining issues.",
-                _overlaySubtitleStyle);
-
-            GUILayout.Space(14f);
-            DrawOverlayDivider();
-            GUILayout.Space(10f);
-
-            _overlayScroll = EditorGUILayout.BeginScrollView(_overlayScroll, GUIStyle.none, GUI.skin.verticalScrollbar);
-            foreach (var check in _bootstrapStatus.Checks)
-                DrawBootstrapCheck(check);
-            EditorGUILayout.EndScrollView();
-
-            GUILayout.Space(10f);
-            DrawOverlayDivider();
-            GUILayout.Space(14f);
-
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            var prevBg = GUI.backgroundColor;
-            GUI.backgroundColor = OverlayAccentColor;
-            if (GUILayout.Button("Initialise", _overlayButtonStyle, GUILayout.MinWidth(220f)))
-                RunInitialization();
-            GUI.backgroundColor = prevBg;
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-
-            GUILayout.EndArea();
-        }
-
-        private static void DrawOverlayDivider()
-        {
-            var r = GUILayoutUtility.GetRect(1f, 1f, GUILayout.ExpandWidth(true));
-            EditorGUI.DrawRect(r, OverlayDividerColor);
-        }
-
-        private void DrawBootstrapCheck(FrameworkBootstrapper.Check check)
-        {
-            GUILayout.BeginHorizontal();
-            var prevColor = GUI.contentColor;
-            GUI.contentColor = check.Passed ? OverlayOkColor : OverlayBadColor;
-            GUILayout.Label(check.Passed ? "✓" : "✕", _overlayIconStyle, GUILayout.Width(20f));
-            GUI.contentColor = prevColor;
-
-            GUILayout.Space(6f);
-            GUILayout.BeginVertical();
-            GUILayout.Label(check.Label, _overlayItemLabelStyle);
-            if (!string.IsNullOrEmpty(check.Detail))
-                GUILayout.Label(check.Detail, _overlayItemDetailStyle);
-            GUILayout.EndVertical();
-            GUILayout.EndHorizontal();
-            GUILayout.Space(8f);
-        }
-
-        private void RunInitialization()
-        {
-            try
-            {
-                FrameworkBootstrapper.InitializeAll();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[DevWindow] Initialisation failed: {ex}");
-                EditorUtility.DisplayDialog("Dev Workbench", $"Initialisation threw an exception:\n{ex.Message}", "OK");
-            }
-
-            _bootstrapStatus = FrameworkBootstrapper.CheckStatus();
-
-            // 初始化完成后：
-            //   - PageOrder 此时才由 InitializeAll 创建出来，若之前 OnEnable 拿不到需要补载 + 构建 page 树。
-            //   - 已激活的 Page 可能在未就绪状态下跑过 OnStart 且拿不到资产，清标记让它们下次激活时重跑。
-            if (_bootstrapStatus.IsReady)
-            {
-                if (_pageOrder == null)
-                {
-                    _pageOrder = TryLoadPageOrder();
-                    if (_pageOrder != null)
-                        BuildPageTree();
-                }
-                else
-                {
-                    _initializedPages.Clear();
-                    if (_currentPage != null) ActivatePage(_currentPage);
-                }
-            }
-
-            Repaint();
         }
     }
 }

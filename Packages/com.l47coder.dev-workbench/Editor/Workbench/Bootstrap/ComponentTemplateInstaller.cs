@@ -143,8 +143,9 @@ namespace DevWorkbench.Editor
 
             if (installed > 0)
             {
-                // 让 FrameworkBootstrapper 在 domain reload 之后重跑 InitializeAll，
-                // 把新包里可能引入的 ComponentConfig 类型挂到 Addressables、同步 Order。
+                // 让 FrameworkBootstrapper 在 domain reload 之后重跑 RunFullEnsure——
+                // Component 侧的 ComponentViewerPage.OnWorkbenchOpen 负责把新编译出的
+                // <Name>ComponentConfig 类型创建成 asset、挂 Addressables、同步 Order。
                 SessionState.SetBool(FrameworkBootstrapper.SessionKeyRerunInitialize, true);
                 AssetDatabase.Refresh();
             }

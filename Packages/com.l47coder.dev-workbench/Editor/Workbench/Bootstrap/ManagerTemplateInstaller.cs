@@ -118,7 +118,8 @@ namespace DevWorkbench.Editor
 
         // 批量安装指定模板包（幂等：已安装的直接跳过）。
         // 返回值：实际新安装了几个包。若 >0 会设置 SessionKeyRerunInitialize，
-        // 让 FrameworkBootstrapper 在编译完成后重跑 InitializeAll 以挂载 Addressables/Order/Refresher。
+        // 让 FrameworkBootstrapper 在编译完成后重跑 RunFullEnsure——扫新编译出的 Config 类型、
+        // 创建对应 .asset、挂 Addressables、同步 Order。
         public static int InstallPackages(IEnumerable<string> packageIds)
         {
             if (packageIds == null) return 0;
@@ -148,8 +149,9 @@ namespace DevWorkbench.Editor
 
             if (installed > 0)
             {
-                // 让 FrameworkBootstrapper 在 domain reload 之后重跑 InitializeAll，
-                // 把新包里的 ManagerConfig 类型挂到 Addressables、同步 Order、跑 Refresher。
+                // 让 FrameworkBootstrapper 在 domain reload 之后重跑 RunFullEnsure——
+                // Manager 侧的 ManagerViewerPage.OnWorkbenchOpen 负责把新编译出的
+                // <Name>ManagerConfig 类型创建成 asset、挂 Addressables、同步 Order。
                 SessionState.SetBool(FrameworkBootstrapper.SessionKeyRerunInitialize, true);
                 AssetDatabase.Refresh();
             }

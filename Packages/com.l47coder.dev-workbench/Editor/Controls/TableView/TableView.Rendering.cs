@@ -36,16 +36,27 @@ namespace DevWorkbench.Editor
             {
                 var btnSize = ControlsToolbar.SearchFieldHeight;
                 var btnY = toolbarRect.y + Mathf.Max(0f, pad - 0.5f);
+                var anyButton = false;
 
-                right -= btnSize;
-                if (GUI.Button(new Rect(right, btnY, btnSize, btnSize), RefreshIcon, ControlsToolbar.ButtonStyle))
-                    _onRefreshClicked?.Invoke();
-                right -= ControlsToolbar.ToolbarButtonSpacing;
+                // 按"是否订阅回调"决定按钮是否显示，避免在没人接收的情况下画一个"按了没反应"的按钮。
+                if (_onRefreshClicked != null)
+                {
+                    right -= btnSize;
+                    if (GUI.Button(new Rect(right, btnY, btnSize, btnSize), RefreshIcon, ControlsToolbar.ButtonStyle))
+                        _onRefreshClicked.Invoke();
+                    right -= ControlsToolbar.ToolbarButtonSpacing;
+                    anyButton = true;
+                }
 
-                right -= btnSize;
-                if (GUI.Button(new Rect(right, btnY, btnSize, btnSize), ViewScriptIcon, ControlsToolbar.ButtonStyle))
-                    _onViewRefresherClicked?.Invoke();
-                right -= pad;
+                if (_onViewRefresherClicked != null)
+                {
+                    right -= btnSize;
+                    if (GUI.Button(new Rect(right, btnY, btnSize, btnSize), ViewScriptIcon, ControlsToolbar.ButtonStyle))
+                        _onViewRefresherClicked.Invoke();
+                    anyButton = true;
+                }
+
+                if (anyButton) right -= pad;
             }
 
             // ── Search bar (fills remaining space) ──────────────────────────

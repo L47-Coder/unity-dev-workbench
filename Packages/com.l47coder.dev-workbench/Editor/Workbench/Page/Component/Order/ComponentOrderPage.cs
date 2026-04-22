@@ -11,10 +11,11 @@ namespace DevWorkbench.Editor
         private ComponentOrderConfig _config;
         private readonly TableView _tableView = new() { CanAdd = false, CanRemove = false, SearchField = "Component", ShowToolbarButtons = false };
 
-        public void OnStart()
+        public void OnFirstEnter()
         {
-            FrameAssetInstaller.EnsureAddressablesInitialized();
-            _config = FrameAssetInstaller.EnsureComponentOrderAsset();
+            // 架构完整性由 DevWindow 开窗时的 FrameworkBootstrapper.RunFullEnsure 统一兜底，
+            // 这里只负责 UI 一次性初始化；Order 资产直接 Load，不再重复 Ensure。
+            _config = AssetDatabase.LoadAssetAtPath<ComponentOrderConfig>(FrameAssetInstaller.ComponentOrderAssetPath);
             _tableView.OnRowChanged<ComponentOrderEntry>((_, _) => EditorUtility.SetDirty(_config));
         }
 

@@ -22,7 +22,23 @@ namespace DevWorkbench.Editor
         private float _splitterX = LeftPanelStart;
         private bool _dragging;
 
-        public void OnStart() => _leftPanel.OnStart(_rightPanel.SetPath);
+        // Manager 模块对"项目结构完整性"的贡献——由 FrameworkBootstrapper.RunFullEnsure
+        // 通过 WorkbenchPageRunner 在开窗时统一调度。Frame 层已经保证了容器 asmdef、
+        // Addressables settings 和 Order 资产，所以本方法只做 Frame 层管不到的两件事：
+        //   - EnsureAllRegistered: 扫新编译出的 <Name>ManagerConfig 子类，创建 .asset、
+        //     挂到 Addressables "ManagerConfig" 组、对齐地址；首次装完模板的 domain reload
+        //     回来时靠这一步真正把 Config asset 造出来。
+        //   - SyncManagerOrderEntries: 按 BaseManager 子类增量补行、移除陈旧项。
+        // 两个都幂等，资产齐全时零写盘。
+        public void OnWorkbenchOpen()
+        {
+            ManagerConfigInstaller.EnsureAllRegistered();
+
+            var order = AssetDatabase.LoadAssetAtPath<ManagerOrderConfig>(FrameAssetInstaller.ManagerOrderAssetPath);
+            if (order != null) FrameAssetInstaller.SyncManagerOrderEntries(order);
+        }
+
+        public void OnFirstEnter() => _leftPanel.OnFirstEnter(_rightPanel.SetPath);
 
         public void OnGUI(Rect rect)
         {
@@ -62,7 +78,7 @@ namespace DevWorkbench.Editor
     {
         private readonly TreeView _treeView = new();
 
-        public void OnStart(Action<string> onSelected)
+        public void OnFirstEnter(Action<string> onSelected)
         {
             _treeView.IgnoredNames = new() { "**/Generated", "**/*Refresher.cs", "**/*.asmdef" };
             _treeView.OnNodeSelected(onSelected);
@@ -81,17 +97,17 @@ namespace DevWorkbench.Editor
         private string _cachedCsText;
 
         // .asset 文件缓存（管理器配置为 BaseManagerConfig，与 BaseComponentConfig 无继承关系）。
-        // Addressable 地址合法性不在这里校验——由 DevWindow 打开时的 Bootstrap 蒙版统一兜底
-        // （见 FrameworkBootstrapper.CheckAllConfigsRegistered），出了问题一键 Initialise 修复。
+        // Addressable 地址合法性由 ManagerViewerPage.OnWorkbenchOpen 在开窗时的 EnsureAllRegistered
+        // 幂等兜底；这里只负责显示/编辑已挂好的 asset。
         private string _cachedAssetPath;
         private BaseManagerConfig _cachedAsset;
         private object _cachedList;
-        private FieldInfo _cachedListField;
         private MethodInfo _cachedDrawMethod;
         private TableView _tableView;
 
+        // per-manager 的 Refresh 操作已取消——Refresher 现在走 Tools/Dev Workbench/Sync Runtime
+        // 菜单统一执行，避免"一个个点容易落下"。保留"打开 Refresher 脚本"入口方便跳转去编辑。
         private MonoScript _cachedRefresherScript;
-        private IManagerRefresher _cachedRefresher;
 
         public void SetPath(string path) => _currentPath = path;
 
@@ -139,11 +155,9 @@ namespace DevWorkbench.Editor
                 _cachedAssetPath = path;
                 _cachedAsset = AssetDatabase.LoadAssetAtPath<BaseManagerConfig>(path);
                 _cachedList = null;
-                _cachedListField = null;
                 _cachedDrawMethod = null;
                 _tableView = null;
                 _cachedRefresherScript = null;
-                _cachedRefresher = null;
 
                 if (_cachedAsset != null)
                 {
@@ -151,7 +165,6 @@ namespace DevWorkbench.Editor
                         BindingFlags.Instance | BindingFlags.NonPublic);
                     if (field != null && field.FieldType.IsGenericType)
                     {
-                        _cachedListField = field;
                         _cachedList = field.GetValue(_cachedAsset);
                         var elemType = field.FieldType.GetGenericArguments()[0];
                         _tableView = new TableView();
@@ -159,9 +172,7 @@ namespace DevWorkbench.Editor
                             .GetMethod(nameof(TableView.Draw))
                             .MakeGenericMethod(elemType);
 
-                        ResolveRefresher(path);
-
-                        _tableView.OnRefreshClicked(ExecuteRefresh);
+                        ResolveRefresherScript(path);
                         _tableView.OnViewRefresherClicked(OpenRefresherScript);
                     }
                 }
@@ -179,29 +190,11 @@ namespace DevWorkbench.Editor
                 EditorUtility.SetDirty(_cachedAsset);
         }
 
-        private void ResolveRefresher(string assetPath)
+        private void ResolveRefresherScript(string assetPath)
         {
             var managerName = ManagerAddressConvention.ManagerNameOf(_cachedAsset.GetType());
             if (string.IsNullOrEmpty(managerName)) return;
-
             _cachedRefresherScript = ManagerRefresherLocator.FindRefresherScript(managerName, assetPath);
-            var refresherType = ManagerRefresherLocator.FindRefresherType(managerName, assetPath);
-            if (refresherType != null)
-                _cachedRefresher = (IManagerRefresher)Activator.CreateInstance(refresherType);
-        }
-
-        private void ExecuteRefresh()
-        {
-            if (_cachedRefresher == null || _cachedAsset == null)
-            {
-                Debug.LogWarning("[ManagerViewerPage] Refresher script or config asset was not found.");
-                return;
-            }
-
-            _cachedRefresher.Refresh(_cachedAsset);
-
-            if (_cachedListField != null)
-                _cachedList = _cachedListField.GetValue(_cachedAsset);
         }
 
         private void OpenRefresherScript()

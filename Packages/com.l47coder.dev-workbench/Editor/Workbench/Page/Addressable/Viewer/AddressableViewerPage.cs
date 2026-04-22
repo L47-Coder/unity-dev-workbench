@@ -26,7 +26,7 @@ namespace DevWorkbench.Editor
         private float _splitterX = LeftPanelStart;
         private bool _dragging;
 
-        public void OnStart() => _leftPanel.OnStart(_rightPanel.SetGroup, _rightPanel.Invalidate);
+        public void OnFirstEnter() => _leftPanel.OnFirstEnter(_rightPanel.SetGroup, _rightPanel.Invalidate);
 
         public void OnGUI(Rect rect)
         {
@@ -76,7 +76,7 @@ namespace DevWorkbench.Editor
         private Action<AddressableAssetGroup> _onGroupSelected;
         private Action _onDropComplete;
 
-        public void OnStart(Action<AddressableAssetGroup> onGroupSelected, Action onDropComplete)
+        public void OnFirstEnter(Action<AddressableAssetGroup> onGroupSelected, Action onDropComplete)
         {
             _onGroupSelected = onGroupSelected;
             _onDropComplete = onDropComplete;
