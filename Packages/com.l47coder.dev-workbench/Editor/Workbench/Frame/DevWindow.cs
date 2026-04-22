@@ -26,6 +26,7 @@ namespace DevWorkbench.Editor
         private const float HeaderHeight = 25f;
         private const float DividerWidth = 1f;
         private const float MenuButtonHeight = 40f;
+
         private static readonly Color MenuBg = new(0.14f, 0.14f, 0.14f);
         private static readonly Color ContentBg = new(0.18f, 0.18f, 0.18f);
         private static readonly Color DividerCol = new(0.11f, 0.11f, 0.11f);
@@ -33,13 +34,17 @@ namespace DevWorkbench.Editor
         private static readonly Color HoverBg = new(0.18f, 0.18f, 0.18f);
         private static readonly Color Accent = new(0.35f, 0.65f, 1f);
         private static readonly Color DimText = new(0.70f, 0.70f, 0.70f);
-        private readonly static GUIStyle _menuStyle = new(EditorStyles.label)
+
+        private static GUIStyle _menuStyle;
+        private static GUIStyle MenuStyle => _menuStyle ??= new GUIStyle(EditorStyles.label)
         {
             alignment = TextAnchor.MiddleLeft,
             padding = new RectOffset(16, 0, 0, 0),
             fontSize = 13,
         };
-        private readonly static GUIStyle _tabStyle = new(EditorStyles.label)
+
+        private static GUIStyle _tabStyle;
+        private static GUIStyle TabStyle => _tabStyle ??= new GUIStyle(EditorStyles.label)
         {
             alignment = TextAnchor.MiddleCenter,
             fontSize = 12,
@@ -54,10 +59,13 @@ namespace DevWorkbench.Editor
         private readonly List<PageGroup> _groups = new();
         private readonly HashSet<IPage> _initializedPages = new();
         private PageOrder _pageOrder;
+
         private PageGroup _currentGroup;
         private IPage _currentPage;
+
         private string _draggingGroupTitle;
         private string _draggingTabTitle;
+        
         [SerializeField] private string _persistedGroupTitle; //记录编译前的GroupTitle
         [SerializeField] private string _persistedTabTitle; //记录编译前的TabTitle
 
@@ -130,7 +138,7 @@ namespace DevWorkbench.Editor
 
                 if (group == null)
                     _groups.Add(group = new PageGroup { Title = page.GroupTitle });
-                
+
                 group.Pages.Add(page);
             }
 
@@ -164,7 +172,7 @@ namespace DevWorkbench.Editor
         {
             if (_initializedPages.Add(page))
                 page.OnFirstEnter();
-            
+
             page.OnEnter();
         }
 
@@ -222,8 +230,8 @@ namespace DevWorkbench.Editor
                 }
                 else if (hovered) EditorGUI.DrawRect(btnRect, HoverBg);
 
-                _menuStyle.normal.textColor = selected ? Color.white : DimText;
-                GUI.Label(btnRect, group.Title, _menuStyle);
+                MenuStyle.normal.textColor = selected ? Color.white : DimText;
+                GUI.Label(btnRect, group.Title, MenuStyle);
 
                 switch (evt.type)
                 {
@@ -263,8 +271,8 @@ namespace DevWorkbench.Editor
                 }
                 else if (hovered) EditorGUI.DrawRect(tabRect, HoverBg);
 
-                _tabStyle.normal.textColor = selected ? Color.white : DimText;
-                GUI.Label(tabRect, page.TabTitle, _tabStyle);
+                TabStyle.normal.textColor = selected ? Color.white : DimText;
+                GUI.Label(tabRect, page.TabTitle, TabStyle);
 
                 switch (evt.type)
                 {
