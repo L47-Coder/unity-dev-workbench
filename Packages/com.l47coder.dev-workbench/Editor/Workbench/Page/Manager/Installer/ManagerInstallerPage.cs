@@ -5,10 +5,6 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // Manager / Installer Tab：展示 manifest.json 里登记的 Manager 模板，
-    // 让用户勾选要导入哪些；已安装的模板显示"Installed"并禁用 Toggle。
-    // 点击 Import 后调用 ManagerTemplateInstaller.InstallPackages，Unity 重新编译完
-    // FrameworkBootstrapper.TryRerunInitializeAfterReload 会把剩下的挂载补齐。
     internal sealed class ManagerInstallerPage : IPage
     {
         public string GroupTitle => "Manager";
