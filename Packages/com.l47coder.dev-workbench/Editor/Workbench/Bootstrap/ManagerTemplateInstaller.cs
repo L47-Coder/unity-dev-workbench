@@ -23,9 +23,11 @@ namespace DevWorkbench.Editor
             "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Managers";
         private const string ManifestFileName = "manifest.json";
         private const string AsmdefFileName = "Game.Managers.asmdef";
+        private const string GameBootFileName = "GameBoot.cs";
 
         public const string ManagerRootAssetPath = "Assets/Game/Manager";
         public const string AsmdefAssetPath = ManagerRootAssetPath + "/" + AsmdefFileName;
+        public const string GameBootAssetPath = ManagerRootAssetPath + "/" + GameBootFileName;
 
         // ── Manifest ──────────────────────────────────────────────────────────────
 
@@ -102,6 +104,39 @@ namespace DevWorkbench.Editor
             File.Copy(sourceAbs, targetAbs, overwrite: false);
             AssetDatabase.Refresh();
             Debug.Log("[ManagerTemplateInstaller] Game.Managers.asmdef container deployed.");
+            return true;
+        }
+
+        // ── 默认 GameBoot ─────────────────────────────────────────────────────────
+        //
+        // GameBoot 是"启动入口"而非可选模板包：每个项目都必需，且全框架只需一份。
+        // 具体类落在 Game.Managers 程序集里，以便直接触达所有 Manager；框架 Runtime
+        // 通过 IGameBoot 接口类型在场景里扫描它，不依赖具体符号。
+        // 首次初始化时由 FrameworkBootstrapper 无条件投放；用户已有则跳过，保留其实现。
+
+        public static bool IsGameBootInstalled() => File.Exists(ToAbsolute(GameBootAssetPath));
+
+        public static bool EnsureGameBootInstalled()
+        {
+            if (IsGameBootInstalled()) return false;
+
+            var sourceAbs = ResolveSourceAbsolute(GameBootFileName);
+            if (string.IsNullOrEmpty(sourceAbs) || !File.Exists(sourceAbs))
+            {
+                Debug.LogError($"[ManagerTemplateInstaller] Default GameBoot missing in template: {TemplateSourceRelative}/{GameBootFileName}.");
+                return false;
+            }
+
+            FrameAssetInstaller.EnsureFolder(ManagerRootAssetPath);
+
+            var targetAbs = ToAbsolute(GameBootAssetPath);
+            var targetDir = Path.GetDirectoryName(targetAbs);
+            if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
+                Directory.CreateDirectory(targetDir);
+
+            File.Copy(sourceAbs, targetAbs, overwrite: false);
+            AssetDatabase.Refresh();
+            Debug.Log("[ManagerTemplateInstaller] Default GameBoot.cs deployed.");
             return true;
         }
 

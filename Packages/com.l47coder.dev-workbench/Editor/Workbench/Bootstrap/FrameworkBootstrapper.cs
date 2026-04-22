@@ -106,6 +106,9 @@ namespace DevWorkbench.Editor
             if (!ComponentTemplateInstaller.IsContainerInstalled())
                 issues.Add($"{ComponentTemplateInstaller.AsmdefAssetPath} is missing.");
 
+            if (!ManagerTemplateInstaller.IsGameBootInstalled())
+                issues.Add($"{ManagerTemplateInstaller.GameBootAssetPath} is missing.");
+
             AppendOrderAssetIssues(settings, issues,
                 FrameAssetInstaller.ManagerOrderAssetPath,
                 FrameAssetInstaller.ManagerOrderAddress);
@@ -211,6 +214,10 @@ namespace DevWorkbench.Editor
             // 具体的模板此处不再强推，改由对应的 InstallerPage 让用户按需安装。
             ManagerTemplateInstaller.EnsureContainerInstalled();
             ComponentTemplateInstaller.EnsureContainerInstalled();
+
+            // 默认 GameBoot 也属于"框架基础设施"：每个项目都必需，全局只需一份，
+            // 因此和容器 asmdef 同时无条件投放。用户已有则保留不覆盖。
+            ManagerTemplateInstaller.EnsureGameBootInstalled();
 
             AssetDatabase.StartAssetEditing();
             try

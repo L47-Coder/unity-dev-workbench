@@ -5,15 +5,8 @@ using VContainer.Unity;
 
 namespace DevWorkbench
 {
-    /// <summary>
-    /// VContainer <see cref="LifetimeScope"/> that wires up every Manager into
-    /// the DI container according to the <c>Frame/ManagerOrder</c> Addressable
-    /// config. Resolution is reflection-based, so Managers can live in any
-    /// assembly that this scope can see at start-up.
-    /// </summary>
     public class GameLifetimeScope : LifetimeScope
     {
-        /// <inheritdoc/>
         protected override void Configure(IContainerBuilder builder)
         {
             var config = FrameworkLoader.LoadSync<ManagerOrderConfig>("Frame/ManagerOrder");

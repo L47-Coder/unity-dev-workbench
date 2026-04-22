@@ -7,18 +7,11 @@ using VContainer.Unity;
 
 namespace DevWorkbench
 {
-    /// <summary>
-    /// VContainer entry point that drives the framework boot sequence once the
-    /// <see cref="GameLifetimeScope"/> has registered every Manager:
-    /// <list type="number">
-    ///   <item>load each Manager's data dict via
-    ///     <see cref="BaseManager.InternalSetManagerDataDict"/>,</item>
-    ///   <item>run <see cref="IAsyncInitManager.InitAsync"/> on Managers that
-    ///     opted into the async init phase,</item>
-    ///   <item>resolve the <see cref="IGameBoot"/> on the <c>Managers</c>
-    ///     GameObject and invoke <see cref="IGameBoot.OnGameStart"/>.</item>
-    /// </list>
-    /// </summary>
+    public interface IAsyncInitManager
+    {
+        UniTask InitAsync(CancellationToken token);
+    }
+
     internal class GameBootstrap : IAsyncStartable
     {
         private readonly IObjectResolver _container;
@@ -38,9 +31,41 @@ namespace DevWorkbench
                     await init.InitAsync(token);
             }
 
-            var gameBoot = GameObject.Find("Managers").GetComponent<IGameBoot>();
+            var gameBoot = ResolveGameBoot();
+            if (gameBoot == null) return;
+
             _container.Inject(gameBoot);
             gameBoot.OnGameStart();
+        }
+
+        // 按 IGameBoot 接口扫描场景里所有 MonoBehaviour；不依赖具体实现类型的符号，
+        // 因此具体 GameBoot 类可以住在 Game.Managers 等上层程序集里。
+        private static IGameBoot ResolveGameBoot()
+        {
+            var behaviours = Object.FindObjectsByType<MonoBehaviour>(
+                FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
+
+            IGameBoot first = null;
+            int count = 0;
+            MonoBehaviour firstOwner = null;
+
+            foreach (var b in behaviours)
+            {
+                if (b is not IGameBoot boot) continue;
+                if (first == null) { first = boot; firstOwner = b; }
+                count++;
+            }
+
+            if (count == 0)
+            {
+                Debug.LogWarning("[DevWorkbench] No IGameBoot in scene.");
+                return null;
+            }
+
+            if (count > 1)
+                Debug.LogWarning($"[DevWorkbench] Multiple IGameBoot ({count}); using '{firstOwner.name}'.");
+
+            return first;
         }
     }
 }
