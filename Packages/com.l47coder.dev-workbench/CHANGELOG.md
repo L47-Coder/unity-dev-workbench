@@ -25,9 +25,9 @@ flow.
   sequence (config load &rarr; async init &rarr; `IGameBoot.OnGameStart`),
   and dropped a stray startup `Debug.Log` that printed every Manager's type
   name.
-- README / README.zh-CN: Highlights, Quick Start, Host Project Layout and
-  the Assembly table updated to reflect the Installer-driven flow and the
-  new `Game.Components` assembly.
+- README: Highlights, Quick Start, Host Project Layout and the Assembly
+  table updated to reflect the Installer-driven flow and the new
+  `Game.Components` assembly.
 
 ## [0.1.0-preview.1] &mdash; 2026-04-19
 
@@ -57,8 +57,7 @@ First public preview release.
 - Host project scaffolding (`Game.Managers` assembly):
   - Default `AssetManager`, `ComponentManager` and `PrefabManager`
     deployed on first load into `Assets/Game/Manager/` as plain source.
-- Package metadata: `LICENSE.md` (MIT), `Third Party Notices.md`, bilingual
-  README (`README.md` / `README.zh-CN.md`).
+- Package metadata: `LICENSE.md` (MIT), `Third Party Notices.md`, `README.md`.
 
 ### Notes
 

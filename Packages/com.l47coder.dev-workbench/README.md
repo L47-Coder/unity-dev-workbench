@@ -5,8 +5,6 @@ A Unity runtime **Manager / Component** framework powered by `ScriptableObject` 
 one-click creation and visual management of Managers, Components and
 Addressable groups.
 
-> Languages: **English** · [简体中文](./README.zh-CN.md)
-
 > Status: **0.1.0-preview.1** &mdash; the public API may still change before `1.0`.
 
 ## Highlights
