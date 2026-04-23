@@ -7,7 +7,17 @@ using DevWorkbench;
 
 internal sealed class AssetManagerRefresher : IManagerRefresher
 {
-    private const string BuiltInDataGroupName = "Built In Data";
+    // 框架内部的配置型 Group，只存储 SO 配置资产，不需要通过 AssetManager 加载。
+    // 注意："Prefab" Group 不在排除列表内——PrefabManager 依赖 AssetManager 来
+    // 加载 Prefab 资产，若排除该 Group 会导致 PrefabManager.LoadPrefabAsync 运行时报错。
+    // 如果项目新增了其他纯配置型 Group，可在此追加。
+    private static readonly HashSet<string> ExcludedGroupNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Built In Data",
+        "ManagerConfig",
+        "ComponentConfig",
+        "Frame",
+    };
 
     public void Refresh(BaseManagerConfig config)
     {
@@ -32,7 +42,7 @@ internal sealed class AssetManagerRefresher : IManagerRefresher
         foreach (var group in settings.groups)
         {
             if (group == null) continue;
-            if (string.Equals(group.Name, BuiltInDataGroupName, StringComparison.OrdinalIgnoreCase)) continue;
+            if (ExcludedGroupNames.Contains(group.Name)) continue;
 
             foreach (var entry in group.entries)
             {

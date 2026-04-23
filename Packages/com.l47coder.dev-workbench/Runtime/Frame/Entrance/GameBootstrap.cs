@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -42,7 +43,7 @@ namespace DevWorkbench
         // 因此具体 GameBoot 类可以住在 Game.Frame 等上层程序集里。
         private static IGameBoot ResolveGameBoot()
         {
-            var behaviours = Object.FindObjectsByType<MonoBehaviour>(
+            var behaviours = UnityEngine.Object.FindObjectsByType<MonoBehaviour>(
                 FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
 
             IGameBoot first = null;
@@ -58,12 +59,14 @@ namespace DevWorkbench
 
             if (count == 0)
             {
-                Debug.LogWarning("[DevWorkbench] No IGameBoot in scene.");
+                Debug.LogWarning("[DevWorkbench] No IGameBoot found in scene; OnGameStart will not be called.");
                 return null;
             }
 
             if (count > 1)
-                Debug.LogWarning($"[DevWorkbench] Multiple IGameBoot ({count}); using '{firstOwner.name}'.");
+                throw new InvalidOperationException(
+                    $"[DevWorkbench] {count} IGameBoot implementations found in the scene. " +
+                    "Only one is allowed. Remove the extra instances before entering Play Mode.");
 
             return first;
         }

@@ -124,10 +124,11 @@ Assets/
         └── Game.Components.asmdef
 ```
 
-`Game.Managers` and `Game.Components` both have an `[InternalsVisibleTo]`
-bridge into `DevWorkbench`, so user-written Managers and Components can access
-the framework's internal dispatch hooks (e.g.
-`BaseComponent.InternalSetGameObject`). `Game.Frame` sits above both and is
+`Game.Managers` has an `[InternalsVisibleTo]` bridge into `DevWorkbench`,
+which lets Manager code (e.g. `PrefabManager`) call the framework's internal
+dispatch hooks such as `BaseComponent.InternalSetGameObject`. `Game.Components`
+only uses the `protected` lifecycle overrides (`OnAdd`, `OnEnable`, …) and
+does **not** require internal access. `Game.Frame` sits above both and is
 where app-level glue lives &mdash; the shipped `GameBoot.cs` is just a
 starting point you own.
 
