@@ -16,14 +16,18 @@ is used for developing and dogfooding the package.
 Dev Workbench is a Unity **Manager / Component** framework powered by
 `ScriptableObject` + `Addressables`, shipped with an in-editor **DevWorkbench**
 panel (`Tools → Dev Workbench`) that provides one-click creation and visual
-management of Managers, Components and Addressable groups.
+management of Managers, Components, Addressable groups and the framework-wide
+Sync step.
 
 ## Repository layout
 
 ```
 .
 ├── Assets/                              # Minimal host project (Unity 2022.3.60f1)
-│   ├── Game/                            # Generated on first workbench launch
+│   ├── Game/                            # Auto-provisioned on first workbench launch
+│   │   ├── Frame/                       #   Game.Frame.asmdef, GameBoot.cs, order SOs
+│   │   ├── Manager/                     #   Game.Managers.asmdef + on-demand templates
+│   │   └── Component/                   #   Game.Components.asmdef
 │   └── Scenes/SampleScene.unity
 ├── Packages/
 │   ├── com.l47coder.dev-workbench/      # The package source (embedded)

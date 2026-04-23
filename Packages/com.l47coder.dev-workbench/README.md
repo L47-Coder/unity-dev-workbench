@@ -5,27 +5,38 @@ A Unity runtime **Manager / Component** framework powered by `ScriptableObject` 
 one-click creation and visual management of Managers, Components and
 Addressable groups.
 
-> Status: **0.1.0-preview.1** &mdash; the public API may still change before `1.0`.
+> Status: **0.1.0-preview.3** &mdash; the public API may still change before `1.0`.
 
 ## Highlights
 
 - **Opinionated runtime core.** A tiny `BaseManager` / `BaseComponent` pair
   standardises data loading, lifecycle and dependency injection, so gameplay
   code only ever sees well-typed, ready-to-use services.
-- **Two-layer separation.** The architecture layer (`DevWorkbench`) owns
-  lifecycle and contracts; the dispatch layer (`Game.Managers` /
-  `Game.Components`) lives in your project under `Assets/Game/` and is free
-  to be modified, extended or replaced.
-- **DevWorkbench editor panel.** Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench gives you
-  Viewer / Order / Creator / Installer tabs for every Manager, Component and
-  Addressable group. The Creator scaffolds a new Manager or Component
-  (`.cs` + generated `Data` / `Config` partials + `ScriptableObject` asset +
-  Addressable entry) with a single click.
+- **Three-layer host separation.** The architecture layer (`DevWorkbench`)
+  owns lifecycle and contracts; the dispatch layer (`Game.Managers` /
+  `Game.Components`) lives under `Assets/Game/` and is fully editable; the
+  top-most glue layer (`Game.Frame`) is where app-level wiring such as
+  `GameBoot` lives.
+- **DevWorkbench editor panel.** Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench exposes
+  four groups &mdash; **Framework / Addressable / Manager / Component** &mdash;
+  each with its own Viewer / Order / Creator / Installer tabs as applicable.
+  The Creator scaffolds a new Manager or Component (`.cs` + generated
+  `Data` / `Config` partials + `ScriptableObject` asset + Addressable entry)
+  with a single click.
+- **Framework / Sync page.** A dedicated page offers a `Sync Runtime` button
+  plus three auto-trigger options (`Manual only` / `When Dev Workbench closes`
+  / `Before entering Play Mode`). It replaces the old `Tools / Dev Workbench
+  / Sync Runtime` menu entry so the window is the single entry point.
 - **Default Managers ship as on-demand templates.** On first launch the
-  workbench only provisions the Order assets and two empty `asmdef`
-  containers. The bundled `Asset / Component / Prefab` Managers are imported
-  from the *Manager&nbsp;/&nbsp;Installer* tab as plain source you own and can
-  modify or delete.
+  workbench only provisions the Frame assets and three empty `asmdef`
+  containers (`Game.Frame` / `Game.Managers` / `Game.Components`). The bundled
+  `Asset / Component / Prefab` Managers are imported from the
+  *Manager&nbsp;/&nbsp;Installer* tab as plain source you own and can modify or
+  delete.
+- **Auto-sync external IDE project files.** Any `.cs` / `.asmdef` / `.asmref`
+  / `.rsp` import triggers `CodeEditor.SyncAll()`, so Cursor / VS Code pick
+  up freshly scaffolded types without a manual *Regenerate project files*
+  step.
 
 ## Requirements
 
@@ -69,17 +80,26 @@ pick it up automatically as an embedded package.
 ## Quick Start
 
 1. Install the package.
-2. Open `Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench`. If the side panel says
-   *"Framework not initialised"*, click **Initialise**. This creates:
+2. Open `Tools&nbsp;&rarr;&nbsp;Dev&nbsp;Workbench`. The first launch
+   auto-provisions:
    - `Assets/Game/Frame/{ManagerOrder,ComponentOrder,PageOrder}.asset`
+   - `Assets/Game/Frame/GameBoot.cs` and `Game.Frame.asmdef` (the top-most
+     host assembly)
    - `Assets/Game/Manager/Game.Managers.asmdef` and
-     `Assets/Game/Component/Game.Components.asmdef` as empty containers.
+     `Assets/Game/Component/Game.Components.asmdef` as empty containers
+   - Addressable group `Frame` with the two order SO entries registered.
 3. Open the *Manager&nbsp;/&nbsp;Installer* tab and import the default
    `Asset / Component / Prefab` Managers on demand. They land under
    `Assets/Game/Manager/{Asset,Component,Prefab}/` as plain source you can
    modify or delete.
 4. Use the *Manager&nbsp;/&nbsp;Creator* or *Component&nbsp;/&nbsp;Creator*
-   tab to scaffold your own Manager / Component.
+   tab to scaffold your own Manager / Component. Addressable entries are
+   kept up to date automatically; use *Framework&nbsp;/&nbsp;Sync* to run
+   every `IManagerRefresher` on demand (or configure it to run on window
+   close / before Play Mode).
+5. In your boot scene, drop the generated `GameBoot` MonoBehaviour onto any
+   GameObject and override `OnGameStart` to wire up gameplay. A
+   `GameLifetimeScope` is spawned automatically by the framework.
 
 ## Host Project Layout
 
@@ -90,6 +110,8 @@ under `Assets/Game/`:
 Assets/
 └── Game/
     ├── Frame/
+    │   ├── Game.Frame.asmdef         (top-most host assembly)
+    │   ├── GameBoot.cs               (MonoBehaviour : IGameBoot)
     │   ├── ManagerOrder.asset
     │   ├── ComponentOrder.asset
     │   └── PageOrder.asset
@@ -105,19 +127,22 @@ Assets/
 `Game.Managers` and `Game.Components` both have an `[InternalsVisibleTo]`
 bridge into `DevWorkbench`, so user-written Managers and Components can access
 the framework's internal dispatch hooks (e.g.
-`BaseComponent.InternalSetGameObject`).
+`BaseComponent.InternalSetGameObject`). `Game.Frame` sits above both and is
+where app-level glue lives &mdash; the shipped `GameBoot.cs` is just a
+starting point you own.
 
 ## Assembly & Namespace Layout
 
-| Assembly (`.asmdef`)   | Namespace             | Purpose                                                  |
-| ---------------------- | --------------------- | -------------------------------------------------------- |
-| `DevWorkbench`         | `DevWorkbench`        | Runtime contracts, bridges, loader utilities.            |
-| `DevWorkbench.Editor`  | `DevWorkbench.Editor` | Editor-only DevWorkbench panel and bootstrapper.         |
-| `Game.Managers`        | *global*              | Host-project Managers (default + user-authored).         |
-| `Game.Components`      | *global*              | Host-project Components, scaffolded by the Creator.      |
+| Assembly (`.asmdef`)   | Namespace             | Purpose                                                                 |
+| ---------------------- | --------------------- | ----------------------------------------------------------------------- |
+| `DevWorkbench`         | `DevWorkbench`        | Runtime contracts, bridges, loader utilities.                           |
+| `DevWorkbench.Editor`  | `DevWorkbench.Editor` | Editor-only DevWorkbench window, guard and installers.                  |
+| `Game.Managers`        | *global*              | Host-project Managers (default + user-authored).                        |
+| `Game.Components`      | *global*              | Host-project Components, scaffolded by the Creator.                     |
+| `Game.Frame`           | *global*              | App-level glue (boot, scene wiring); references both Managers + Components. |
 
-The Manager / Component layers intentionally stay in the global namespace so
-that scaffolded templates read naturally and gameplay code does not need an
+The host-project layers intentionally stay in the global namespace so that
+scaffolded templates read naturally and gameplay code does not need an
 extra `using`.
 
 ## License
