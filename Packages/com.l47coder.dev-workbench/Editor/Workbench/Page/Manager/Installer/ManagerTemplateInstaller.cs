@@ -16,6 +16,7 @@ namespace DevWorkbench.Editor
             "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Managers";
         private const string ManifestFileName = "manifest.json";
         private const string ManagerRootAssetPath = "Assets/Game/Manager";
+        private const string ManagerEditorAssetPath = "Assets/Game/Manager/Editor";
 
         [Serializable]
         public sealed class PackageInfo
@@ -91,6 +92,11 @@ namespace DevWorkbench.Editor
                 }
 
                 AssetFolderCopier.Import(sourceAbs, $"{ManagerRootAssetPath}/{id}");
+
+                var editorSourceAbs = ResolveSourceAbsolute($"Editor/{id}");
+                if (!string.IsNullOrEmpty(editorSourceAbs) && Directory.Exists(editorSourceAbs))
+                    AssetFolderCopier.Import(editorSourceAbs, $"{ManagerEditorAssetPath}/{id}");
+
                 installed++;
                 Debug.Log($"[ManagerTemplateInstaller] Installed Manager template \"{id}\".");
             }
