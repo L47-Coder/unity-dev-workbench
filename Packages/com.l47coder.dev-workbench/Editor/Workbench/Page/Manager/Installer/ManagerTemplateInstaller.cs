@@ -6,25 +6,16 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // Manager 模板仓（Runtime~/Templates/Managers）——只管"可选模板包"这一件事：
-    //   - manifest.json 声明每个内置 Manager 模板的 id / displayName / description / recommended
-    //   - 每个 id 对应一个子目录，就是一份模板包源，由 ManagerInstallerPage 驱动用户按需安装
-    //
-    // Frame 元结构（Game.Managers.asmdef 容器、GameBoot.cs 等）已由 DevWindowFrameworkGuard
-    // 在开窗时从 Runtime~/Templates/Game 镜像拷贝，**不再**走这里。因此本类砍掉了：
-    //   - IsContainerInstalled / EnsureContainerInstalled（Guard 接管）
-    //   - CopyDirectory（改走 AssetFolderCopier.Import）
-    //
-    // Unity 忽略任何以 `~` 结尾的目录，所以 Runtime~ 内容不会被当作 asset 编译，
-    // 模板仓该有的行为。
+    // Manager 模板仓（Runtime~/Templates/Managers）——可选模板包入口。
+    // manifest.json 声明每个 id 的 displayName / description / recommended；
+    // 每个 id 对应一份模板包源，由 ManagerInstallerPage 驱动用户按需安装。
+    // Frame 元结构由 DevWindowFrameworkGuard 独立管理，不经此类。
     internal static class ManagerTemplateInstaller
     {
         private const string TemplateSourceRelative =
             "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Managers";
         private const string ManifestFileName = "manifest.json";
         private const string ManagerRootAssetPath = "Assets/Game/Manager";
-
-        // ── Manifest ──────────────────────────────────────────────────────────────
 
         [Serializable]
         public sealed class PackageInfo
@@ -72,22 +63,16 @@ namespace DevWorkbench.Editor
 
         public static void InvalidateManifestCache() => _cachedManifest = null;
 
-        // ── 可选模板包 ────────────────────────────────────────────────────────────
-
-        // 以"主脚本文件是否存在"作为"这个模板是否已安装"的判据。
-        // 比只看目录存在更稳：用户如果把目录里的文件清空了，我们也认为要重装。
+        // 以"主脚本存在"判定"已安装"——比只看目录更稳（用户清空文件后应视为需重装）。
         public static bool IsPackageInstalled(string packageId)
         {
             if (string.IsNullOrEmpty(packageId)) return false;
-            var marker = ToAbsolute($"{ManagerRootAssetPath}/{packageId}/{packageId}Manager.cs");
+            var marker = AssetPathUtil.ToAbsolute($"{ManagerRootAssetPath}/{packageId}/{packageId}Manager.cs");
             return File.Exists(marker);
         }
 
-        // 批量安装指定模板包（幂等：已安装的直接跳过）。
-        // 返回值：实际新安装了几个包。若 >0 会设置 SessionKeyRerunInitialize，让
-        // DevWindowFrameworkGuard 在编译完成后的 domain reload 里重跑 Ensure()——
-        // 触发 ManagerViewerPage.OnWorkbenchOpen 把新编译出的 <Name>ManagerConfig
-        // 创建成 asset、挂 Addressables、同步 Order。
+        // 幂等批量安装。返回新装数量；>0 则写 SessionKeyRerunInitialize，让 reload 后
+        // 的 Guard.Ensure 再跑一轮 IPage.OnWorkbenchOpen 把新 Config 补齐 asset/Addressables/Order。
         public static int InstallPackages(IEnumerable<string> packageIds)
         {
             if (packageIds == null) return 0;
@@ -105,7 +90,6 @@ namespace DevWorkbench.Editor
                     continue;
                 }
 
-                // 走通用导入工具：递归保留结构、重名跳过、.meta 忽略、AssetDatabase.Refresh 由它管。
                 AssetFolderCopier.Import(sourceAbs, $"{ManagerRootAssetPath}/{id}");
                 installed++;
                 Debug.Log($"[ManagerTemplateInstaller] Installed Manager template \"{id}\".");
@@ -117,8 +101,6 @@ namespace DevWorkbench.Editor
             return installed;
         }
 
-        // ── 工具 ──────────────────────────────────────────────────────────────────
-
         private static string ResolveSourceAbsolute(string relativeInsideTemplate = null)
         {
             try
@@ -129,13 +111,6 @@ namespace DevWorkbench.Editor
                     : Path.Combine(root, relativeInsideTemplate);
             }
             catch { return null; }
-        }
-
-        private static string ToAbsolute(string assetPath)
-        {
-            if (string.IsNullOrEmpty(assetPath)) return null;
-            var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-            return Path.Combine(projectRoot, assetPath).Replace('\\', '/');
         }
     }
 }

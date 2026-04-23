@@ -65,14 +65,14 @@ namespace DevWorkbench.Editor
 
         private string _draggingGroupTitle;
         private string _draggingTabTitle;
-        
-        [SerializeField] private string _persistedGroupTitle; //记录编译前的GroupTitle
-        [SerializeField] private string _persistedTabTitle; //记录编译前的TabTitle
+
+        [SerializeField] private string _persistedGroupTitle;
+        [SerializeField] private string _persistedTabTitle;
 
         [MenuItem("Tools/Dev Workbench/Dev")]
         private static void Open()
         {
-            DevWindowFrameworkGuard.Ensure(); //验证并保证架构完整性（含 Page 层模块贡献）
+            DevWindowFrameworkGuard.Ensure();
 
             var window = GetWindow<DevWindow>("Dev Workbench", false);
             window.minSize = new Vector2(MenuWidth, MenuWidth);
@@ -83,17 +83,9 @@ namespace DevWorkbench.Editor
         {
             wantsMouseMove = true;
 
-            // 订阅 Guard 的"全套 Ensure 跑完"事件——关键是首次 bootstrap 场景：
-            //   Open → Ensure 拷模板 → 短路 return（PageOrder 还没建）→ GetWindow
-            //   → OnEnable 这次 LoadPageOrder 扑空 → _groups 为空 → 窗体空白。
-            //   Unity 编译 → domain reload → Guard 的 delayCall 再跑 Ensure → 这次
-            //   建好 PageOrder / OrderSO / 业务类型扫完 → Invoke EnsureCompleted →
-            //   本窗口被通知，再跑一次 TryBuildPageTree 就能正常渲染。
-            // 已初始化场景（非首次）不走短路，Open 里的 Ensure 返回时 PageOrder 已存在，
-            // OnEnable 就地 Build 即可；事件再触发一次顶多是幂等重建（用户装新模板包时
-            // 正好借此把新 Page 同步进菜单）。
+            // 首次 bootstrap 时 Open 里的 Ensure 短路返回（PageOrder 尚未建），本次 Load
+            // 会扑空；订阅 EnsureCompleted 等 reload 后的 rerun 完工再补建 PageTree。
             DevWindowFrameworkGuard.EnsureCompleted += TryBuildPageTree;
-
             TryBuildPageTree();
         }
 
@@ -106,35 +98,26 @@ namespace DevWorkbench.Editor
         private void TryBuildPageTree()
         {
             _pageOrder = AssetDatabase.LoadAssetAtPath<PageOrder>(FrameAssetPaths.PageOrder);
+            if (_pageOrder == null) return;
 
-            if (_pageOrder != null)
-            {
-                BuildPageTree();
-                Repaint();
-            }
+            BuildPageTree();
+            Repaint();
         }
 
         private void BuildPageTree()
         {
             var pages = new List<IPage>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var type in TypeCache.GetTypesDerivedFrom<IPage>())
             {
-                Type[] types;
-                try { types = assembly.GetTypes(); }
-                catch { continue; }
-
-                foreach (var t in types)
+                if (type.IsAbstract || type.IsInterface) continue;
+                try
                 {
-                    if (!typeof(IPage).IsAssignableFrom(t) || t.IsInterface || t.IsAbstract) continue;
-                    try
-                    {
-                        if (Activator.CreateInstance(t) is IPage page)
-                            pages.Add(page);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.LogWarning($"[DevWindow] Failed to instantiate {t.FullName}: {ex.Message}");
-                    }
+                    if (Activator.CreateInstance(type) is IPage page)
+                        pages.Add(page);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[DevWindow] Failed to instantiate {type.FullName}: {ex.Message}");
                 }
             }
             if (pages.Count == 0) return;
@@ -153,19 +136,19 @@ namespace DevWorkbench.Editor
             EditorUtility.SetDirty(_pageOrder);
             AssetDatabase.SaveAssets();
 
-            // 按存储顺序排列、归组。
+            // rerun/重建前清理旧 page 实例引用，避免 _initializedPages 留僵尸键阻断 OnFirstEnter。
             _groups.Clear();
-            foreach (var page in pages.OrderBy(p => groupOrder[p.GroupTitle]).ThenBy(p => tabOrders[p.GroupTitle][p.TabTitle]))
+            _initializedPages.Clear();
+            foreach (var page in pages
+                         .OrderBy(p => groupOrder[p.GroupTitle])
+                         .ThenBy(p => tabOrders[p.GroupTitle][p.TabTitle]))
             {
                 var group = _groups.FirstOrDefault(x => x.Title == page.GroupTitle);
-
                 if (group == null)
                     _groups.Add(group = new PageGroup { Title = page.GroupTitle });
-
                 group.Pages.Add(page);
             }
 
-            // 恢复上次选中项，匹配不上回落到第一个。
             _currentGroup = _groups.FirstOrDefault(g => g.Title == _persistedGroupTitle) ?? _groups[0];
             _currentPage = _currentGroup.Pages.FirstOrDefault(p => p.TabTitle == _persistedTabTitle) ?? _currentGroup.Pages[0];
             _persistedGroupTitle = _currentGroup.Title;
@@ -202,8 +185,11 @@ namespace DevWorkbench.Editor
         private void SelectPage(IPage page)
         {
             if (page == _currentPage) return;
+            var group = _groups.FirstOrDefault(g => g.Pages.Contains(page));
+            if (group == null) return;
+
             _currentPage?.OnLeave();
-            _currentGroup = _groups.First(g => g.Pages.Contains(page));
+            _currentGroup = group;
             _currentPage = page;
             _persistedGroupTitle = _currentGroup.Title;
             _persistedTabTitle = _currentPage.TabTitle;
@@ -315,7 +301,6 @@ namespace DevWorkbench.Editor
             if (evt.rawType == EventType.MouseUp) _draggingTabTitle = null;
         }
 
-        // 交换字典里两个 key 的顺序值，持久化并触发对 UI 列表的排序回调。
         private void SwapOrder(Dictionary<string, int> dict, string a, string b, Action<Dictionary<string, int>> commit)
         {
             if (!dict.TryGetValue(a, out var ia) || !dict.TryGetValue(b, out var ib)) return;

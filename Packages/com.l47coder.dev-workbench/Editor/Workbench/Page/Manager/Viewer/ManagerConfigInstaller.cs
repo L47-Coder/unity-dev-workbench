@@ -6,10 +6,8 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // 扫描所有 BaseManagerConfig 子类，批量确保：
-    //   1. 对应的 <Name>ManagerConfig.asset 已存在；
-    //   2. 已挂载到 "ManagerConfig" 组，且 address = "ManagerConfig/<Name>"。
-    // 同时提供批量执行 IManagerRefresher 的能力，免去用户挨个点刷新按钮。
+    // 批量确保每个 BaseManagerConfig 子类对应的 .asset 存在、挂在 "ManagerConfig" 组、
+    // 地址为 "ManagerConfig/<Name>"；并提供批跑 IManagerRefresher 的入口。
     internal static class ManagerConfigInstaller
     {
         private const string ManagerRootAssetPath = "Assets/Game/Manager";
@@ -24,8 +22,6 @@ namespace DevWorkbench.Editor
             public bool HasAddressableEntry;
             public bool AddressMatches;
         }
-
-        // ── 扫描 ──────────────────────────────────────────────────────────────────
 
         public static List<ConfigEntryInfo> Collect()
         {
@@ -63,8 +59,6 @@ namespace DevWorkbench.Editor
             return result;
         }
 
-        // ── 批量安装 ──────────────────────────────────────────────────────────────
-
         public static int EnsureAllRegistered()
         {
             var changed = 0;
@@ -74,15 +68,12 @@ namespace DevWorkbench.Editor
 
                 if (!info.AssetExists && string.IsNullOrEmpty(info.AssetPath)) continue;
 
-                // 直接复用已有的公共 API（内部会：创建 asset / 建组 / 注册 entry / SaveAssets）。
                 ManagerCreationService.EnsureAssetAndAddressable(
                     info.ManagerName, info.AssetPath, info.Address);
                 changed++;
             }
             return changed;
         }
-
-        // ── 批量执行 Refresher ────────────────────────────────────────────────────
 
         public static int RunAllRefreshers()
         {
@@ -110,28 +101,17 @@ namespace DevWorkbench.Editor
             return executed;
         }
 
-        // ── 内部工具 ──────────────────────────────────────────────────────────────
-
         private static IEnumerable<Type> EnumerateConcreteConfigTypes()
         {
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var t in TypeCache.GetTypesDerivedFrom<BaseManagerConfig>())
             {
-                Type[] types;
-                try { types = assembly.GetTypes(); }
-                catch { continue; }
-
-                foreach (var t in types)
-                {
-                    if (t == null || t.IsAbstract) continue;
-                    if (!typeof(BaseManagerConfig).IsAssignableFrom(t)) continue;
-                    if (t == typeof(BaseManagerConfig)) continue;
-                    yield return t;
-                }
+                if (t.IsAbstract) continue;
+                yield return t;
             }
         }
 
-        // 优先用 ManagerAssetIndex 在 Manager 根目录下查找已存在的 .asset（容忍嵌套层级）；
-        // 找不到时回落到约定路径：Assets/Game/Manager/<ManagerName>/<TypeName>.asset。
+        // 优先用 ManagerAssetIndex 查已存在的 .asset（容忍嵌套层级）；找不到时回落到
+        // 约定路径：Assets/Game/Manager/<ManagerName>/<TypeName>.asset。
         private static string LocateConfigAssetPath(string typeName, string managerName)
         {
             var fileName = $"{typeName}.asset";

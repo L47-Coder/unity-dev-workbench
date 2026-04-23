@@ -1,17 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // 扫描所有 BaseComponentConfig 子类，批量确保：
-    //   1. 对应的 <Name>ComponentConfig.asset 已存在；
-    //   2. 已挂载到 "ComponentConfig" 组，且 address = "ComponentConfig/<Name>"。
-    // 与 ManagerConfigInstaller 刻意保持对称；Component 侧不走 Refresher 机制
-    // （IComponentRefresher 不存在），所以这里没有 RunAllRefreshers。
+    // 批量确保每个 BaseComponentConfig 子类对应的 .asset 存在、挂在 "ComponentConfig"
+    // 组、地址为 "ComponentConfig/<Name>"。Component 侧无 Refresher 机制。
     internal static class ComponentConfigInstaller
     {
         private const string ConfigClassSuffix = "ComponentConfig";
@@ -27,8 +23,6 @@ namespace DevWorkbench.Editor
             public bool HasAddressableEntry;
             public bool AddressMatches;
         }
-
-        // ── 扫描 ──────────────────────────────────────────────────────────────────
 
         public static List<ConfigEntryInfo> Collect()
         {
@@ -70,8 +64,6 @@ namespace DevWorkbench.Editor
             return result;
         }
 
-        // ── 批量安装 ──────────────────────────────────────────────────────────────
-
         public static int EnsureAllRegistered()
         {
             var changed = 0;
@@ -80,7 +72,6 @@ namespace DevWorkbench.Editor
                 if (info.AddressMatches) continue;
                 if (!info.AssetExists && string.IsNullOrEmpty(info.AssetPath)) continue;
 
-                // 直接复用 ComponentCreator 的公共 API（内部会：创建 asset / 建组 / 注册 entry / SaveAssets）。
                 ComponentCreationService.EnsureAssetAndAddressable(
                     info.ComponentName, info.AssetPath, info.Address);
                 changed++;
@@ -88,28 +79,17 @@ namespace DevWorkbench.Editor
             return changed;
         }
 
-        // ── 内部工具 ──────────────────────────────────────────────────────────────
-
         private static IEnumerable<Type> EnumerateConcreteConfigTypes()
         {
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var t in TypeCache.GetTypesDerivedFrom<BaseComponentConfig>())
             {
-                Type[] types;
-                try { types = assembly.GetTypes(); }
-                catch { continue; }
-
-                foreach (var t in types)
-                {
-                    if (t == null || t.IsAbstract) continue;
-                    if (!typeof(BaseComponentConfig).IsAssignableFrom(t)) continue;
-                    if (t == typeof(BaseComponentConfig)) continue;
-                    yield return t;
-                }
+                if (t.IsAbstract) continue;
+                yield return t;
             }
         }
 
-        // 优先用 ComponentAssetIndex 在 Component 根目录下查找已存在的 .asset（容忍嵌套层级）；
-        // 找不到时回落到约定路径：Assets/Game/Component/<ComponentName>/<TypeName>.asset。
+        // 优先用 ComponentAssetIndex 查已存在的 .asset（容忍嵌套层级）；找不到时回落到
+        // 约定路径：Assets/Game/Component/<ComponentName>/<TypeName>.asset。
         private static string LocateConfigAssetPath(string typeName, string componentName)
         {
             var fileName = $"{typeName}.asset";
