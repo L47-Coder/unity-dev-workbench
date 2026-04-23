@@ -22,13 +22,20 @@ namespace DevWorkbench.Editor
         private float _splitterX = LeftPanelStart;
         private bool _dragging;
 
-        // Component 模块对"项目结构完整性"的贡献——由 DevWindowFrameworkGuard.Ensure
-        // 在开窗 / domain reload rerun / Sync Runtime 菜单时统一调度。Frame 层已经保证了容器 asmdef、
-        // Addressables settings 和 Order 资产，所以本方法只做 Frame 层管不到的两件事：
-        //   - EnsureAllRegistered: 扫新编译出的 <Name>ComponentConfig 子类，创建 .asset、
-        //     挂到 Addressables "ComponentConfig" 组、对齐地址；
-        //   - SyncComponentOrderEntries: 按 BaseComponent 子类增量补行、移除陈旧项。
-        // 两个都幂等，资产齐全时零写盘。
+        // Component 模块的"业务层动态发现"——由 DevWindowFrameworkGuard.Ensure 在开窗 /
+        // domain reload rerun / Sync Runtime 菜单时统一调度。
+        //
+        // 这**不是**架构完整性的冗余补齐——架构完整性（容器 asmdef、Addressables settings、
+        // Frame 下三份 Order SO 存在性 + 挂 "Frame" 组）由 Guard 在进入本方法前已保证，
+        // 每次开窗只做一次。本方法只做那两件"必须等 domain reload 后才反射得到新类型"
+        // 的事，因此刻意放到 Page 层而不是 Guard 的 Frame 段：
+        //   - ComponentConfigInstaller.EnsureAllRegistered：扫 domain reload 后新编译出
+        //     的 <Name>ComponentConfig 子类 → 创建 .asset、挂 Addressables
+        //     "ComponentConfig" 组、对齐地址。首次装完 Component 模板的 reload 回来时，
+        //     靠这一步把 Config asset 造出来。
+        //   - ComponentOrderSync.Sync：按活跃 BaseComponent 子类增量同步
+        //     ComponentOrder.Entries（追加新的 / 丢弃被删/改名的 / 保留现有顺序）。
+        // 两个都幂等，无新类型时零写盘。
         public void OnWorkbenchOpen()
         {
             ComponentConfigInstaller.EnsureAllRegistered();

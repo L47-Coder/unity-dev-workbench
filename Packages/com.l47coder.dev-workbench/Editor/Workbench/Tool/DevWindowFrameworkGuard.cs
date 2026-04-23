@@ -12,16 +12,27 @@ namespace DevWorkbench.Editor
     //
     // 三条触发路径全部收敛到 Ensure()：
     //   1. DevWindow.Open 手动开窗——直接调 Ensure()
-    //   2. TemplateInstaller 装完模板后 domain reload——[InitializeOnLoad] 静态构造挂
-    //      delayCall 检测 SessionKeyRerunInitialize flag，命中则调 Ensure()
+    //   2. TemplateInstaller / 首次拷 Game 模板后 domain reload——[InitializeOnLoad]
+    //      静态构造挂 delayCall 检测 SessionKeyRerunInitialize flag，命中则 Ensure()
     //   3. Tools/Dev Workbench/Sync Runtime 菜单（SyncRuntimeMenu）——直接调 Ensure()
     //
-    // Ensure() 的幂等步骤：
-    //   Step 0+1：Frame 元结构 —— 三个容器 asmdef + 默认 GameBoot.cs
-    //             由 AssetFolderCopier 从 Runtime~/Templates/Game 整树镜像到 Assets/Game
-    //   Step 2：  Addressables settings 本身
-    //   Step 3：  Frame 下三份 Order SO（Manager / Component / Page），前两者挂 Addressables
-    //   Step 4：  所有 IPage.OnWorkbenchOpen 的模块贡献（反射扫 TypeCache）
+    // Ensure() 的两段时序（关键！）：
+    //   ——首次 bootstrap 分支（skeleton 拷贝数 > 0）——
+    //     Step 0：EnsureGameSkeleton 从 Runtime~/Templates/Game 镜像到 Assets/Game，
+    //             写入三个容器 asmdef + 默认 GameBoot.cs；AssetFolderCopier 内部会
+    //             Refresh → Unity 触发编译 → 即将 domain reload。
+    //     Step 1：写 SessionKeyRerunInitialize flag → 直接 return。**不做**后续动作，
+    //             因为此时新脚本还没编译，反射扫不到；且若继续在同一次 AssetEditing
+    //             批里建 Order SO 会与 Import 新建的物理目录撞车（出 "Frame 1"）。
+    //     Step 2：domain reload 完成 → Guard 静态构造读 flag → 自动再跑 Ensure()，
+    //             走下面"已初始化"分支，把剩下全部做完。
+    //   ——已初始化分支（skeleton 拷贝数 == 0）——
+    //     Step 2：Addressables settings 本身
+    //     Step 3：Frame 下三份 Order SO（Manager / Component / Page），前两者挂
+    //             Addressables "Frame" 组
+    //     Step 4：所有 IPage.OnWorkbenchOpen 的业务模块动态发现（反射扫 TypeCache）
+    //
+    // 这条两段式保证了"架构完整性在 OnWorkbenchOpen 之前已完成 + 每次开窗只执行一次"。
     //
     // 失败兜底：Frame 段 try/catch → LogError + Dialog，不向上抛；Page 段独立执行
     // ——Frame 失败不应阻断 Page 层本能跑的模块贡献。
@@ -32,6 +43,15 @@ namespace DevWorkbench.Editor
         // 本类的静态构造挂 delayCall 读 flag → 重跑 Ensure()，把新包的 Config
         // 扫进 Addressables、同步 Order。对外 const，TemplateInstaller 要引用。
         public const string SessionKeyRerunInitialize = "DevWorkbench.FrameworkGuard.RerunInitialize";
+
+        // 架构完整性 + 业务模块动态发现全部跑完后触发。DevWindow 订阅此事件来处理
+        // "首次 bootstrap：Open 时 PageOrder 尚未建好 → OnEnable 扑空 → 窗体空白"
+        // 的情况——等 domain reload 后 rerun 的 Ensure 完工时用事件触发 BuildPageTree。
+        //
+        // 首次 bootstrap 分支的短路 return 刻意不 Invoke——那时没建过 PageOrder，
+        // 通知订阅方也没用。只有"已初始化分支"的全链路跑完才 Invoke，订阅方拿到
+        // 通知就一定能 Load 到 PageOrder、扫到新 IPage 类型。
+        public static event Action EnsureCompleted;
 
         // Assets 侧目标根。AssetFolderCopier 会把模板镜像到这里。
         private const string GameRootAssetPath = "Assets/Game";
@@ -70,18 +90,29 @@ namespace DevWorkbench.Editor
 
         // ── 对外入口 ──────────────────────────────────────────────────────────────
 
-        // 幂等完整性兜底。资产齐全时几乎零写盘；有缺口自动补齐。
+        // 幂等完整性兜底。资产齐全时几乎零写盘；有缺口自动补齐。详细时序见类顶注。
         // Frame 段异常捕获 → LogError + DisplayDialog，不向上抛；
         // Page 贡献段独立 try——Frame 失败也不应阻断 Page 层本能跑的模块贡献。
         public static void Ensure()
         {
             try
             {
+                // 刻意放在 StartAssetEditing 之外——AssetFolderCopier.Import 内部
+                // 需要 AssetDatabase.Refresh 立刻生效，否则后续 CreateFolder 看不到
+                // Import 新建的物理目录，会出现 "Frame 1" 这种带数字后缀的副本。
+                var skeletonCopied = EnsureGameSkeleton();
+
+                // 首次 bootstrap：写 rerun flag 后退出，等 domain reload 后再跑完全套。
+                // 见类顶注"首次 bootstrap 分支"。
+                if (skeletonCopied > 0)
+                {
+                    SessionState.SetBool(SessionKeyRerunInitialize, true);
+                    return;
+                }
+
                 AssetDatabase.StartAssetEditing();
                 try
                 {
-                    EnsureGameSkeleton();
-
                     EnsureAddressablesInitialized();
 
                     EnsureManagerOrderAsset();
@@ -101,12 +132,25 @@ namespace DevWorkbench.Editor
                     "Dev Workbench",
                     $"Framework auto-initialise failed:\n{ex.Message}\n\nSee Console for details.",
                     "OK");
+                // 兜底后仍然走 Page 贡献——Frame 段抛异常不应阻断 Page 层本能跑的模块贡献。
             }
 
-            // 刻意放在 Frame 段的 StartAssetEditing 块与 try/catch 之外：
-            //   - Page.OnWorkbenchOpen 可能自行触发 SaveAssets，不适合被 Frame 的批量 editing 包住；
-            //   - Frame 段抛异常也不应阻断 Page 层的贡献。
+            // 业务模块动态发现（OnWorkbenchOpen）——架构完整性已由上面步骤完成，
+            // 这里只扫 domain reload 后新编译出的用户类型并就地补 asset / 同步 Order。
+            // 刻意放在 StartAssetEditing 块之外：Page 可能自行 SaveAssets，不适合被批量 editing 包住。
             RunAllPageContributions();
+
+            // 至此"架构 + 业务动态发现"全套完成。通知订阅方（DevWindow）。
+            // 注意：首次 bootstrap 分支在上面已 return，不到这里——domain reload
+            // 后 rerun 再跑一次 Ensure 时会从这里走出来。
+            try
+            {
+                EnsureCompleted?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[DevWindowFrameworkGuard] EnsureCompleted subscriber threw: {ex}");
+            }
         }
 
         // ── Step 0 + 1：Frame 元结构（容器 asmdef × 3 + 默认 GameBoot.cs） ───────
@@ -122,24 +166,34 @@ namespace DevWorkbench.Editor
         // Assets/Game/Manager 下，升级时要用 AssetDatabase.MoveAsset 搬到 Assets/Game/Frame 以
         // 连同 .meta 保住 GUID（场景里挂的 GameBoot MonoBehaviour 不会变 Missing）。迁移完
         // 目标位置已有 GameBoot.cs，后续 Import 会自然跳过。
-        private static void EnsureGameSkeleton()
+        //
+        // 返回值：实际新落盘的文件数（Import 拷贝的 + legacy 迁移走的）。>0 表示本次触发了
+        // 脚本 / 程序集归属变化，编译器会重跑 → domain reload——调用方据此写
+        // SessionKeyRerunInitialize flag 并提前 return，交给 reload 后的 rerun 接手。
+        private static int EnsureGameSkeleton()
         {
-            TryMigrateLegacyGameBoot();
+            // Legacy 搬迁改的是 GameBoot.cs 所属的 asmdef，虽没改代码内容但也会触发编译，
+            // 所以算一次"新落盘"。
+            var migrated = TryMigrateLegacyGameBoot() ? 1 : 0;
 
+            int copied;
             try
             {
-                AssetFolderCopier.Import(GameSkeletonSourceRelative, GameRootAssetPath);
+                copied = AssetFolderCopier.Import(GameSkeletonSourceRelative, GameRootAssetPath);
             }
             catch (FileNotFoundException)
             {
                 Debug.LogError($"[DevWindowFrameworkGuard] Game skeleton template missing: {GameSkeletonSourceRelative}.");
+                copied = 0;
             }
+
+            return migrated + copied;
         }
 
-        private static void TryMigrateLegacyGameBoot()
+        private static bool TryMigrateLegacyGameBoot()
         {
-            if (File.Exists(ToAbsolute(GameBootAssetPath))) return;
-            if (!File.Exists(ToAbsolute(LegacyGameBootAssetPath))) return;
+            if (File.Exists(ToAbsolute(GameBootAssetPath))) return false;
+            if (!File.Exists(ToAbsolute(LegacyGameBootAssetPath))) return false;
 
             EnsureFolder(FrameAssetPaths.Root);
 
@@ -147,10 +201,11 @@ namespace DevWorkbench.Editor
             if (string.IsNullOrEmpty(error))
             {
                 Debug.Log($"[DevWindowFrameworkGuard] Migrated legacy GameBoot.cs from {LegacyGameBootAssetPath} to {GameBootAssetPath}.");
-                return;
+                return true;
             }
 
             Debug.LogWarning($"[DevWindowFrameworkGuard] MoveAsset failed ({error}); falling back to template import. Please remove {LegacyGameBootAssetPath} manually if it still exists.");
+            return false;
         }
 
         // ── Step 2：Addressables settings ────────────────────────────────────────

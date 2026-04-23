@@ -83,13 +83,36 @@ namespace DevWorkbench.Editor
         {
             wantsMouseMove = true;
 
+            // 订阅 Guard 的"全套 Ensure 跑完"事件——关键是首次 bootstrap 场景：
+            //   Open → Ensure 拷模板 → 短路 return（PageOrder 还没建）→ GetWindow
+            //   → OnEnable 这次 LoadPageOrder 扑空 → _groups 为空 → 窗体空白。
+            //   Unity 编译 → domain reload → Guard 的 delayCall 再跑 Ensure → 这次
+            //   建好 PageOrder / OrderSO / 业务类型扫完 → Invoke EnsureCompleted →
+            //   本窗口被通知，再跑一次 TryBuildPageTree 就能正常渲染。
+            // 已初始化场景（非首次）不走短路，Open 里的 Ensure 返回时 PageOrder 已存在，
+            // OnEnable 就地 Build 即可；事件再触发一次顶多是幂等重建（用户装新模板包时
+            // 正好借此把新 Page 同步进菜单）。
+            DevWindowFrameworkGuard.EnsureCompleted += TryBuildPageTree;
+
+            TryBuildPageTree();
+        }
+
+        private void OnDisable()
+        {
+            DevWindowFrameworkGuard.EnsureCompleted -= TryBuildPageTree;
+            _currentPage?.OnLeave();
+        }
+
+        private void TryBuildPageTree()
+        {
             _pageOrder = AssetDatabase.LoadAssetAtPath<PageOrder>(FrameAssetPaths.PageOrder);
 
             if (_pageOrder != null)
+            {
                 BuildPageTree();
+                Repaint();
+            }
         }
-
-        private void OnDisable() => _currentPage?.OnLeave();
 
         private void BuildPageTree()
         {
