@@ -5,6 +5,28 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
+    internal static class PageOrderDefaults
+    {
+        public static readonly IReadOnlyList<string> Groups = new[]
+        {
+            "Component",
+            "Manager",
+            "Addressable",
+            "Framework",
+        };
+
+        private static readonly Dictionary<string, IReadOnlyList<string>> TabsByGroup = new()
+        {
+            ["Component"] = new[] { "Viewer", "Creator", "Order", "Installer" },
+            ["Manager"] = new[] { "Viewer", "Creator", "Order", "Installer" },
+            ["Addressable"] = new[] { "Viewer" },
+            ["Framework"] = new[] { "Sync" },
+        };
+
+        public static IReadOnlyList<string> GetTabs(string group) =>
+            TabsByGroup.TryGetValue(group, out var list) ? list : Array.Empty<string>();
+    }
+
     internal sealed class PageOrder : ScriptableObject
     {
         [Serializable]

@@ -21,7 +21,9 @@ namespace DevWorkbench.Editor
         private const float SectionSpacing = 10f;
         private const float CardPad = 14f;
         private const float SyncButtonHeight = 44f;
-        private const float RadioRowHeight = 26f;
+        private const float RadioRowHeight = 58f;
+        private const float RadioRowSpacing = 8f;
+        private const float ToggleBoxSize = 18f;
 
         private static readonly Color BgColor = new(0.17f, 0.17f, 0.17f);
         private static readonly Color CardBg = new(0.215f, 0.215f, 0.215f);
@@ -29,7 +31,13 @@ namespace DevWorkbench.Editor
         private static readonly Color AccentBlue = new(0.35f, 0.65f, 1f);
         private static readonly Color HeaderTextColor = new(0.78f, 0.84f, 0.94f);
         private static readonly Color DimTextColor = new(0.65f, 0.65f, 0.65f);
-        private static readonly Color RadioDescColor = new(0.55f, 0.55f, 0.55f);
+
+        // 三个选项行的配色：未选中 = 中性灰；选中 = 深蓝 + 亮蓝边。
+        // 跟 ManagerInstallerPage 的 package 行配色一致，读起来视觉语言统一。
+        private static readonly Color RowBg = new(0.23f, 0.23f, 0.23f);
+        private static readonly Color RowBorder = new(0.36f, 0.36f, 0.36f);
+        private static readonly Color RowCheckedBg = new(0.20f, 0.35f, 0.50f);
+        private static readonly Color RowCheckedBorder = new(0.35f, 0.65f, 1f);
 
         public void OnGUI(Rect rect)
         {
@@ -82,16 +90,18 @@ namespace DevWorkbench.Editor
             GUILayout.Label(
                 "Choose when the sync should also run automatically. The button above is always available regardless of this choice.",
                 IntroStyle);
-            GUILayout.Space(6f);
+            GUILayout.Space(10f);
 
             var current = FrameworkSyncSettings.Trigger;
-            current = DrawRadio(current, FrameworkSyncTrigger.Manual,
+            current = DrawRadioRow(current, FrameworkSyncTrigger.Manual,
                 "Manual only",
                 "Only run when the Sync Runtime button above is clicked.");
-            current = DrawRadio(current, FrameworkSyncTrigger.OnWorkbenchClose,
+            GUILayout.Space(RadioRowSpacing);
+            current = DrawRadioRow(current, FrameworkSyncTrigger.OnWorkbenchClose,
                 "When Dev Workbench closes",
                 "Run once each time this window is closed.");
-            current = DrawRadio(current, FrameworkSyncTrigger.BeforePlayMode,
+            GUILayout.Space(RadioRowSpacing);
+            current = DrawRadioRow(current, FrameworkSyncTrigger.BeforePlayMode,
                 "Before entering Play Mode",
                 "Run once right before the editor enters Play Mode.");
 
@@ -101,31 +111,38 @@ namespace DevWorkbench.Editor
             EndCard();
         }
 
-        private static FrameworkSyncTrigger DrawRadio(
+        // 每个选项一张"卡"：左侧 radio box + 标题 + 描述两行；整行点击切换。
+        // 排版和 ManagerInstallerPage.DrawPackageRow 基本同构，只是状态二元（选中/未选）
+        // 没有"已安装"这档。
+        private static FrameworkSyncTrigger DrawRadioRow(
             FrameworkSyncTrigger current, FrameworkSyncTrigger value, string label, string desc)
         {
-            var row = GUILayoutUtility.GetRect(0f, RadioRowHeight, GUILayout.ExpandWidth(true));
             var selected = current == value;
+            var rect = GUILayoutUtility.GetRect(0f, RadioRowHeight, GUILayout.ExpandWidth(true));
 
-            // Unity 有现成的 radio，但我们在 Rect 模式里手绘一下更可控；这里直接用
-            // EditorGUI.Toggle+自定义命中区，行为等价：点整行都切过来。
-            var toggleRect = new Rect(row.x + 4f, row.y + (row.height - 16f) * 0.5f, 16f, 16f);
-            var labelRect = new Rect(toggleRect.xMax + 8f, row.y, row.width - (toggleRect.xMax + 8f - row.x), row.height);
+            var bg = selected ? RowCheckedBg : RowBg;
+            var border = selected ? RowCheckedBorder : RowBorder;
+            EditorGUI.DrawRect(rect, bg);
+            DrawOutline(rect, border);
 
-            if (EditorGUI.Toggle(toggleRect, selected, EditorStyles.radioButton) && !selected)
-                current = value;
+            var toggleRect = new Rect(
+                rect.x + 14f,
+                rect.y + (rect.height - ToggleBoxSize) * 0.5f,
+                ToggleBoxSize, ToggleBoxSize);
+            var textLeft = toggleRect.xMax + 12f;
+            var titleRect = new Rect(textLeft, rect.y + 8f, rect.width - (textLeft - rect.x) - 14f, 20f);
+            var descRect = new Rect(textLeft, rect.y + 28f, rect.width - (textLeft - rect.x) - 14f, rect.height - 32f);
 
-            EditorGUI.LabelField(labelRect, label, RadioLabelStyle);
+            // 用 radioButton 样式画 toggle 本体；点 toggle 自身也能切。
+            var nextSelected = EditorGUI.Toggle(toggleRect, selected, EditorStyles.radioButton);
+            if (nextSelected && !selected) current = value;
 
-            // 描述一行，单独占一行以免挤在同一行截断。
-            var descRect = GUILayoutUtility.GetRect(0f, 16f, GUILayout.ExpandWidth(true));
-            var descIndented = new Rect(descRect.x + 28f, descRect.y, descRect.width - 28f, descRect.height);
-            EditorGUI.LabelField(descIndented, desc, RadioDescStyle);
-            GUILayout.Space(4f);
+            EditorGUI.LabelField(titleRect, label, RowTitleStyle);
+            EditorGUI.LabelField(descRect, desc, RowDescStyle);
 
-            // 点整行（非 toggle 自身）也切——比只能命中那 16px 的 box 友好得多。
+            // 整行点击切换（toggle 自身除外，避免双触发）。
             if (Event.current.type == EventType.MouseDown
-                && (row.Contains(Event.current.mousePosition) || descRect.Contains(Event.current.mousePosition))
+                && rect.Contains(Event.current.mousePosition)
                 && !toggleRect.Contains(Event.current.mousePosition))
             {
                 current = value;
@@ -195,21 +212,21 @@ namespace DevWorkbench.Editor
             normal = { textColor = DimTextColor },
         };
 
-        private static GUIStyle _radioLabelStyle;
-        private static GUIStyle RadioLabelStyle => _radioLabelStyle ??= new GUIStyle(EditorStyles.label)
+        private static GUIStyle _rowTitleStyle;
+        private static GUIStyle RowTitleStyle => _rowTitleStyle ??= new GUIStyle(EditorStyles.boldLabel)
         {
-            fontSize = 12,
+            fontSize = 13,
             alignment = TextAnchor.MiddleLeft,
             normal = { textColor = new Color(0.92f, 0.92f, 0.92f) },
         };
 
-        private static GUIStyle _radioDescStyle;
-        private static GUIStyle RadioDescStyle => _radioDescStyle ??= new GUIStyle(EditorStyles.miniLabel)
+        private static GUIStyle _rowDescStyle;
+        private static GUIStyle RowDescStyle => _rowDescStyle ??= new GUIStyle(EditorStyles.miniLabel)
         {
             fontSize = 11,
             alignment = TextAnchor.UpperLeft,
-            wordWrap = false,
-            normal = { textColor = RadioDescColor },
+            wordWrap = true,
+            normal = { textColor = DimTextColor },
         };
     }
 }

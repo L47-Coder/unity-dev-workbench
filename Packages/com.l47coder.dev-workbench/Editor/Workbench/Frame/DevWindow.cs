@@ -129,14 +129,20 @@ namespace DevWorkbench.Editor
             }
             if (pages.Count == 0) return;
 
-            // 同步 group/tab 顺序到 PageOrder SO：保留旧顺序、新项追加末尾、失效项删除。
-            var groupOrder = SyncOrderMap(pages.Select(p => p.GroupTitle).Distinct(), _pageOrder.GetGroupDict());
+            // 同步 group/tab 顺序到 PageOrder SO：保留旧顺序、新项按 PageOrderDefaults 追加、失效项删除。
+            var groupOrder = SyncOrderMap(
+                pages.Select(p => p.GroupTitle).Distinct(),
+                _pageOrder.GetGroupDict(),
+                PageOrderDefaults.Groups);
             _pageOrder.SetGroupDict(groupOrder);
 
             var tabOrders = new Dictionary<string, Dictionary<string, int>>();
             foreach (var g in groupOrder.Keys)
             {
-                var tabOrder = SyncOrderMap(pages.Where(p => p.GroupTitle == g).Select(p => p.TabTitle), _pageOrder.GetTabDict(g));
+                var tabOrder = SyncOrderMap(
+                    pages.Where(p => p.GroupTitle == g).Select(p => p.TabTitle),
+                    _pageOrder.GetTabDict(g),
+                    PageOrderDefaults.GetTabs(g));
                 _pageOrder.SetTabDict(g, tabOrder);
                 tabOrders[g] = tabOrder;
             }
@@ -163,8 +169,11 @@ namespace DevWorkbench.Editor
             ActivatePage(_currentPage);
         }
 
-        // 保留 stored 中仍有效的顺序，新 key 追加末尾，失效 key 丢弃；返回 key→index 映射。
-        private Dictionary<string, int> SyncOrderMap(IEnumerable<string> activeKeys, Dictionary<string, int> stored)
+        // 保留 stored 中仍有效的顺序；新 key 按 defaults 索引追加、defaults 外的垫到最末；失效 key 丢弃。
+        private Dictionary<string, int> SyncOrderMap(
+            IEnumerable<string> activeKeys,
+            Dictionary<string, int> stored,
+            IReadOnlyList<string> defaults)
         {
             var active = activeKeys.ToList();
             var activeSet = new HashSet<string>(active);
@@ -175,10 +184,19 @@ namespace DevWorkbench.Editor
                 .Select(kv => kv.Key)
                 .ToList();
 
-            foreach (var key in active.Where(k => !ordered.Contains(k)))
+            var existing = new HashSet<string>(ordered);
+            foreach (var key in active.Where(k => !existing.Contains(k)).OrderBy(DefaultIndex))
                 ordered.Add(key);
 
             return ordered.Select((k, i) => (k, i)).ToDictionary(x => x.k, x => x.i);
+
+            int DefaultIndex(string key)
+            {
+                if (defaults == null) return int.MaxValue;
+                for (var i = 0; i < defaults.Count; i++)
+                    if (defaults[i] == key) return i;
+                return int.MaxValue;
+            }
         }
 
         private void ActivatePage(IPage page)
