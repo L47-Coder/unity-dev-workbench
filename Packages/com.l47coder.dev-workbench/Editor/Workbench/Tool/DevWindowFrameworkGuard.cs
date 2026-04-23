@@ -62,8 +62,6 @@ namespace DevWorkbench.Editor
         {
             try
             {
-                // 放在 StartAssetEditing 之外：AssetFolderCopier.Import 内部 Refresh 必须
-                // 立刻生效，否则后续 CreateFolder 看不到新建目录，会出 "Frame 1" 带数字副本。
                 var skeletonCopied = EnsureGameSkeleton();
                 if (skeletonCopied > 0)
                 {

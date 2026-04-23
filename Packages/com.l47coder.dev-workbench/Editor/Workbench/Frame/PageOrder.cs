@@ -9,18 +9,18 @@ namespace DevWorkbench.Editor
     {
         public static readonly IReadOnlyList<string> Groups = new[]
         {
-            "Component",
-            "Manager",
-            "Addressable",
             "Framework",
+            "Addressable",
+            "Manager",
+            "Component",
         };
 
         private static readonly Dictionary<string, IReadOnlyList<string>> TabsByGroup = new()
         {
-            ["Component"] = new[] { "Viewer", "Creator", "Order", "Installer" },
-            ["Manager"] = new[] { "Viewer", "Creator", "Order", "Installer" },
-            ["Addressable"] = new[] { "Viewer" },
             ["Framework"] = new[] { "Sync" },
+            ["Addressable"] = new[] { "Viewer" },
+            ["Manager"] = new[] { "Viewer", "Creator", "Order", "Installer" },
+            ["Component"] = new[] { "Viewer", "Creator", "Order", "Installer" },
         };
 
         public static IReadOnlyList<string> GetTabs(string group) =>

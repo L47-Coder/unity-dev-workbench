@@ -21,6 +21,16 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   into the new *Framework / Sync* page, so the workbench window is now the
   single entry point for that action.
 
+### Fixed
+
+- **`ManagerRefreshUtil.Sync` no longer throws on blank keys.** List entries
+  whose key is `null` / empty / whitespace (typically a half-filled row left
+  in the Inspector) are now treated as stale and removed, instead of raising
+  `ArgumentNullException` from `Dictionary.ContainsKey(null)` and aborting
+  the whole refresh. All three built-in Refreshers (Asset / Component /
+  Prefab) and any user-authored Refresher that routes through `Sync` benefit
+  automatically.
+
 ## [0.1.0-preview.2] &mdash; 2026-04-20
 
 Second preview. Focuses on making default Managers optional, clarifying the

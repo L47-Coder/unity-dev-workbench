@@ -111,9 +111,6 @@ namespace DevWorkbench.Editor
             EndCard();
         }
 
-        // 每个选项一张"卡"：左侧 radio box + 标题 + 描述两行；整行点击切换。
-        // 排版和 ManagerInstallerPage.DrawPackageRow 基本同构，只是状态二元（选中/未选）
-        // 没有"已安装"这档。
         private static FrameworkSyncTrigger DrawRadioRow(
             FrameworkSyncTrigger current, FrameworkSyncTrigger value, string label, string desc)
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using DevWorkbench;
 
 public interface IAssetHandle<out T> where T : class
 {
@@ -29,7 +30,10 @@ internal sealed class AssetHandle<T> : IAssetHandle<T> where T : class
 
 internal sealed partial class AssetManagerData
 {
+    [TableColumn(Editable = false)]
     public string Key;
+
+    [TableColumn(Editable = false)]
     public string AssetAddress;
 }
 

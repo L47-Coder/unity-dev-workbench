@@ -49,7 +49,10 @@ internal sealed class PrefabData
 
 internal sealed partial class PrefabManagerData
 {
+    [TableColumn(Editable = false)]
     public string Key;
+
+    [TableColumn(Editable = false)]
     public string PrefabAddress;
     public List<string> InitialComponent = new();
 }
