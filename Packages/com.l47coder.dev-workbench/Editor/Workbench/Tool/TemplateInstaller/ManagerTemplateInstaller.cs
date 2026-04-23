@@ -6,26 +6,23 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // Manager 模板仓（Runtime~/Templates/Managers）里分两层东西：
-    //   1. Game.Managers.asmdef —— "Manager 容器"程序集，与具体某个模板包无关。
-    //      Creator 生成的用户 Manager 也靠它接管，因此无论用户是否安装任一模板，
-    //      只要想在 Assets/Game/Manager/ 下写 Manager，就需要它先就位。
-    //      => 由 FrameworkBootstrapper 的 Step 0（EnsureContainerInstalled）负责。
-    //   2. Asset / Component / Prefab 等子目录 —— 每个子目录就是一个"内置 Manager 模板"，
-    //      manifest.json 描述它们的元信息；由 ManagerInstallerPage 驱动用户按需安装。
+    // Manager 模板仓（Runtime~/Templates/Managers）——只管"可选模板包"这一件事：
+    //   - manifest.json 声明每个内置 Manager 模板的 id / displayName / description / recommended
+    //   - 每个 id 对应一个子目录，就是一份模板包源，由 ManagerInstallerPage 驱动用户按需安装
     //
-    // 注意：Unity 会忽略任何以 `~` 结尾的目录，所以包里 Runtime~ 的内容不会被当作 asset 编译，
-    // 这正是"模板仓"该有的行为。未来加 Component 模板会平级新建 Runtime~/Templates/Components/，
-    // 配套一个 ComponentTemplateInstaller，与本类职责对称。
+    // Frame 元结构（Game.Managers.asmdef 容器、GameBoot.cs 等）已由 DevWindowFrameworkGuard
+    // 在开窗时从 Runtime~/Templates/Game 镜像拷贝，**不再**走这里。因此本类砍掉了：
+    //   - IsContainerInstalled / EnsureContainerInstalled（Guard 接管）
+    //   - CopyDirectory（改走 AssetFolderCopier.Import）
+    //
+    // Unity 忽略任何以 `~` 结尾的目录，所以 Runtime~ 内容不会被当作 asset 编译，
+    // 模板仓该有的行为。
     internal static class ManagerTemplateInstaller
     {
         private const string TemplateSourceRelative =
             "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Managers";
         private const string ManifestFileName = "manifest.json";
-        private const string AsmdefFileName = "Game.Managers.asmdef";
-
-        public const string ManagerRootAssetPath = "Assets/Game/Manager";
-        public const string AsmdefAssetPath = ManagerRootAssetPath + "/" + AsmdefFileName;
+        private const string ManagerRootAssetPath = "Assets/Game/Manager";
 
         // ── Manifest ──────────────────────────────────────────────────────────────
 
@@ -75,36 +72,6 @@ namespace DevWorkbench.Editor
 
         public static void InvalidateManifestCache() => _cachedManifest = null;
 
-        // ── 容器 asmdef ───────────────────────────────────────────────────────────
-
-        public static bool IsContainerInstalled() => File.Exists(ToAbsolute(AsmdefAssetPath));
-
-        // 只投放 Game.Managers.asmdef（= Manager 容器程序集）。不拷任何模板包。
-        // 供 FrameworkBootstrapper Step 0 使用。
-        public static bool EnsureContainerInstalled()
-        {
-            if (IsContainerInstalled()) return false;
-
-            var sourceAbs = ResolveSourceAbsolute(AsmdefFileName);
-            if (string.IsNullOrEmpty(sourceAbs) || !File.Exists(sourceAbs))
-            {
-                Debug.LogError($"[ManagerTemplateInstaller] Container asmdef missing in template: {TemplateSourceRelative}/{AsmdefFileName}.");
-                return false;
-            }
-
-            FrameAssetInstaller.EnsureFolder(ManagerRootAssetPath);
-
-            var targetAbs = ToAbsolute(AsmdefAssetPath);
-            var targetDir = Path.GetDirectoryName(targetAbs);
-            if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
-                Directory.CreateDirectory(targetDir);
-
-            File.Copy(sourceAbs, targetAbs, overwrite: false);
-            AssetDatabase.Refresh();
-            Debug.Log("[ManagerTemplateInstaller] Game.Managers.asmdef container deployed.");
-            return true;
-        }
-
         // ── 可选模板包 ────────────────────────────────────────────────────────────
 
         // 以"主脚本文件是否存在"作为"这个模板是否已安装"的判据。
@@ -117,16 +84,13 @@ namespace DevWorkbench.Editor
         }
 
         // 批量安装指定模板包（幂等：已安装的直接跳过）。
-        // 返回值：实际新安装了几个包。若 >0 会设置 SessionKeyRerunInitialize，
-        // 让 FrameworkBootstrapper 在编译完成后重跑 RunFullEnsure——扫新编译出的 Config 类型、
-        // 创建对应 .asset、挂 Addressables、同步 Order。
+        // 返回值：实际新安装了几个包。若 >0 会设置 SessionKeyRerunInitialize，让
+        // DevWindowFrameworkGuard 在编译完成后的 domain reload 里重跑 Ensure()——
+        // 触发 ManagerViewerPage.OnWorkbenchOpen 把新编译出的 <Name>ManagerConfig
+        // 创建成 asset、挂 Addressables、同步 Order。
         public static int InstallPackages(IEnumerable<string> packageIds)
         {
             if (packageIds == null) return 0;
-
-            // 先确保容器 asmdef 存在（Installer 作为入口被单独触发时的兜底，
-            // 一般来说到得了 Installer 页 Bootstrap 就已经跑过了，但多一份保险不亏）。
-            EnsureContainerInstalled();
 
             var installed = 0;
             foreach (var id in packageIds)
@@ -141,44 +105,19 @@ namespace DevWorkbench.Editor
                     continue;
                 }
 
-                var targetAbs = ToAbsolute($"{ManagerRootAssetPath}/{id}");
-                CopyDirectory(sourceAbs, targetAbs);
+                // 走通用导入工具：递归保留结构、重名跳过、.meta 忽略、AssetDatabase.Refresh 由它管。
+                AssetFolderCopier.Import(sourceAbs, $"{ManagerRootAssetPath}/{id}");
                 installed++;
                 Debug.Log($"[ManagerTemplateInstaller] Installed Manager template \"{id}\".");
             }
 
             if (installed > 0)
-            {
-                // 让 FrameworkBootstrapper 在 domain reload 之后重跑 RunFullEnsure——
-                // Manager 侧的 ManagerViewerPage.OnWorkbenchOpen 负责把新编译出的
-                // <Name>ManagerConfig 类型创建成 asset、挂 Addressables、同步 Order。
-                SessionState.SetBool(FrameworkBootstrapper.SessionKeyRerunInitialize, true);
-                AssetDatabase.Refresh();
-            }
+                SessionState.SetBool(DevWindowFrameworkGuard.SessionKeyRerunInitialize, true);
 
             return installed;
         }
 
         // ── 工具 ──────────────────────────────────────────────────────────────────
-
-        private static void CopyDirectory(string sourceAbs, string targetAbs)
-        {
-            if (!Directory.Exists(targetAbs))
-                Directory.CreateDirectory(targetAbs);
-
-            foreach (var file in Directory.GetFiles(sourceAbs))
-            {
-                var name = Path.GetFileName(file);
-                var dest = Path.Combine(targetAbs, name);
-                File.Copy(file, dest, overwrite: false);
-            }
-
-            foreach (var sub in Directory.GetDirectories(sourceAbs))
-            {
-                var name = Path.GetFileName(sub);
-                CopyDirectory(sub, Path.Combine(targetAbs, name));
-            }
-        }
 
         private static string ResolveSourceAbsolute(string relativeInsideTemplate = null)
         {

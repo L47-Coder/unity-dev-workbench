@@ -13,16 +13,16 @@ namespace DevWorkbench.Editor
 
         public void OnFirstEnter()
         {
-            // 架构完整性由 DevWindow 开窗时的 FrameworkBootstrapper.RunFullEnsure 统一兜底，
+            // 架构完整性由 DevWindow 开窗时的 DevWindowFrameworkGuard.Ensure 统一兜底，
             // 这里只负责 UI 一次性初始化；Order 资产直接 Load，不再重复 Ensure。
-            _config = AssetDatabase.LoadAssetAtPath<ManagerOrderConfig>(FrameAssetInstaller.ManagerOrderAssetPath);
+            _config = AssetDatabase.LoadAssetAtPath<ManagerOrderConfig>(FrameAssetPaths.ManagerOrder);
             _tableView.OnRowChanged<ManagerOrderEntry>((_, _) => EditorUtility.SetDirty(_config));
         }
 
         public void OnEnter()
         {
             if (_config == null) return;
-            FrameAssetInstaller.SyncManagerOrderEntries(_config);
+            ManagerOrderSync.Sync(_config);
         }
 
         public void OnGUI(Rect rect)

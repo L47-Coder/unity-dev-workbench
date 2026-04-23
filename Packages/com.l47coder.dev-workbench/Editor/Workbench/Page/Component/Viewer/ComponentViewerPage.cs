@@ -22,8 +22,8 @@ namespace DevWorkbench.Editor
         private float _splitterX = LeftPanelStart;
         private bool _dragging;
 
-        // Component 模块对"项目结构完整性"的贡献——由 FrameworkBootstrapper.RunFullEnsure
-        // 通过 WorkbenchPageRunner 在开窗时统一调度。Frame 层已经保证了容器 asmdef、
+        // Component 模块对"项目结构完整性"的贡献——由 DevWindowFrameworkGuard.Ensure
+        // 在开窗 / domain reload rerun / Sync Runtime 菜单时统一调度。Frame 层已经保证了容器 asmdef、
         // Addressables settings 和 Order 资产，所以本方法只做 Frame 层管不到的两件事：
         //   - EnsureAllRegistered: 扫新编译出的 <Name>ComponentConfig 子类，创建 .asset、
         //     挂到 Addressables "ComponentConfig" 组、对齐地址；
@@ -33,8 +33,8 @@ namespace DevWorkbench.Editor
         {
             ComponentConfigInstaller.EnsureAllRegistered();
 
-            var order = AssetDatabase.LoadAssetAtPath<ComponentOrderConfig>(FrameAssetInstaller.ComponentOrderAssetPath);
-            if (order != null) FrameAssetInstaller.SyncComponentOrderEntries(order);
+            var order = AssetDatabase.LoadAssetAtPath<ComponentOrderConfig>(FrameAssetPaths.ComponentOrder);
+            if (order != null) ComponentOrderSync.Sync(order);
         }
 
         public void OnFirstEnter() => _leftPanel.OnFirstEnter(_rightPanel.SetPath);

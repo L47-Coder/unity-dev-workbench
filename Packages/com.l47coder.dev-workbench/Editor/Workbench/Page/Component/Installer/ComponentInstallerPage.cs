@@ -8,7 +8,7 @@ namespace DevWorkbench.Editor
     // Component / Installer Tab：展示 manifest.json 里登记的 Component 模板，
     // 让用户勾选要导入哪些；已安装的模板显示"Installed"并禁用 Toggle。
     // 点击 Import 后调用 ComponentTemplateInstaller.InstallPackages，Unity 重新编译完
-    // FrameworkBootstrapper.TryRerunInitializeAfterReload 会把剩下的挂载补齐。
+    // DevWindowFrameworkGuard 的 domain-reload rerun 会把剩下的挂载补齐。
     //
     // UI 形状刻意与 ManagerInstallerPage 对齐——两个 Installer 在视觉和交互上是同一种东西，
     // 区别只在"列的是哪一份 manifest"。改动一侧时请同步考虑另一侧。

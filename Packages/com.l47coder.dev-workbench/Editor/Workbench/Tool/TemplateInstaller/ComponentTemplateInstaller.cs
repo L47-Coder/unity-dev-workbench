@@ -6,25 +6,20 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // Component 模板仓（Runtime~/Templates/Components）与 Manager 模板仓结构对称：
-    //   1. Game.Components.asmdef —— "Component 容器"程序集，与具体某个模板包无关。
-    //      Creator 生成的用户 Component 都落在 Assets/Game/Component/ 下，需要这个
-    //      asmdef 先就位，以免 Component 被吸进 Assembly-CSharp 和业务代码一起重编译。
-    //      => 由 FrameworkBootstrapper 的 Step 0（EnsureContainerInstalled）负责。
-    //   2. manifest.json 记录的内置 Component 模板 —— 每个 id 对应一个可选模板包；
-    //      由（未来的）ComponentInstallerPage 驱动用户按需安装。
+    // Component 模板仓（Runtime~/Templates/Components）——形态与 ManagerTemplateInstaller
+    // 对称，只管"可选模板包"这一件事：manifest.json + 各 id 子目录。
+    //
+    // Frame 元结构（Game.Components.asmdef 容器等）已由 DevWindowFrameworkGuard
+    // 在开窗时从 Runtime~/Templates/Game 镜像拷贝，**不再**走这里。
     //
     // API 形状刻意与 ManagerTemplateInstaller 对齐（LoadManifest / IsPackageInstalled /
-    // InstallPackages / EnsureContainerInstalled），待第三种模板出现时再考虑抽共用基座。
+    // InstallPackages），待第三种模板出现时再考虑抽共用基座。
     internal static class ComponentTemplateInstaller
     {
         private const string TemplateSourceRelative =
             "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Components";
         private const string ManifestFileName = "manifest.json";
-        private const string AsmdefFileName = "Game.Components.asmdef";
-
-        public const string ComponentRootAssetPath = "Assets/Game/Component";
-        public const string AsmdefAssetPath = ComponentRootAssetPath + "/" + AsmdefFileName;
+        private const string ComponentRootAssetPath = "Assets/Game/Component";
 
         // ── Manifest ──────────────────────────────────────────────────────────────
 
@@ -74,36 +69,6 @@ namespace DevWorkbench.Editor
 
         public static void InvalidateManifestCache() => _cachedManifest = null;
 
-        // ── 容器 asmdef ───────────────────────────────────────────────────────────
-
-        public static bool IsContainerInstalled() => File.Exists(ToAbsolute(AsmdefAssetPath));
-
-        // 只投放 Game.Components.asmdef（= Component 容器程序集）。不拷任何模板包。
-        // 供 FrameworkBootstrapper Step 0 使用。
-        public static bool EnsureContainerInstalled()
-        {
-            if (IsContainerInstalled()) return false;
-
-            var sourceAbs = ResolveSourceAbsolute(AsmdefFileName);
-            if (string.IsNullOrEmpty(sourceAbs) || !File.Exists(sourceAbs))
-            {
-                Debug.LogError($"[ComponentTemplateInstaller] Container asmdef missing in template: {TemplateSourceRelative}/{AsmdefFileName}.");
-                return false;
-            }
-
-            FrameAssetInstaller.EnsureFolder(ComponentRootAssetPath);
-
-            var targetAbs = ToAbsolute(AsmdefAssetPath);
-            var targetDir = Path.GetDirectoryName(targetAbs);
-            if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
-                Directory.CreateDirectory(targetDir);
-
-            File.Copy(sourceAbs, targetAbs, overwrite: false);
-            AssetDatabase.Refresh();
-            Debug.Log("[ComponentTemplateInstaller] Game.Components.asmdef container deployed.");
-            return true;
-        }
-
         // ── 可选模板包 ────────────────────────────────────────────────────────────
 
         // 判据：{packageId}Component.cs 是否存在——和 Creator 生成的命名规则
@@ -116,11 +81,13 @@ namespace DevWorkbench.Editor
         }
 
         // 批量安装指定模板包（幂等：已安装的直接跳过）。
+        // 返回值：实际新安装了几个包。若 >0 会设置 SessionKeyRerunInitialize，让
+        // DevWindowFrameworkGuard 在编译完成后的 domain reload 里重跑 Ensure()——
+        // 触发 ComponentViewerPage.OnWorkbenchOpen 把新编译出的 <Name>ComponentConfig
+        // 创建成 asset、挂 Addressables、同步 Order。
         public static int InstallPackages(IEnumerable<string> packageIds)
         {
             if (packageIds == null) return 0;
-
-            EnsureContainerInstalled();
 
             var installed = 0;
             foreach (var id in packageIds)
@@ -135,44 +102,19 @@ namespace DevWorkbench.Editor
                     continue;
                 }
 
-                var targetAbs = ToAbsolute($"{ComponentRootAssetPath}/{id}");
-                CopyDirectory(sourceAbs, targetAbs);
+                // 走通用导入工具：递归保留结构、重名跳过、.meta 忽略、AssetDatabase.Refresh 由它管。
+                AssetFolderCopier.Import(sourceAbs, $"{ComponentRootAssetPath}/{id}");
                 installed++;
                 Debug.Log($"[ComponentTemplateInstaller] Installed Component template \"{id}\".");
             }
 
             if (installed > 0)
-            {
-                // 让 FrameworkBootstrapper 在 domain reload 之后重跑 RunFullEnsure——
-                // Component 侧的 ComponentViewerPage.OnWorkbenchOpen 负责把新编译出的
-                // <Name>ComponentConfig 类型创建成 asset、挂 Addressables、同步 Order。
-                SessionState.SetBool(FrameworkBootstrapper.SessionKeyRerunInitialize, true);
-                AssetDatabase.Refresh();
-            }
+                SessionState.SetBool(DevWindowFrameworkGuard.SessionKeyRerunInitialize, true);
 
             return installed;
         }
 
         // ── 工具 ──────────────────────────────────────────────────────────────────
-
-        private static void CopyDirectory(string sourceAbs, string targetAbs)
-        {
-            if (!Directory.Exists(targetAbs))
-                Directory.CreateDirectory(targetAbs);
-
-            foreach (var file in Directory.GetFiles(sourceAbs))
-            {
-                var name = Path.GetFileName(file);
-                var dest = Path.Combine(targetAbs, name);
-                File.Copy(file, dest, overwrite: false);
-            }
-
-            foreach (var sub in Directory.GetDirectories(sourceAbs))
-            {
-                var name = Path.GetFileName(sub);
-                CopyDirectory(sub, Path.Combine(targetAbs, name));
-            }
-        }
 
         private static string ResolveSourceAbsolute(string relativeInsideTemplate = null)
         {

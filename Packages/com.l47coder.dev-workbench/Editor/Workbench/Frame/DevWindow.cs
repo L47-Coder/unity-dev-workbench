@@ -72,7 +72,7 @@ namespace DevWorkbench.Editor
         [MenuItem("Tools/Dev Workbench/Dev")]
         private static void Open()
         {
-            FrameworkBootstrapper.RunFullEnsure(); //构建架构所需
+            DevWindowFrameworkGuard.Ensure(); //验证并保证架构完整性（含 Page 层模块贡献）
 
             var window = GetWindow<DevWindow>("Dev Workbench", false);
             window.minSize = new Vector2(MenuWidth, MenuWidth);
@@ -83,7 +83,7 @@ namespace DevWorkbench.Editor
         {
             wantsMouseMove = true;
 
-            _pageOrder = AssetDatabase.LoadAssetAtPath<PageOrder>(FrameAssetInstaller.PageOrderAssetPath);
+            _pageOrder = AssetDatabase.LoadAssetAtPath<PageOrder>(FrameAssetPaths.PageOrder);
 
             if (_pageOrder != null)
                 BuildPageTree();
