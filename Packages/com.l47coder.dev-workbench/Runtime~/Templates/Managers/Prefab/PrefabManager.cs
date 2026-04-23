@@ -269,8 +269,9 @@ internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncI
 
         _orderedKeyBuffer.Clear();
         _orderedKeyBuffer.AddRange(prefabData.OrderedKeys);
-        foreach (var typeKey in _orderedKeyBuffer)
+        for (var i = _orderedKeyBuffer.Count - 1; i >= 0; i--)
         {
+            var typeKey = _orderedKeyBuffer[i];
             if (!prefabData.Components.TryGetValue(typeKey, out var comp)) continue;
             try { comp.InternalSetEnabled(false); }
             catch (Exception e) { Debug.LogException(e); }
@@ -314,8 +315,9 @@ internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncI
 
             if (wasActive)
             {
-                foreach (var typeKey in _orderedKeyBuffer)
+                for (var i = _orderedKeyBuffer.Count - 1; i >= 0; i--)
                 {
+                    var typeKey = _orderedKeyBuffer[i];
                     if (!prefabData.Components.TryGetValue(typeKey, out var comp)) continue;
                     try { comp.InternalSetEnabled(false); }
                     catch (Exception e) { Debug.LogException(e); }
