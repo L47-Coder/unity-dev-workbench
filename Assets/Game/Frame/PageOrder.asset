@@ -14,27 +14,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _groups:
   - Title: Manager
-    Order: 0
+    Order: 1
     Tabs:
     - Title: Order
-      Order: 0
+      Order: 2
     - Title: Creator
       Order: 1
     - Title: Viewer
-      Order: 2
+      Order: 0
     - Title: Installer
       Order: 3
   - Title: Component
-    Order: 1
+    Order: 0
     Tabs:
     - Title: Installer
-      Order: 0
-    - Title: Order
-      Order: 1
-    - Title: Creator
-      Order: 2
-    - Title: Viewer
       Order: 3
+    - Title: Order
+      Order: 2
+    - Title: Creator
+      Order: 1
+    - Title: Viewer
+      Order: 0
   - Title: Addressable
     Order: 2
     Tabs:

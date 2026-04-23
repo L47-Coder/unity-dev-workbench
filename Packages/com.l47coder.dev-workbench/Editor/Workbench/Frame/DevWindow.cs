@@ -95,6 +95,13 @@ namespace DevWorkbench.Editor
             _currentPage?.OnLeave();
         }
 
+        // OnDisable 在 domain reload 也会走，不能用来代表"窗口被关闭"。OnDestroy 只在
+        // 真正关窗时触发，这里是 FrameworkSyncSettings.OnWorkbenchClose 的正确挂点。
+        private void OnDestroy()
+        {
+            FrameworkSyncSettings.OnDevWindowClosed();
+        }
+
         private void TryBuildPageTree()
         {
             _pageOrder = AssetDatabase.LoadAssetAtPath<PageOrder>(FrameAssetPaths.PageOrder);
