@@ -23,7 +23,7 @@ namespace DevWorkbench.Editor
         private bool _dragging;
 
         // Manager 模块的"业务层动态发现"——由 DevWindowFrameworkGuard.Ensure 在开窗 /
-        // domain reload rerun / Sync Runtime 菜单时统一调度。
+        // domain reload rerun / Framework/Sync 页按钮时统一调度。
         //
         // 这**不是**架构完整性的冗余补齐——架构完整性（容器 asmdef、Addressables settings、
         // Frame 下三份 Order SO 存在性 + 挂 "Frame" 组）由 Guard 在进入本方法前已保证，
@@ -111,8 +111,8 @@ namespace DevWorkbench.Editor
         private MethodInfo _cachedDrawMethod;
         private TableView _tableView;
 
-        // per-manager 的 Refresh 操作已取消——Refresher 现在走 Tools/Dev Workbench/Sync Runtime
-        // 菜单统一执行，避免"一个个点容易落下"。保留"打开 Refresher 脚本"入口方便跳转去编辑。
+        // per-manager 的 Refresh 操作已取消——Refresher 现在走 Framework/Sync 页的
+        // Sync Runtime 按钮统一执行，避免"一个个点容易落下"。保留"打开 Refresher 脚本"入口方便跳转去编辑。
         private MonoScript _cachedRefresherScript;
 
         public void SetPath(string path) => _currentPath = path;

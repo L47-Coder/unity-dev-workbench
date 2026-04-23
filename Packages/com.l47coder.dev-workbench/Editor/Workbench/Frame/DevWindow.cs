@@ -69,7 +69,7 @@ namespace DevWorkbench.Editor
         [SerializeField] private string _persistedGroupTitle;
         [SerializeField] private string _persistedTabTitle;
 
-        [MenuItem("Tools/Dev Workbench/Dev")]
+        [MenuItem("Tools/Dev Workbench")]
         private static void Open()
         {
             DevWindowFrameworkGuard.Ensure();

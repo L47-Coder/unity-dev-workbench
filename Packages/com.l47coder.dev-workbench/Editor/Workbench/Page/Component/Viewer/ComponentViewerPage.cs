@@ -23,7 +23,7 @@ namespace DevWorkbench.Editor
         private bool _dragging;
 
         // Component 模块的"业务层动态发现"——由 DevWindowFrameworkGuard.Ensure 在开窗 /
-        // domain reload rerun / Sync Runtime 菜单时统一调度。
+        // domain reload rerun / Framework/Sync 页按钮时统一调度。
         //
         // 这**不是**架构完整性的冗余补齐——架构完整性（容器 asmdef、Addressables settings、
         // Frame 下三份 Order SO 存在性 + 挂 "Frame" 组）由 Guard 在进入本方法前已保证，

@@ -87,11 +87,7 @@ namespace DevWorkbench.Editor
 
             var name = Path.GetFileName(fileAbs);
             var destAbs = Path.Combine(targetDirAbs, name);
-            if (File.Exists(destAbs))
-            {
-                Debug.Log($"[AssetFolderCopier] Skip (exists): {destAbs}");
-                return false;
-            }
+            if (File.Exists(destAbs)) return false;
 
             File.Copy(fileAbs, destAbs, overwrite: false);
             return true;

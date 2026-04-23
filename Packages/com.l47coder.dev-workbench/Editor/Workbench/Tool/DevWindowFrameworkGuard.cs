@@ -10,8 +10,9 @@ namespace DevWorkbench.Editor
 {
     // DevWorkbench 架构完整性兜底 + domain-reload rerun 触发器。
     //
-    // 三条触发路径统一收敛到 Ensure()：DevWindow.Open 手动开窗、SyncRuntimeMenu、
-    // 以及写入 SessionKeyRerunInitialize 后的 domain reload（静态构造 delayCall 兜底）。
+    // 三条触发路径统一收敛到 Ensure()：DevWindow.Open 手动开窗、Framework/Sync 页的
+    // Sync Runtime 按钮（FrameworkSyncPage）、以及写入 SessionKeyRerunInitialize 后
+    // 的 domain reload（静态构造 delayCall 兜底）。
     //
     // Ensure() 两段时序：
     //   首次 bootstrap（skeleton 拷贝数 > 0）：拷模板 → 写 flag → return；reload 后再跑。

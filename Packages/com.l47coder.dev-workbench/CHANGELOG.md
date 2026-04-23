@@ -5,6 +5,22 @@ All notable changes to this package will be documented in this file.
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Framework / Sync panel.** Added a new `Framework` group inside the Dev
+  Workbench window with a `Sync` tab that exposes the old *Sync Runtime*
+  action as a button (plus a "last run" status line). This group is the
+  intended home for future framework-wide actions (e.g. cache clearing,
+  order rebuilds).
+
+### Removed
+
+- **`Tools / Dev Workbench / Sync Runtime` menu item.** Its behaviour moved
+  into the new *Framework / Sync* page, so the workbench window is now the
+  single entry point for that action.
+
 ## [0.1.0-preview.2] &mdash; 2026-04-20
 
 Second preview. Focuses on making default Managers optional, clarifying the
