@@ -3,11 +3,6 @@ using UnityEditor;
 
 namespace DevWorkbench.Editor
 {
-    // 给 ManagerViewerPage 的 "Open Refresher script" 按钮定位源文件。
-    // 约定：Refresher .cs 住在 <managerFolder>/Editor/<Name>ManagerRefresher.cs
-    //       （由 ManagerCreationService 生成、ManagerTemplateInstaller 铺装，路径固定）。
-    //
-    // 历史兼容：早期版本把 Refresher 和 Manager 同目录，这里作为回落继续支持。
     internal static class ManagerRefresherLocator
     {
         private const string RefresherSuffix = "ManagerRefresher";

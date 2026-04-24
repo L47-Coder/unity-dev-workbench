@@ -10,7 +10,6 @@ namespace DevWorkbench.Editor
     {
         public const string RootAssetPath = "Assets/Game/Manager";
         public const string AddressableGroupName = "ManagerConfig";
-        // 所有自动生成代码统一落在管理器根目录下的该子文件夹内。
         public const string GeneratedFolderName = "Generated";
 
         public const string SessionManagerNameKey = "ManagerCreator.ManagerName";
@@ -51,8 +50,6 @@ namespace DevWorkbench.Editor
         private PreviewItem[] _namePreviewItems = Array.Empty<PreviewItem>();
         private PreviewItem[] _pathPreviewItems = Array.Empty<PreviewItem>();
         private PreviewItem[] _addressablePreviewItems = Array.Empty<PreviewItem>();
-
-        // ── Public API ────────────────────────────────────────────────────────────
 
         public void Reset()
         {
@@ -111,8 +108,6 @@ namespace DevWorkbench.Editor
                 RefresherFilePath,
                 ShouldCreateManagerFile());
         }
-
-        // ── Input application ─────────────────────────────────────────────────────
 
         private void ApplyInput(string managerName, string parentAssetPath)
         {
@@ -224,8 +219,6 @@ namespace DevWorkbench.Editor
             return !_managerClassExists;
         }
 
-        // ── Status helpers ────────────────────────────────────────────────────────
-
         private PreviewStatus GetManagerCodeStatus()
         {
             if (string.IsNullOrEmpty(ManagerClassName)) return PreviewStatus.Neutral;
@@ -262,57 +255,51 @@ namespace DevWorkbench.Editor
             _namePreviewItems = IncludeConfig
                 ? new[]
                 {
-                new PreviewItem("Interface", ManagerInterfaceName, managerStatus),
-                new PreviewItem("Manager class", ManagerClassName, managerStatus),
-                new PreviewItem("Config class", ConfigClassName, generatedStatus),
-                new PreviewItem("Data class", ManagerDataStructName, generatedStatus),
+                    new PreviewItem("Interface", ManagerInterfaceName, managerStatus),
+                    new PreviewItem("Manager class", ManagerClassName, managerStatus),
+                    new PreviewItem("Config class", ConfigClassName, generatedStatus),
+                    new PreviewItem("Data class", ManagerDataStructName, generatedStatus),
                 }
                 : new[]
                 {
-                new PreviewItem("Interface", ManagerInterfaceName, managerStatus),
-                new PreviewItem("Manager class", ManagerClassName, managerStatus),
+                    new PreviewItem("Interface", ManagerInterfaceName, managerStatus),
+                    new PreviewItem("Manager class", ManagerClassName, managerStatus),
                 };
 
             _pathPreviewItems = IncludeConfig
                 ? new[]
                 {
-                new PreviewItem("Manager script", _managerFileExists ? _existingManagerFilePath : ManagerTargetFilePath, managerStatus),
-                new PreviewItem("Generated folder", GeneratedFolderPath, generatedStatus),
-                new PreviewItem("Asset file", _assetExists ? _existingAssetPath : AssetTargetFilePath, assetStatus),
-                new PreviewItem("Refresher script", _refresherFileExists ? _existingRefresherFilePath : RefresherFilePath, refresherStatus),
+                    new PreviewItem("Manager script", _managerFileExists ? _existingManagerFilePath : ManagerTargetFilePath, managerStatus),
+                    new PreviewItem("Generated folder", GeneratedFolderPath, generatedStatus),
+                    new PreviewItem("Asset file", _assetExists ? _existingAssetPath : AssetTargetFilePath, assetStatus),
+                    new PreviewItem("Refresher script", _refresherFileExists ? _existingRefresherFilePath : RefresherFilePath, refresherStatus),
                 }
                 : new[]
                 {
-                new PreviewItem("Manager script", _managerFileExists ? _existingManagerFilePath : ManagerTargetFilePath, managerStatus),
-                new PreviewItem("Generated folder", GeneratedFolderPath, generatedStatus),
+                    new PreviewItem("Manager script", _managerFileExists ? _existingManagerFilePath : ManagerTargetFilePath, managerStatus),
+                    new PreviewItem("Generated folder", GeneratedFolderPath, generatedStatus),
                 };
 
             _addressablePreviewItems = IncludeConfig
                 ? new[]
                 {
-                new PreviewItem("Addressable group", AddressableGroupName, assetStatus),
-                new PreviewItem("Addressable address", AddressableAddressName, assetStatus),
+                    new PreviewItem("Addressable group", AddressableGroupName, assetStatus),
+                    new PreviewItem("Addressable address", AddressableAddressName, assetStatus),
                 }
                 : new[]
                 {
-                new PreviewItem("Addressable group", "—", PreviewStatus.Neutral),
-                new PreviewItem("Addressable address", "(config disabled)", PreviewStatus.Neutral),
+                    new PreviewItem("Addressable group", "—", PreviewStatus.Neutral),
+                    new PreviewItem("Addressable address", "(config disabled)", PreviewStatus.Neutral),
                 };
         }
 
         private void RefreshExistingTargets()
         {
-            _existingManagerFilePath = ResolveExisting(
-                ManagerTargetFilePath,
-                ManagerAssetIndex.FindManagerScript(Path.GetFileName(ManagerTargetFilePath)));
+            _existingManagerFilePath = ResolveExisting(ManagerTargetFilePath, ManagerAssetIndex.FindManagerScript(Path.GetFileName(ManagerTargetFilePath)));
 
             _generatedFolderExists = !string.IsNullOrEmpty(GeneratedFolderPath) && FolderExists(GeneratedFolderPath);
 
-            _existingAssetPath = IncludeConfig
-                ? ResolveExisting(
-                    AssetTargetFilePath,
-                    ManagerAssetIndex.FindManagerAsset(Path.GetFileName(AssetTargetFilePath)))
-                : string.Empty;
+            _existingAssetPath = IncludeConfig ? ResolveExisting(AssetTargetFilePath, ManagerAssetIndex.FindManagerAsset(Path.GetFileName(AssetTargetFilePath))) : string.Empty;
 
             _existingRefresherFilePath = string.Empty;
             if (!string.IsNullOrEmpty(RefresherFilePath))
@@ -323,8 +310,6 @@ namespace DevWorkbench.Editor
             _refresherFileExists = !string.IsNullOrEmpty(_existingRefresherFilePath);
             _managerClassExists = TypeExists(ManagerClassName);
         }
-
-        // ── Inline utilities ──────────────────────────────────────────────────────
 
         private static string ResolveExisting(string preferredPath, string indexedPath)
         {
@@ -374,8 +359,6 @@ namespace DevWorkbench.Editor
         }
 
         private string EntityFolderPath => Path.GetDirectoryName(ManagerTargetFilePath)?.Replace('\\', '/');
-
-        // ── Nested types ──────────────────────────────────────────────────────────
 
         public enum PreviewStatus { Neutral, Create, Write, Skip }
 

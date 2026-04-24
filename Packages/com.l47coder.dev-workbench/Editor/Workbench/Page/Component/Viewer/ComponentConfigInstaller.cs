@@ -6,8 +6,6 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // 批量确保每个 BaseComponentConfig 子类对应的 .asset 存在、挂在 "ComponentConfig"
-    // 组、地址为 "ComponentConfig/<Name>"。Component 侧无 Refresher 机制。
     internal static class ComponentConfigInstaller
     {
         private const string ConfigClassSuffix = "ComponentConfig";
@@ -46,8 +44,7 @@ namespace DevWorkbench.Editor
                     ComponentName = componentName,
                     AssetPath = assetPath,
                     Address = address,
-                    AssetExists = !string.IsNullOrEmpty(assetPath)
-                        && AssetDatabase.LoadAssetAtPath<ScriptableObject>(assetPath) != null,
+                    AssetExists = !string.IsNullOrEmpty(assetPath) && AssetDatabase.LoadAssetAtPath<ScriptableObject>(assetPath) != null,
                 };
 
                 if (settings != null && info.AssetExists)
@@ -72,8 +69,7 @@ namespace DevWorkbench.Editor
                 if (info.AddressMatches) continue;
                 if (!info.AssetExists && string.IsNullOrEmpty(info.AssetPath)) continue;
 
-                ComponentCreationService.EnsureAssetAndAddressable(
-                    info.ComponentName, info.AssetPath, info.Address);
+                ComponentCreationService.EnsureAssetAndAddressable(info.ComponentName, info.AssetPath, info.Address);
                 changed++;
             }
             return changed;
@@ -88,8 +84,6 @@ namespace DevWorkbench.Editor
             }
         }
 
-        // 优先用 ComponentAssetIndex 查已存在的 .asset（容忍嵌套层级）；找不到时回落到
-        // 约定路径：Assets/Game/Component/<ComponentName>/<TypeName>.asset。
         private static string LocateConfigAssetPath(string typeName, string componentName)
         {
             var fileName = $"{typeName}.asset";

@@ -82,9 +82,6 @@ namespace DevWorkbench.Editor
         private void OnEnable()
         {
             wantsMouseMove = true;
-
-            // 首次 bootstrap 时 Open 里的 Ensure 短路返回（PageOrder 尚未建），本次 Load
-            // 会扑空；订阅 EnsureCompleted 等 reload 后的 rerun 完工再补建 PageTree。
             DevWindowFrameworkGuard.EnsureCompleted += TryBuildPageTree;
             TryBuildPageTree();
         }
@@ -95,12 +92,7 @@ namespace DevWorkbench.Editor
             _currentPage?.OnLeave();
         }
 
-        // OnDisable 在 domain reload 也会走，不能用来代表"窗口被关闭"。OnDestroy 只在
-        // 真正关窗时触发，这里是 FrameworkSyncSettings.OnWorkbenchClose 的正确挂点。
-        private void OnDestroy()
-        {
-            FrameworkSyncSettings.OnDevWindowClosed();
-        }
+        private void OnDestroy() => FrameworkSyncSettings.OnDevWindowClosed();
 
         private void TryBuildPageTree()
         {
@@ -129,32 +121,22 @@ namespace DevWorkbench.Editor
             }
             if (pages.Count == 0) return;
 
-            // 同步 group/tab 顺序到 PageOrder SO：保留旧顺序、新项按 PageOrderDefaults 追加、失效项删除。
-            var groupOrder = SyncOrderMap(
-                pages.Select(p => p.GroupTitle).Distinct(),
-                _pageOrder.GetGroupDict(),
-                PageOrderDefaults.Groups);
+            var groupOrder = SyncOrderMap(pages.Select(p => p.GroupTitle).Distinct(), _pageOrder.GetGroupDict(), PageOrderDefaults.Groups);
             _pageOrder.SetGroupDict(groupOrder);
 
             var tabOrders = new Dictionary<string, Dictionary<string, int>>();
             foreach (var g in groupOrder.Keys)
             {
-                var tabOrder = SyncOrderMap(
-                    pages.Where(p => p.GroupTitle == g).Select(p => p.TabTitle),
-                    _pageOrder.GetTabDict(g),
-                    PageOrderDefaults.GetTabs(g));
+                var tabOrder = SyncOrderMap(pages.Where(p => p.GroupTitle == g).Select(p => p.TabTitle), _pageOrder.GetTabDict(g), PageOrderDefaults.GetTabs(g));
                 _pageOrder.SetTabDict(g, tabOrder);
                 tabOrders[g] = tabOrder;
             }
             EditorUtility.SetDirty(_pageOrder);
             AssetDatabase.SaveAssets();
 
-            // rerun/重建前清理旧 page 实例引用，避免 _initializedPages 留僵尸键阻断 OnFirstEnter。
             _groups.Clear();
             _initializedPages.Clear();
-            foreach (var page in pages
-                         .OrderBy(p => groupOrder[p.GroupTitle])
-                         .ThenBy(p => tabOrders[p.GroupTitle][p.TabTitle]))
+            foreach (var page in pages.OrderBy(p => groupOrder[p.GroupTitle]).ThenBy(p => tabOrders[p.GroupTitle][p.TabTitle]))
             {
                 var group = _groups.FirstOrDefault(x => x.Title == page.GroupTitle);
                 if (group == null)
@@ -169,11 +151,7 @@ namespace DevWorkbench.Editor
             ActivatePage(_currentPage);
         }
 
-        // 保留 stored 中仍有效的顺序；新 key 按 defaults 索引追加、defaults 外的垫到最末；失效 key 丢弃。
-        private Dictionary<string, int> SyncOrderMap(
-            IEnumerable<string> activeKeys,
-            Dictionary<string, int> stored,
-            IReadOnlyList<string> defaults)
+        private Dictionary<string, int> SyncOrderMap(IEnumerable<string> activeKeys, Dictionary<string, int> stored, IReadOnlyList<string> defaults)
         {
             var active = activeKeys.ToList();
             var activeSet = new HashSet<string>(active);
@@ -220,8 +198,6 @@ namespace DevWorkbench.Editor
             _persistedTabTitle = _currentPage.TabTitle;
             ActivatePage(page);
         }
-
-        // ── Drawing ──────────────────────────────────────────────────────────────
 
         private void OnGUI()
         {

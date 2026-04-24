@@ -21,21 +21,6 @@ namespace DevWorkbench.Editor
         private readonly ComponentRightPanel _rightPanel = new();
         private float _splitterX = LeftPanelStart;
         private bool _dragging;
-
-        // Component 模块的"业务层动态发现"——由 DevWindowFrameworkGuard.Ensure 在开窗 /
-        // domain reload rerun / Framework/Sync 页按钮时统一调度。
-        //
-        // 这**不是**架构完整性的冗余补齐——架构完整性（容器 asmdef、Addressables settings、
-        // Frame 下三份 Order SO 存在性 + 挂 "Frame" 组）由 Guard 在进入本方法前已保证，
-        // 每次开窗只做一次。本方法只做那两件"必须等 domain reload 后才反射得到新类型"
-        // 的事，因此刻意放到 Page 层而不是 Guard 的 Frame 段：
-        //   - ComponentConfigInstaller.EnsureAllRegistered：扫 domain reload 后新编译出
-        //     的 <Name>ComponentConfig 子类 → 创建 .asset、挂 Addressables
-        //     "ComponentConfig" 组、对齐地址。首次装完 Component 模板的 reload 回来时，
-        //     靠这一步把 Config asset 造出来。
-        //   - ComponentOrderSync.Sync：按活跃 BaseComponent 子类增量同步
-        //     ComponentOrder.Entries（追加新的 / 丢弃被删/改名的 / 保留现有顺序）。
-        // 两个都幂等，无新类型时零写盘。
         public void OnWorkbenchOpen()
         {
             ComponentConfigInstaller.EnsureAllRegistered();
@@ -102,7 +87,6 @@ namespace DevWorkbench.Editor
         private string _cachedCsPath;
         private string _cachedCsText;
 
-        // .asset 文件缓存
         private string _cachedAssetPath;
         private BaseComponentConfig _cachedAsset;
         private object _cachedList;
@@ -160,16 +144,13 @@ namespace DevWorkbench.Editor
 
                 if (_cachedAsset != null)
                 {
-                    var field = _cachedAsset.GetType().GetField("_configs",
-                        BindingFlags.Instance | BindingFlags.NonPublic);
+                    var field = _cachedAsset.GetType().GetField("_configs", BindingFlags.Instance | BindingFlags.NonPublic);
                     if (field != null && field.FieldType.IsGenericType)
                     {
                         _cachedList = field.GetValue(_cachedAsset);
                         var elemType = field.FieldType.GetGenericArguments()[0];
                         _tableView = new TableView();
-                        _cachedDrawMethod = typeof(TableView)
-                            .GetMethod(nameof(TableView.Draw))
-                            .MakeGenericMethod(elemType);
+                        _cachedDrawMethod = typeof(TableView).GetMethod(nameof(TableView.Draw)).MakeGenericMethod(elemType);
                     }
                 }
             }

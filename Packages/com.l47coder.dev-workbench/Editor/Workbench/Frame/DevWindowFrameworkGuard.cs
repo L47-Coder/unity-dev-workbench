@@ -8,48 +8,20 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // DevWorkbench 架构完整性兜底 + domain-reload rerun 触发器。
-    //
-    // 三条触发路径统一收敛到 Ensure()：DevWindow.Open 手动开窗、Framework/Sync 页的
-    // Sync Runtime 按钮（FrameworkSyncPage）、以及写入 SessionKeyRerunInitialize 后
-    // 的 domain reload（静态构造 delayCall 兜底）。
-    //
-    // Ensure() 两段时序：
-    //   首次 bootstrap（skeleton 拷贝数 > 0）：拷模板 → 写 flag → return；reload 后再跑。
-    //   已初始化（拷贝数 == 0）：Addressables settings → 三份 Order SO → 反射跑
-    //     IPage.OnWorkbenchOpen → Invoke EnsureCompleted 通知 DevWindow 重建 PageTree。
-    //
-    // 首次 bootstrap 的短路 return 刻意不 Invoke EnsureCompleted——那时 PageOrder 尚未建好。
     [InitializeOnLoad]
     internal static class DevWindowFrameworkGuard
     {
-        // TemplateInstaller / 首次模板拷贝完写此 flag；domain reload 后静态构造重跑 Ensure。
         public const string SessionKeyRerunInitialize = "DevWorkbench.FrameworkGuard.RerunInitialize";
-
-        // 架构 + 业务动态发现全套完成后触发。DevWindow 订阅此事件以应对首次 bootstrap
-        // 场景（Open 时 PageOrder 尚未建 → OnEnable 扑空 → 空白窗体）。
-        public static event Action EnsureCompleted;
-
         private const string GameRootAssetPath = "Assets/Game";
         private const string GameBootAssetPath = GameFramePaths.Root + "/GameBoot.cs";
-
-        // 老版本把 GameBoot.cs 投在 Game.Managers 下；升级走 MoveAsset 保住 GUID。
         private const string LegacyGameBootAssetPath = GameRootAssetPath + "/Manager/GameBoot.cs";
-
-        private const string GameSkeletonSourceRelative =
-            "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Game";
-
+        private const string GameSkeletonSourceRelative = "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Game";
         private const string FrameGroupName = "Frame";
+        private static readonly string ManagerOrderAddress = $"{FrameGroupName}/{Path.GetFileNameWithoutExtension(GameFramePaths.ManagerOrder)}";
+        private static readonly string ComponentOrderAddress = $"{FrameGroupName}/{Path.GetFileNameWithoutExtension(GameFramePaths.ComponentOrder)}";
+        public static event Action EnsureCompleted;
 
-        private static readonly string ManagerOrderAddress =
-            $"{FrameGroupName}/{Path.GetFileNameWithoutExtension(GameFramePaths.ManagerOrder)}";
-        private static readonly string ComponentOrderAddress =
-            $"{FrameGroupName}/{Path.GetFileNameWithoutExtension(GameFramePaths.ComponentOrder)}";
-
-        static DevWindowFrameworkGuard()
-        {
-            EditorApplication.delayCall += TryRerunAfterReload;
-        }
+        static DevWindowFrameworkGuard() => EditorApplication.delayCall += TryRerunAfterReload;
 
         private static void TryRerunAfterReload()
         {
@@ -86,14 +58,9 @@ namespace DevWorkbench.Editor
             catch (Exception ex)
             {
                 Debug.LogError($"[DevWindowFrameworkGuard] Ensure failed: {ex}");
-                EditorUtility.DisplayDialog(
-                    "Dev Workbench",
-                    $"Framework auto-initialise failed:\n{ex.Message}\n\nSee Console for details.",
-                    "OK");
+                EditorUtility.DisplayDialog("Dev Workbench", $"Framework auto-initialise failed:\n{ex.Message}\n\nSee Console for details.", "OK");
             }
 
-            // Page.OnWorkbenchOpen 可能自行 SaveAssets，不宜被 Frame 批量 editing 包住；
-            // 且 Frame 段异常不该阻断 Page 层贡献——故放 try/catch 外。
             RunAllPageContributions();
 
             try { EnsureCompleted?.Invoke(); }
@@ -103,8 +70,6 @@ namespace DevWorkbench.Editor
             }
         }
 
-        // 把 Runtime~/Templates/Game 整树镜像到 Assets/Game，返回新落盘文件数。
-        // Import 之前做一次 legacy GameBoot.cs 迁移（MoveAsset 保 GUID）。
         private static int EnsureGameSkeleton()
         {
             var migrated = TryMigrateLegacyGameBoot() ? 1 : 0;
@@ -155,7 +120,6 @@ namespace DevWorkbench.Editor
             AssetDatabase.SaveAssets();
         }
 
-        // PageOrder 仅供 DevWindow 菜单/标签排序，editor-only，不挂 Addressables。
         private static void EnsurePageOrderAsset()
         {
             if (AssetDatabase.LoadAssetAtPath<PageOrder>(GameFramePaths.PageOrder) != null) return;
@@ -205,8 +169,6 @@ namespace DevWorkbench.Editor
             AssetDatabase.SaveAssets();
         }
 
-        // 反射扫所有 IPage 实现，new 一次性实例触发 OnWorkbenchOpen。
-        // 契约：OnWorkbenchOpen 只读/写项目资产，不依赖 UI 字段——临时实例用完即丢安全。
         private static void RunAllPageContributions()
         {
             foreach (var type in TypeCache.GetTypesDerivedFrom<IPage>())

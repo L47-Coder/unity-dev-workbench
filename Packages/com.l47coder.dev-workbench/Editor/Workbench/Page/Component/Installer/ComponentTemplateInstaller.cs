@@ -6,12 +6,9 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // Component 模板仓（Runtime~/Templates/Components）——与 ManagerTemplateInstaller
-    // 对称。仅负责可选模板包；Frame 元结构由 DevWindowFrameworkGuard 独立管理。
     internal static class ComponentTemplateInstaller
     {
-        private const string TemplateSourceRelative =
-            "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Components";
+        private const string TemplateSourceRelative = "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Components";
         private const string ManifestFileName = "manifest.json";
         private const string ComponentRootAssetPath = "Assets/Game/Component";
 
@@ -39,7 +36,6 @@ namespace DevWorkbench.Editor
             var manifestAbs = ResolveSourceAbsolute(ManifestFileName);
             if (string.IsNullOrEmpty(manifestAbs) || !File.Exists(manifestAbs))
             {
-                // manifest 文件缺失 → 视为暂时没有内置 Component 模板。
                 _cachedManifest = new List<PackageInfo>();
                 return _cachedManifest;
             }
@@ -61,7 +57,6 @@ namespace DevWorkbench.Editor
 
         public static void InvalidateManifestCache() => _cachedManifest = null;
 
-        // 判据：{packageId}Component.cs 存在。与 Creator 的 {Name}Component.cs 命名对齐。
         public static bool IsPackageInstalled(string packageId)
         {
             if (string.IsNullOrEmpty(packageId)) return false;
@@ -69,8 +64,6 @@ namespace DevWorkbench.Editor
             return File.Exists(marker);
         }
 
-        // 幂等批量安装。返回新装数量；>0 则写 SessionKeyRerunInitialize，让 reload 后的
-        // Guard.Ensure 再跑一轮 IPage.OnWorkbenchOpen 把新 Config 补齐 asset/Addressables/Order。
         public static int InstallPackages(IEnumerable<string> packageIds)
         {
             if (packageIds == null) return 0;

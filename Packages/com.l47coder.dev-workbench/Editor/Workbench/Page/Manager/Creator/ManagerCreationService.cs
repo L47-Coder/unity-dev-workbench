@@ -10,8 +10,6 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // ── Creation Service ──────────────────────────────────────────────────────────
-
     internal static class ManagerCreationService
     {
         private const string GeneratedConfigListFieldName = "_configs";
@@ -71,8 +69,6 @@ namespace DevWorkbench.Editor
 
             ManagerAssetIndex.Invalidate();
         }
-
-        // ── Code writers ──────────────────────────────────────────────────────────
 
         private static void WriteManagerCode(ManagerCreationPlan plan)
         {
@@ -245,8 +241,6 @@ namespace DevWorkbench.Editor
             File.WriteAllText(plan.RefresherFilePath, builder.ToString(), Encoding.UTF8);
         }
 
-        // Editor 子目录里的 .asmref 把此处代码挂进 Game.Editor 程序集；
-        // 不需要每个 Manager 建独立 asmdef。
         private static void EnsureRefresherAsmref(string refresherFolderAssetPath)
         {
             if (string.IsNullOrEmpty(refresherFolderAssetPath)) return;
@@ -255,17 +249,12 @@ namespace DevWorkbench.Editor
             var abs = Path.GetFullPath(Path.Combine(Application.dataPath, "..", asmrefPath));
             if (File.Exists(abs)) return;
 
-            File.WriteAllText(abs,
-                "{\n    \"reference\": \"Game.Editor\"\n}\n",
-                Encoding.UTF8);
+            File.WriteAllText(abs, "{\n    \"reference\": \"Game.Editor\"\n}\n", Encoding.UTF8);
         }
-
-        // ── Leaf marker（与 Component 目录一致）────────────────────────────────────
 
         private static void WriteLeafMarker(string entityFolderAssetPath)
         {
-            var abs = Path.GetFullPath(
-                Path.Combine(Application.dataPath, "..", entityFolderAssetPath, "_leaf.json"));
+            var abs = Path.GetFullPath(Path.Combine(Application.dataPath, "..", entityFolderAssetPath, "_leaf.json"));
 
             var dir = Path.GetDirectoryName(abs);
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
@@ -274,8 +263,6 @@ namespace DevWorkbench.Editor
             if (!File.Exists(abs))
                 File.WriteAllText(abs, string.Empty);
         }
-
-        // ── Asset & Addressable ─────────────────────────────────────────────────
 
         internal static void EnsureAssetAndAddressable(string managerName, string assetPath, string assetAddress)
         {
@@ -304,8 +291,7 @@ namespace DevWorkbench.Editor
             }
 
             var groupName = ManagerCreatorState.AddressableGroupName;
-            var group = settings.groups.FirstOrDefault(g => g != null && g.Name == groupName)
-                ?? settings.CreateGroup(groupName, false, false, true, null);
+            var group = settings.groups.FirstOrDefault(g => g != null && g.Name == groupName) ?? settings.CreateGroup(groupName, false, false, true, null);
             var guid = AssetDatabase.AssetPathToGUID(assetPath);
             var entry = settings.CreateOrMoveEntry(guid, group);
             entry.address = assetAddress;
@@ -330,8 +316,6 @@ namespace DevWorkbench.Editor
             return null;
         }
 
-        // ── Folder utility (inline) ───────────────────────────────────────────────
-
         private static string EscapeCSharpStringLiteral(string value)
         {
             if (string.IsNullOrEmpty(value)) return string.Empty;
@@ -354,8 +338,6 @@ namespace DevWorkbench.Editor
             }
         }
     }
-
-    // ── Post-Compile Asset Service ────────────────────────────────────────────────
 
     internal static class ManagerPostCompileAssetService
     {
@@ -384,8 +366,6 @@ namespace DevWorkbench.Editor
             SessionState.SetString(ManagerCreatorState.SessionAssetAddressKey, plan.AddressableAddressName);
         }
     }
-
-    // ── Asset Index ───────────────────────────────────────────────────────────────
 
     internal static class ManagerAssetIndex
     {

@@ -10,7 +10,6 @@ namespace DevWorkbench.Editor
     {
         public const string RootAssetPath = "Assets/Game/Component";
         public const string AddressableGroupName = "ComponentConfig";
-        // 所有自动生成代码统一落在组件根目录下的该子文件夹内。
         public const string GeneratedFolderName = "Generated";
 
         public const string SessionComponentNameKey = "ComponentCreator.ComponentName";
@@ -48,8 +47,6 @@ namespace DevWorkbench.Editor
         private PreviewItem[] _nameItems = Array.Empty<PreviewItem>();
         private PreviewItem[] _pathItems = Array.Empty<PreviewItem>();
         private PreviewItem[] _addressableItems = Array.Empty<PreviewItem>();
-
-        // ── Public API ────────────────────────────────────────────────────────────
 
         public void Reset()
         {
@@ -95,8 +92,6 @@ namespace DevWorkbench.Editor
             _assetExists ? _existingAsset : AssetFilePath,
             AddressableAddress,
             !_componentFileExists && !_componentClassExists && !_componentDataExists);
-
-        // ── Input application ─────────────────────────────────────────────────────
 
         private void Apply(string name, string parentAssetPath)
         {
@@ -171,31 +166,30 @@ namespace DevWorkbench.Editor
 
             _nameItems = new[]
             {
-            new PreviewItem("Component class", ComponentClassName,     cs),
-            new PreviewItem("Data class",      ComponentDataClassName, cs),
-            new PreviewItem("Config class",    ConfigClassName,        cfg),
-        };
+                new PreviewItem("Component class", ComponentClassName, cs),
+                new PreviewItem("Data class", ComponentDataClassName, cs),
+                new PreviewItem("Config class", ConfigClassName, cfg),
+            };
+
             _pathItems = new[]
             {
-            new PreviewItem("Component script",
-                _componentFileExists ? _existingComponentFile : ComponentFilePath, cs),
-            new PreviewItem("Generated folder", GeneratedFolderPath, cfg),
-            new PreviewItem("Asset file", _assetExists ? _existingAsset : AssetFilePath, asset),
-        };
+                new PreviewItem("Component script", _componentFileExists ? _existingComponentFile : ComponentFilePath, cs),
+                new PreviewItem("Generated folder", GeneratedFolderPath, cfg),
+                new PreviewItem("Asset file", _assetExists ? _existingAsset : AssetFilePath, asset),
+            };
+
             _addressableItems = new[]
             {
-            new PreviewItem("Addressable group",   AddressableGroupName, asset),
-            new PreviewItem("Addressable address", AddressableAddress,   asset),
-        };
+                new PreviewItem("Addressable group", AddressableGroupName, asset),
+                new PreviewItem("Addressable address", AddressableAddress,   asset),
+            };
         }
 
         private void RefreshExisting()
         {
-            _existingComponentFile =
-                ResolveExisting(ComponentFilePath, ComponentAssetIndex.FindComponentScript(Path.GetFileName(ComponentFilePath)));
+            _existingComponentFile = ResolveExisting(ComponentFilePath, ComponentAssetIndex.FindComponentScript(Path.GetFileName(ComponentFilePath)));
             _generatedFolderExists = !string.IsNullOrEmpty(GeneratedFolderPath) && FolderExists(GeneratedFolderPath);
-            _existingAsset =
-                ResolveExisting(AssetFilePath, ComponentAssetIndex.FindComponentAsset(Path.GetFileName(AssetFilePath)));
+            _existingAsset = ResolveExisting(AssetFilePath, ComponentAssetIndex.FindComponentAsset(Path.GetFileName(AssetFilePath)));
 
             _componentFileExists = !string.IsNullOrEmpty(_existingComponentFile);
             _assetExists = !string.IsNullOrEmpty(_existingAsset);
@@ -227,8 +221,6 @@ namespace DevWorkbench.Editor
             _addressableItems = Array.Empty<PreviewItem>();
         }
 
-        // ── Status helpers ────────────────────────────────────────────────────────
-
         private PreviewStatus ComponentCodeStatus()
         {
             if (string.IsNullOrEmpty(ComponentClassName)) return PreviewStatus.Neutral;
@@ -247,8 +239,6 @@ namespace DevWorkbench.Editor
             if (string.IsNullOrEmpty(AssetFilePath)) return PreviewStatus.Neutral;
             return _assetExists ? PreviewStatus.Write : PreviewStatus.Create;
         }
-
-        // ── Inline utilities ──────────────────────────────────────────────────────
 
         private static void EnsureFolder(string assetPath)
         {
@@ -298,8 +288,6 @@ namespace DevWorkbench.Editor
             }
             return false;
         }
-
-        // ── Nested types ──────────────────────────────────────────────────────────
 
         public enum PreviewStatus { Neutral, Create, Write, Skip }
 

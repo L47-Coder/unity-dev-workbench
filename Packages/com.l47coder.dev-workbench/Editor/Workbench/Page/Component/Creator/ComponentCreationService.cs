@@ -10,8 +10,6 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // ── Creation Service ──────────────────────────────────────────────────────────
-
     internal static class ComponentCreationService
     {
         private const string ConfigListField = "_configs";
@@ -45,8 +43,6 @@ namespace DevWorkbench.Editor
 
             ComponentAssetIndex.Invalidate();
         }
-
-        // ── Code writers ──────────────────────────────────────────────────────────
 
         private static void WriteComponentCode(ComponentCreationPlan plan)
         {
@@ -158,8 +154,6 @@ namespace DevWorkbench.Editor
             sb.AppendLine();
         }
 
-        // ── Leaf marker ───────────────────────────────────────────────────────────
-
         private static void WriteLeafMarker(string entityFolderAssetPath)
         {
             var abs = Path.GetFullPath(
@@ -172,8 +166,6 @@ namespace DevWorkbench.Editor
             if (!File.Exists(abs))
                 File.WriteAllText(abs, string.Empty);
         }
-
-        // ── Asset & Addressable ─────────────────────────────────────────────────
 
         internal static void EnsureAssetAndAddressable(string componentName, string assetPath, string assetAddress)
         {
@@ -228,8 +220,6 @@ namespace DevWorkbench.Editor
             return null;
         }
 
-        // ── Folder utility (inline) ───────────────────────────────────────────────
-
         internal static void EnsureFolder(string assetPath)
         {
             if (string.IsNullOrEmpty(assetPath)) return;
@@ -246,8 +236,6 @@ namespace DevWorkbench.Editor
             }
         }
     }
-
-    // ── Post-Compile Asset Service ────────────────────────────────────────────────
 
     internal static class ComponentPostCompileAssetService
     {
@@ -276,8 +264,6 @@ namespace DevWorkbench.Editor
             SessionState.SetString(ComponentCreatorState.SessionAssetAddressKey, plan.AddressableAddress);
         }
     }
-
-    // ── Asset Index ───────────────────────────────────────────────────────────────
 
     internal static class ComponentAssetIndex
     {

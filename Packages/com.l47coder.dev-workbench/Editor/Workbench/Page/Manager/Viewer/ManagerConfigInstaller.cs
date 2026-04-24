@@ -6,8 +6,6 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // 批量确保每个 BaseManagerConfig 子类对应的 .asset 存在、挂在 "ManagerConfig" 组、
-    // 地址为 "ManagerConfig/<Name>"。刷新数据的职责已拆走：见 EditorSyncRunner + [EditorSync]。
     internal static class ManagerConfigInstaller
     {
         private const string ManagerRootAssetPath = "Assets/Game/Manager";
@@ -68,8 +66,7 @@ namespace DevWorkbench.Editor
 
                 if (!info.AssetExists && string.IsNullOrEmpty(info.AssetPath)) continue;
 
-                ManagerCreationService.EnsureAssetAndAddressable(
-                    info.ManagerName, info.AssetPath, info.Address);
+                ManagerCreationService.EnsureAssetAndAddressable(info.ManagerName, info.AssetPath, info.Address);
                 changed++;
             }
             return changed;
@@ -84,8 +81,6 @@ namespace DevWorkbench.Editor
             }
         }
 
-        // 优先用 ManagerAssetIndex 查已存在的 .asset（容忍嵌套层级）；找不到时回落到
-        // 约定路径：Assets/Game/Manager/<ManagerName>/<TypeName>.asset。
         private static string LocateConfigAssetPath(string typeName, string managerName)
         {
             var fileName = $"{typeName}.asset";

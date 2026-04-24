@@ -3,15 +3,6 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // Framework / Sync —— 运行前手动"把所有东西对齐"的入口。
-    //
-    // 相对于 DevWindow.Open 自动跑的 DevWindowFrameworkGuard.Ensure()，这里多一步
-    // EditorSyncRunner.RunAll：枚举所有 [EditorSync] 标记的静态方法并逐一调用。
-    // 典型的 Refresher 会覆盖 ManagerConfig 的 _configs 列表内容，属于"可能破坏用户
-    // 在 Inspector 里手填数据"的集体同步，故不放进自动流程，只由这个页面上的按钮
-    // / 用户自选的自动触发时机显式触发。
-    //
-    // 自动触发时机的配置和挂钩在 FrameworkSyncSettings；这里只负责 UI。
     internal sealed class FrameworkSyncPage : IPage
     {
         public string GroupTitle => "Framework";
@@ -33,8 +24,6 @@ namespace DevWorkbench.Editor
         private static readonly Color HeaderTextColor = new(0.78f, 0.84f, 0.94f);
         private static readonly Color DimTextColor = new(0.65f, 0.65f, 0.65f);
 
-        // 三个选项行的配色：未选中 = 中性灰；选中 = 深蓝 + 亮蓝边。
-        // 跟 ManagerInstallerPage 的 package 行配色一致，读起来视觉语言统一。
         private static readonly Color RowBg = new(0.23f, 0.23f, 0.23f);
         private static readonly Color RowBorder = new(0.36f, 0.36f, 0.36f);
         private static readonly Color RowCheckedBg = new(0.20f, 0.35f, 0.50f);
@@ -44,8 +33,7 @@ namespace DevWorkbench.Editor
         {
             EditorGUI.DrawRect(rect, BgColor);
 
-            var content = new Rect(rect.x + HPad, rect.y + VPad,
-                rect.width - HPad * 2f, rect.height - VPad * 2f);
+            var content = new Rect(rect.x + HPad, rect.y + VPad, rect.width - HPad * 2f, rect.height - VPad * 2f);
 
             GUILayout.BeginArea(content);
             try
@@ -112,8 +100,7 @@ namespace DevWorkbench.Editor
             EndCard();
         }
 
-        private static FrameworkSyncTrigger DrawRadioRow(
-            FrameworkSyncTrigger current, FrameworkSyncTrigger value, string label, string desc)
+        private static FrameworkSyncTrigger DrawRadioRow(FrameworkSyncTrigger current, FrameworkSyncTrigger value, string label, string desc)
         {
             var selected = current == value;
             var rect = GUILayoutUtility.GetRect(0f, RadioRowHeight, GUILayout.ExpandWidth(true));
@@ -123,25 +110,18 @@ namespace DevWorkbench.Editor
             EditorGUI.DrawRect(rect, bg);
             DrawOutline(rect, border);
 
-            var toggleRect = new Rect(
-                rect.x + 14f,
-                rect.y + (rect.height - ToggleBoxSize) * 0.5f,
-                ToggleBoxSize, ToggleBoxSize);
+            var toggleRect = new Rect(rect.x + 14f, rect.y + (rect.height - ToggleBoxSize) * 0.5f, ToggleBoxSize, ToggleBoxSize);
             var textLeft = toggleRect.xMax + 12f;
             var titleRect = new Rect(textLeft, rect.y + 8f, rect.width - (textLeft - rect.x) - 14f, 20f);
             var descRect = new Rect(textLeft, rect.y + 28f, rect.width - (textLeft - rect.x) - 14f, rect.height - 32f);
 
-            // 用 radioButton 样式画 toggle 本体；点 toggle 自身也能切。
             var nextSelected = EditorGUI.Toggle(toggleRect, selected, EditorStyles.radioButton);
             if (nextSelected && !selected) current = value;
 
             EditorGUI.LabelField(titleRect, label, RowTitleStyle);
             EditorGUI.LabelField(descRect, desc, RowDescStyle);
 
-            // 整行点击切换（toggle 自身除外，避免双触发）。
-            if (Event.current.type == EventType.MouseDown
-                && rect.Contains(Event.current.mousePosition)
-                && !toggleRect.Contains(Event.current.mousePosition))
+            if (Event.current.type == EventType.MouseDown && rect.Contains(Event.current.mousePosition) && !toggleRect.Contains(Event.current.mousePosition))
             {
                 current = value;
                 GUI.FocusControl(null);
@@ -150,8 +130,6 @@ namespace DevWorkbench.Editor
 
             return current;
         }
-
-        // ── Chrome ────────────────────────────────────────────────────────────────
 
         private static void BeginCard()
         {
@@ -192,8 +170,6 @@ namespace DevWorkbench.Editor
             EditorGUI.DrawRect(new Rect(r.x, r.y, 1f, r.height), c);
             EditorGUI.DrawRect(new Rect(r.xMax - 1f, r.y, 1f, r.height), c);
         }
-
-        // ── Styles ────────────────────────────────────────────────────────────────
 
         private static GUIStyle _headerStyle;
         private static GUIStyle HeaderStyle => _headerStyle ??= new GUIStyle(EditorStyles.boldLabel)

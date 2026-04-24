@@ -6,12 +6,6 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    /// <summary>
-    /// 扫描并运行所有带 <see cref="EditorSyncAttribute"/> 的无参静态方法。
-    /// 原来 IManagerRefresher 的"按类型 → 反推配对 Refresher"链路被替换为
-    /// "按 attribute 直接发现入口"——Refresher 不再绑定一个 Config，纯粹是
-    /// 一段 editor-only 的同步逻辑。
-    /// </summary>
     internal static class EditorSyncRunner
     {
         public readonly struct Entry

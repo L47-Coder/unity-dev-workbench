@@ -1,14 +1,9 @@
 using System;
 using System.IO;
 using UnityEditor;
-using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // 把源文件或源目录拷到 Assets 下的目标目录；重名跳过、.meta 忽略、必要时 Refresh。
-    //   - sourcePath：绝对路径或能被 Path.GetFullPath 解析的项目相对路径（Packages/..、Runtime~/.. 皆可）
-    //   - targetFolderAssetPath：必须是 "Assets" 或 "Assets/..." 形式的文件夹路径
-    //   - 返回值：实际新落盘的文件数；>0 时末尾触发一次 AssetDatabase.Refresh
     internal static class AssetFolderCopier
     {
         public static int Import(string sourcePath, string targetFolderAssetPath, bool recursive = true)

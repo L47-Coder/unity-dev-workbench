@@ -63,8 +63,7 @@ namespace DevWorkbench.Editor
         {
             EditorGUI.DrawRect(rect, BgColor);
 
-            var content = new Rect(rect.x + HPad, rect.y + VPad,
-                rect.width - HPad * 2f, rect.height - VPad * 2f);
+            var content = new Rect(rect.x + HPad, rect.y + VPad,rect.width - HPad * 2f, rect.height - VPad * 2f);
 
             GUILayout.BeginArea(content);
             var prevLW = EditorGUIUtility.labelWidth;
@@ -88,8 +87,6 @@ namespace DevWorkbench.Editor
             }
         }
 
-        // ── Input section ─────────────────────────────────────────────────────────
-
         private void DrawInputSection()
         {
             BeginCard();
@@ -110,8 +107,6 @@ namespace DevWorkbench.Editor
 
             EndCard();
         }
-
-        // ── Preview sections ──────────────────────────────────────────────────────
 
         private void DrawPreviewSections()
         {
@@ -147,8 +142,6 @@ namespace DevWorkbench.Editor
             EndCard();
         }
 
-        // ── Include config card ───────────────────────────────────────────────────
-
         private void DrawIncludeConfigCard()
         {
             var rect = GUILayoutUtility.GetRect(0f, IncludeConfigCardHeight, GUILayout.ExpandWidth(true));
@@ -159,9 +152,7 @@ namespace DevWorkbench.Editor
 
             var titleRect = new Rect(rect.x + 10f, rect.y + 5f, rect.width - 72f, 18f);
             var descRect = new Rect(rect.x + 10f, rect.y + 21f, rect.width - 72f, 16f);
-            var toggleRect = new Rect(rect.xMax - 44f,
-                rect.y + (rect.height - EditorGUIUtility.singleLineHeight) * 0.5f,
-                34f, EditorGUIUtility.singleLineHeight);
+            var toggleRect = new Rect(rect.xMax - 44f,rect.y + (rect.height - EditorGUIUtility.singleLineHeight) * 0.5f, 34f, EditorGUIUtility.singleLineHeight);
 
             EditorGUI.LabelField(titleRect, "Include config", ConfigTitleStyle);
             EditorGUI.LabelField(descRect,
@@ -174,17 +165,13 @@ namespace DevWorkbench.Editor
             if (next != isOn)
                 _state.SetIncludeConfig(next);
 
-            if (Event.current.type == EventType.MouseDown &&
-                rect.Contains(Event.current.mousePosition) &&
-                !toggleRect.Contains(Event.current.mousePosition))
+            if (Event.current.type == EventType.MouseDown && rect.Contains(Event.current.mousePosition) &&!toggleRect.Contains(Event.current.mousePosition))
             {
                 _state.SetIncludeConfig(!isOn);
                 GUI.FocusControl(null);
                 Event.current.Use();
             }
         }
-
-        // ── Create button ─────────────────────────────────────────────────────────
 
         private void DrawCreateButton()
         {
@@ -206,45 +193,32 @@ namespace DevWorkbench.Editor
             GUI.backgroundColor = prevBg;
         }
 
-        // ── Field drawing ─────────────────────────────────────────────────────────
-
-        private static string DrawEditableField(string label, string value,
-            ManagerCreatorState.PreviewStatus status)
+        private static string DrawEditableField(string label, string value,ManagerCreatorState.PreviewStatus status)
         {
             var r = EditorGUILayout.GetControlRect(false, 20f);
             DrawFieldLabel(r, label, status);
-            var valueRect = new Rect(r.x + EditorGUIUtility.labelWidth + 2f, r.y,
-                r.width - EditorGUIUtility.labelWidth - 2f, r.height);
+            var valueRect = new Rect(r.x + EditorGUIUtility.labelWidth + 2f, r.y,r.width - EditorGUIUtility.labelWidth - 2f, r.height);
             return EditorGUI.TextField(valueRect, value ?? string.Empty, InputFieldStyle);
         }
 
-        private static void DrawReadonlyField(string label, string value,
-            ManagerCreatorState.PreviewStatus status)
+        private static void DrawReadonlyField(string label, string value,ManagerCreatorState.PreviewStatus status)
         {
             var r = EditorGUILayout.GetControlRect(false, 20f);
             DrawFieldLabel(r, label, status);
-            var valueRect = new Rect(r.x + EditorGUIUtility.labelWidth + 2f, r.y,
-                r.width - EditorGUIUtility.labelWidth - 2f, r.height);
+            var valueRect = new Rect(r.x + EditorGUIUtility.labelWidth + 2f, r.y, r.width - EditorGUIUtility.labelWidth - 2f, r.height);
 
             EditorGUI.DrawRect(valueRect, ValueBg);
             DrawOutline(valueRect, ValueBorder);
-            var textRect = new Rect(valueRect.x + 6f, valueRect.y,
-                valueRect.width - 12f, valueRect.height);
+            var textRect = new Rect(valueRect.x + 6f, valueRect.y,valueRect.width - 12f, valueRect.height);
             EditorGUI.LabelField(textRect, value ?? string.Empty, ValueLabelStyle);
         }
 
-        private static void DrawFieldLabel(Rect fullRect, string label,
-            ManagerCreatorState.PreviewStatus status)
+        private static void DrawFieldLabel(Rect fullRect, string label, ManagerCreatorState.PreviewStatus status)
         {
-            var dotRect = new Rect(
-                fullRect.x + DotLeftPad,
-                fullRect.y + (fullRect.height - DotSize) * 0.5f,
-                DotSize, DotSize);
+            var dotRect = new Rect(fullRect.x + DotLeftPad,fullRect.y + (fullRect.height - DotSize) * 0.5f, DotSize, DotSize);
             DrawDot(dotRect, StatusColor(status));
 
-            var labelRect = new Rect(
-                dotRect.xMax + 6f, fullRect.y,
-                EditorGUIUtility.labelWidth - DotSize - DotLeftPad - 6f, fullRect.height);
+            var labelRect = new Rect( dotRect.xMax + 6f, fullRect.y,EditorGUIUtility.labelWidth - DotSize - DotLeftPad - 6f, fullRect.height);
             EditorGUI.LabelField(labelRect, label);
         }
 
@@ -255,8 +229,6 @@ namespace DevWorkbench.Editor
             ManagerCreatorState.PreviewStatus.Skip => SkipColor,
             _ => NeutralColor,
         };
-
-        // ── Card / chrome ─────────────────────────────────────────────────────────
 
         private static void BeginCard()
         {
@@ -320,8 +292,6 @@ namespace DevWorkbench.Editor
             EditorGUI.DrawRect(new Rect(r.xMax - 1f, r.y, 1f, r.height), c);
         }
 
-        // ── Round dot ─────────────────────────────────────────────────────────────
-
         private static Texture2D _circleTex;
         private static Texture2D CircleTex
         {
@@ -355,14 +325,12 @@ namespace DevWorkbench.Editor
             GUI.color = prev;
         }
 
-        // ── Legend ─────────────────────────────────────────────────────────────────
-
         private static readonly (Color color, string label)[] LegendItems =
         {
-        (CreateColor, "Create"),
-        (WriteColor,  "Write"),
-        (SkipColor,   "Skip"),
-    };
+            (CreateColor, "Create"),
+            (WriteColor, "Write"),
+            (SkipColor, "Skip"),
+        };
 
         private static void DrawLegendRow()
         {
@@ -378,8 +346,6 @@ namespace DevWorkbench.Editor
                 x += size.x + 16f;
             }
         }
-
-        // ── Lazy styles ───────────────────────────────────────────────────────────
 
         private GUIStyle ConfigTitleStyle => _configTitleStyle ??= new GUIStyle(EditorStyles.boldLabel)
         {

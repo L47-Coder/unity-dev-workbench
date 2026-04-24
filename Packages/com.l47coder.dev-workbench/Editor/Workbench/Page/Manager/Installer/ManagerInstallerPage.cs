@@ -34,7 +34,6 @@ namespace DevWorkbench.Editor
         private static readonly Color DimTextColor = new(0.65f, 0.65f, 0.65f);
         private static readonly Color OkTextColor = new(0.50f, 0.85f, 0.60f);
 
-        // 专门给"全选条"用的冷蓝灰色系，有别于 package 行的中性灰 / 深蓝。
         private static readonly Color SelectAllBg = new(0.19f, 0.21f, 0.25f);
         private static readonly Color SelectAllBgActive = new(0.22f, 0.30f, 0.42f);
         private static readonly Color SelectAllBorder = new(0.32f, 0.40f, 0.55f);
@@ -46,8 +45,6 @@ namespace DevWorkbench.Editor
         private Dictionary<string, bool> _installedState;
         private Vector2 _scroll;
 
-        // ── Lifecycle ─────────────────────────────────────────────────────────────
-
         public void OnEnter() => RefreshState();
 
         public void OnLeave() => _scroll = Vector2.zero;
@@ -56,14 +53,10 @@ namespace DevWorkbench.Editor
         {
             ManagerTemplateInstaller.InvalidateManifestCache();
             _packages = ManagerTemplateInstaller.LoadManifest();
-            _installedState = _packages.ToDictionary(
-                p => p.id,
-                p => ManagerTemplateInstaller.IsPackageInstalled(p.id));
+            _installedState = _packages.ToDictionary(p => p.id, p => ManagerTemplateInstaller.IsPackageInstalled(p.id));
 
             _selected.RemoveWhere(id => !_installedState.ContainsKey(id) || _installedState[id]);
         }
-
-        // ── Drawing ───────────────────────────────────────────────────────────────
 
         public void OnGUI(Rect rect)
         {
@@ -71,8 +64,7 @@ namespace DevWorkbench.Editor
 
             if (_packages == null) RefreshState();
 
-            var content = new Rect(rect.x + HPad, rect.y + VPad,
-                rect.width - HPad * 2f, rect.height - VPad * 2f);
+            var content = new Rect(rect.x + HPad, rect.y + VPad, rect.width - HPad * 2f, rect.height - VPad * 2f);
 
             GUILayout.BeginArea(content);
             try
@@ -95,9 +87,6 @@ namespace DevWorkbench.Editor
             }
         }
 
-        // "全选条"刻意做成扁扁的一行 + 冷蓝灰色调，和下面的 package 行在身形和配色上明显区分，
-        // 这样即便 ScrollView 出滚动条导致 package 行右边界向内收,两者的"错位"在视觉上也不突兀
-        // —— 用户会把它读成独立的控制条，而不是列表中"某一行"。
         private void DrawSelectAllRow()
         {
             var installableCount = CountInstallable();
@@ -112,17 +101,10 @@ namespace DevWorkbench.Editor
             EditorGUI.DrawRect(rect, bg);
             DrawOutline(rect, border);
 
-            // 跟下方 package 行用同一份 toggle rect（Unity 的 checkbox 是左对齐绘制、
-            // 尺寸由 skin 固定，rect 只影响点击区和文字列起点），这样"选框 + 文字"两列完全对齐。
-            var toggleRect = new Rect(
-                rect.x + 14f,
-                rect.y + (rect.height - ToggleBoxSize) * 0.5f,
-                ToggleBoxSize, ToggleBoxSize);
+            var toggleRect = new Rect(rect.x + 14f, rect.y + (rect.height - ToggleBoxSize) * 0.5f, ToggleBoxSize, ToggleBoxSize);
             var countWidth = 90f;
             var textLeft = toggleRect.xMax + 12f;
-            var labelRect = new Rect(
-                textLeft, rect.y,
-                rect.width - (textLeft - rect.x) - countWidth - 12f, rect.height);
+            var labelRect = new Rect(textLeft, rect.y, rect.width - (textLeft - rect.x) - countWidth - 12f, rect.height);
             var countRect = new Rect(rect.xMax - countWidth - 12f, rect.y, countWidth, rect.height);
 
             using (new EditorGUI.DisabledScope(disabled))
@@ -142,10 +124,7 @@ namespace DevWorkbench.Editor
             var countText = disabled ? "-" : $"{_selected.Count} selected";
             EditorGUI.LabelField(countRect, countText, SelectAllCountStyle);
 
-            if (!disabled
-                && Event.current.type == EventType.MouseDown
-                && rect.Contains(Event.current.mousePosition)
-                && !toggleRect.Contains(Event.current.mousePosition))
+            if (!disabled && Event.current.type == EventType.MouseDown && rect.Contains(Event.current.mousePosition) && !toggleRect.Contains(Event.current.mousePosition))
             {
                 ToggleSelectAll(allSelected);
                 GUI.FocusControl(null);
@@ -189,12 +168,6 @@ namespace DevWorkbench.Editor
             if (_packages.Count == 0)
             {
                 GUILayout.Space(6f);
-                // 空 manifest 是合法状态（"这个版本的包没附带任何内置 Manager 模板"），
-                // 用 Info 而非 Warning，避免吓到用户。
-                // 注意：Creator 的产物是"业务 Manager"，不是模板——模板只由包发布。
-                // 所以这里的出口引导要明确区分这两者，别让用户误以为自己能造模板。
-                // manifest.json 真的损坏/缺失时，ManagerTemplateInstaller.LoadManifest
-                // 会自己打 error log，那边是更合适的报警点。
                 EditorGUILayout.HelpBox(
                     "No built-in Manager templates ship with this package version. "
                     + "Use the Creator tab to scaffold your own Manager classes under Assets/Game/Manager/.",
@@ -223,10 +196,7 @@ namespace DevWorkbench.Editor
         private void DrawPackageRow(ManagerTemplateInstaller.PackageInfo pkg)
         {
             var isInstalled = _installedState.TryGetValue(pkg.id, out var flag) && flag;
-            // 已安装的行视觉上也显示为"勾选"——表达"这个包已经在项目里了"。
-            // 只不过这个勾是只读的：DisabledScope 会把它锁住，用户动不了。
             var isChecked = isInstalled || _selected.Contains(pkg.id);
-
             var rect = GUILayoutUtility.GetRect(0f, RowHeight, GUILayout.ExpandWidth(true));
 
             Color bg, border;
@@ -237,10 +207,7 @@ namespace DevWorkbench.Editor
             EditorGUI.DrawRect(rect, bg);
             DrawOutline(rect, border);
 
-            var toggleRect = new Rect(
-                rect.x + 14f,
-                rect.y + (rect.height - ToggleBoxSize) * 0.5f,
-                ToggleBoxSize, ToggleBoxSize);
+            var toggleRect = new Rect(rect.x + 14f, rect.y + (rect.height - ToggleBoxSize) * 0.5f, ToggleBoxSize, ToggleBoxSize);
             var textLeft = toggleRect.xMax + 12f;
             var statusWidth = 100f;
             var titleRect = new Rect(textLeft, rect.y + 8f, rect.width - (textLeft - rect.x) - statusWidth - 14f, 20f);
@@ -267,11 +234,7 @@ namespace DevWorkbench.Editor
                 : pkg.recommended ? RecommendedStatusStyle : OptionalStatusStyle;
             EditorGUI.LabelField(statusRect, statusText, statusStyle);
 
-            // 点击整行时切换勾选（已安装的行是只读态，不响应）。
-            if (!isInstalled
-                && Event.current.type == EventType.MouseDown
-                && rect.Contains(Event.current.mousePosition)
-                && !toggleRect.Contains(Event.current.mousePosition))
+            if (!isInstalled && Event.current.type == EventType.MouseDown && rect.Contains(Event.current.mousePosition) && !toggleRect.Contains(Event.current.mousePosition))
             {
                 if (_selected.Contains(pkg.id)) _selected.Remove(pkg.id);
                 else _selected.Add(pkg.id);
@@ -288,9 +251,7 @@ namespace DevWorkbench.Editor
 
             using (new EditorGUI.DisabledScope(!hasSelection))
             {
-                var label = hasSelection
-                    ? $"Import {_selected.Count} package{(_selected.Count > 1 ? "s" : "")}"
-                    : "Import Selected";
+                var label = hasSelection ? $"Import {_selected.Count} package{(_selected.Count > 1 ? "s" : "")}" : "Import Selected";
                 if (GUILayout.Button(label, GUILayout.Height(ImportButtonHeight)))
                     PerformImport();
             }
@@ -310,8 +271,6 @@ namespace DevWorkbench.Editor
             if (installed > 0)
                 Debug.Log($"[ManagerInstallerPage] Imported {installed} Manager template(s). Unity will recompile and the remaining configuration will be applied automatically.");
         }
-
-        // ── Chrome ────────────────────────────────────────────────────────────────
 
         private static void BeginCard()
         {
@@ -352,8 +311,6 @@ namespace DevWorkbench.Editor
             EditorGUI.DrawRect(new Rect(r.x, r.y, 1f, r.height), c);
             EditorGUI.DrawRect(new Rect(r.xMax - 1f, r.y, 1f, r.height), c);
         }
-
-        // ── Styles ────────────────────────────────────────────────────────────────
 
         private static GUIStyle _headerStyle;
         private static GUIStyle HeaderStyle => _headerStyle ??= new GUIStyle(EditorStyles.boldLabel)

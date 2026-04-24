@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Unity.CodeEditor;
 using UnityEditor;
+using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
@@ -9,11 +10,7 @@ namespace DevWorkbench.Editor
     {
         private static bool _pending;
 
-        private static void OnPostprocessAllAssets(
-            string[] imported,
-            string[] deleted,
-            string[] movedTo,
-            string[] movedFrom)
+        private static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] movedTo, string[] movedFrom)
         {
             if (!AffectsCompilation(imported) &&
                 !AffectsCompilation(deleted) &&
@@ -31,7 +28,7 @@ namespace DevWorkbench.Editor
         {
             _pending = false;
             try { CodeEditor.CurrentEditor.SyncAll(); }
-            catch (Exception e) { UnityEngine.Debug.LogWarning($"[DevWorkbench] SyncAll failed: {e.Message}"); }
+            catch (Exception e) { Debug.LogWarning($"[DevWorkbench] SyncAll failed: {e.Message}"); }
         }
 
         private static bool AffectsCompilation(string[] paths) => paths != null && paths.Any(IsCodeAsset);

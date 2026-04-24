@@ -10,13 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
-  m_Name: ComponentConfig
+  m_Name: Prefab
   m_EditorClassIdentifier: 
-  m_GroupName: ComponentConfig
+  m_GroupName: Prefab
   m_Data:
     m_SerializedData: []
-  m_GUID: c08ec5079bc147641b86280c8974efde
-  m_SerializeEntries: []
+  m_GUID: 245434bfa506c68489a9afd6884950f5
+  m_SerializeEntries:
+  - m_GUID: 706040e3dfc3590488f3ddb7acd0483a
+    m_Address: Prefab/Circle
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 1334c67fee1d15d45b12dccff7e140e5, type: 2}
   m_SchemaSet:

@@ -1,4 +1,3 @@
-using DevWorkbench;
 using UnityEditor;
 using UnityEngine;
 
@@ -26,7 +25,6 @@ namespace DevWorkbench.Editor
         private static readonly Color HeaderTextColor = new(0.78f, 0.84f, 0.94f);
         private static readonly Color ValueBg = new(0.15f, 0.15f, 0.15f);
         private static readonly Color ValueBorder = new(0.11f, 0.11f, 0.11f);
-        private static readonly Color ValueTextColor = new(0.82f, 0.82f, 0.82f);
         private static readonly Color CreateColor = new(0.29f, 0.78f, 0.40f);
         private static readonly Color WriteColor = new(0.95f, 0.75f, 0.22f);
         private static readonly Color SkipColor = new(0.85f, 0.35f, 0.35f);
@@ -58,8 +56,7 @@ namespace DevWorkbench.Editor
         {
             EditorGUI.DrawRect(rect, BgColor);
 
-            var content = new Rect(rect.x + HPad, rect.y + VPad,
-                rect.width - HPad * 2f, rect.height - VPad * 2f);
+            var content = new Rect(rect.x + HPad, rect.y + VPad, rect.width - HPad * 2f, rect.height - VPad * 2f);
 
             GUILayout.BeginArea(content);
             var prevLW = EditorGUIUtility.labelWidth;
@@ -83,8 +80,6 @@ namespace DevWorkbench.Editor
             }
         }
 
-        // ── Input section ─────────────────────────────────────────────────────────
-
         private void DrawInputSection()
         {
             BeginCard();
@@ -102,8 +97,6 @@ namespace DevWorkbench.Editor
 
             EndCard();
         }
-
-        // ── Preview sections ──────────────────────────────────────────────────────
 
         private void DrawPreviewSections()
         {
@@ -136,8 +129,6 @@ namespace DevWorkbench.Editor
             EndCard();
         }
 
-        // ── Create button ─────────────────────────────────────────────────────────
-
         private void DrawCreateButton()
         {
             var prevBg = GUI.backgroundColor;
@@ -158,45 +149,32 @@ namespace DevWorkbench.Editor
             GUI.backgroundColor = prevBg;
         }
 
-        // ── Field drawing ─────────────────────────────────────────────────────────
-
-        private static string DrawEditableField(string label, string value,
-            ComponentCreatorState.PreviewStatus status)
+        private static string DrawEditableField(string label, string value, ComponentCreatorState.PreviewStatus status)
         {
             var r = EditorGUILayout.GetControlRect(false, 20f);
             DrawFieldLabel(r, label, status);
-            var valueRect = new Rect(r.x + EditorGUIUtility.labelWidth + 2f, r.y,
-                r.width - EditorGUIUtility.labelWidth - 2f, r.height);
+            var valueRect = new Rect(r.x + EditorGUIUtility.labelWidth + 2f, r.y, r.width - EditorGUIUtility.labelWidth - 2f, r.height);
             return EditorGUI.TextField(valueRect, value ?? string.Empty, InputFieldStyle);
         }
 
-        private static void DrawReadonlyField(string label, string value,
-            ComponentCreatorState.PreviewStatus status)
+        private static void DrawReadonlyField(string label, string value, ComponentCreatorState.PreviewStatus status)
         {
             var r = EditorGUILayout.GetControlRect(false, 20f);
             DrawFieldLabel(r, label, status);
-            var valueRect = new Rect(r.x + EditorGUIUtility.labelWidth + 2f, r.y,
-                r.width - EditorGUIUtility.labelWidth - 2f, r.height);
+            var valueRect = new Rect(r.x + EditorGUIUtility.labelWidth + 2f, r.y, r.width - EditorGUIUtility.labelWidth - 2f, r.height);
 
             EditorGUI.DrawRect(valueRect, ValueBg);
             DrawOutline(valueRect, ValueBorder);
-            var textRect = new Rect(valueRect.x + 6f, valueRect.y,
-                valueRect.width - 12f, valueRect.height);
+            var textRect = new Rect(valueRect.x + 6f, valueRect.y, valueRect.width - 12f, valueRect.height);
             EditorGUI.LabelField(textRect, value ?? string.Empty, ValueLabelStyle);
         }
 
-        private static void DrawFieldLabel(Rect fullRect, string label,
-            ComponentCreatorState.PreviewStatus status)
+        private static void DrawFieldLabel(Rect fullRect, string label, ComponentCreatorState.PreviewStatus status)
         {
-            var dotRect = new Rect(
-                fullRect.x + DotLeftPad,
-                fullRect.y + (fullRect.height - DotSize) * 0.5f,
-                DotSize, DotSize);
+            var dotRect = new Rect(fullRect.x + DotLeftPad, fullRect.y + (fullRect.height - DotSize) * 0.5f, DotSize, DotSize);
             DrawDot(dotRect, StatusColor(status));
 
-            var labelRect = new Rect(
-                dotRect.xMax + 6f, fullRect.y,
-                EditorGUIUtility.labelWidth - DotSize - DotLeftPad - 6f, fullRect.height);
+            var labelRect = new Rect(dotRect.xMax + 6f, fullRect.y, EditorGUIUtility.labelWidth - DotSize - DotLeftPad - 6f, fullRect.height);
             EditorGUI.LabelField(labelRect, label);
         }
 
@@ -207,8 +185,6 @@ namespace DevWorkbench.Editor
             ComponentCreatorState.PreviewStatus.Skip => SkipColor,
             _ => NeutralColor,
         };
-
-        // ── Card / chrome ─────────────────────────────────────────────────────────
 
         private static void BeginCard()
         {
@@ -272,8 +248,6 @@ namespace DevWorkbench.Editor
             EditorGUI.DrawRect(new Rect(r.xMax - 1f, r.y, 1f, r.height), c);
         }
 
-        // ── Round dot ─────────────────────────────────────────────────────────────
-
         private static Texture2D _circleTex;
         private static Texture2D CircleTex
         {
@@ -307,14 +281,12 @@ namespace DevWorkbench.Editor
             GUI.color = prev;
         }
 
-        // ── Legend ─────────────────────────────────────────────────────────────────
-
         private static readonly (Color color, string label)[] LegendItems =
         {
-        (CreateColor, "Create"),
-        (WriteColor,  "Write"),
-        (SkipColor,   "Skip"),
-    };
+            (CreateColor, "Create"),
+            (WriteColor, "Write"),
+            (SkipColor, "Skip"),
+        };
 
         private static void DrawLegendRow()
         {

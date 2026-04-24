@@ -15,7 +15,7 @@ MonoBehaviour:
   m_GroupName: ManagerConfig
   m_Data:
     m_SerializedData: []
-  m_GUID: a8453151c2a7001439d39860cdba0f52
+  m_GUID: fba474170957c5c4e9a79f26fd00eae3
   m_SerializeEntries:
   - m_GUID: 216ba10893a91b742a671bb0fb54083b
     m_Address: ManagerConfig/Prefab

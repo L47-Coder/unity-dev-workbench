@@ -62,8 +62,6 @@ namespace DevWorkbench.Editor
         }
     }
 
-    // ── 左侧：组列表面板 ──────────────────────────────────────────────────────────
-
     internal sealed class AddressableGroupPanel
     {
         private readonly ListView _listView = new()
@@ -112,12 +110,7 @@ namespace DevWorkbench.Editor
                 return;
             }
 
-            // 注意：settings.groups 在磁盘上永远是 GUID 字典序（见
-            // AddressableAssetSettings.OnBeforeSerialize），真正的显示顺序来源是
-            // AddressableAssetGroupSortSettings.sortOrder。这里必须按 sortOrder 排序，
-            // 否则重新序列化/重启后就会"回到之前的顺序"。
             _visibleGroups = GetSortedVisibleGroups(settings);
-
             _listView.Draw(rect, _visibleGroups.Select(g => g.Name).ToList());
         }
 
@@ -132,8 +125,7 @@ namespace DevWorkbench.Editor
                     orderIdx[order[i]] = i;
 
             return settings.groups
-                .Where(g => g != null
-                            && !string.Equals(g.Name, "Built In Data", StringComparison.OrdinalIgnoreCase))
+                .Where(g => g != null && !string.Equals(g.Name, "Built In Data", StringComparison.OrdinalIgnoreCase))
                 .OrderBy(g => orderIdx.TryGetValue(g.Guid, out var i) ? i : int.MaxValue)
                 .ThenBy(g => g.Name, StringComparer.Ordinal)
                 .ToList();
@@ -153,10 +145,7 @@ namespace DevWorkbench.Editor
         {
             if (index < 0 || index >= _visibleGroups.Count) return;
             var group = _visibleGroups[index];
-            if (!EditorUtility.DisplayDialog(
-                    "Confirm deletion",
-                    $"Delete group \"{group.Name}\"? Its entries will be removed, but the underlying asset files will not be touched.",
-                    "Delete", "Cancel"))
+            if (!EditorUtility.DisplayDialog("Confirm deletion", $"Delete group \"{group.Name}\"? Its entries will be removed, but the underlying asset files will not be touched.", "Delete", "Cancel"))
                 return;
             var settings = AddressableAssetSettingsDefaultObject.Settings;
             if (settings == null) return;
@@ -185,7 +174,6 @@ namespace DevWorkbench.Editor
             _onDropComplete?.Invoke();
         }
 
-        // from / to 使用 _visibleGroups（过滤后）的索引空间；to 为 List.Insert 语义的插入位。
         private void HandleReorderGroup(int from, int to)
         {
             var settings = AddressableAssetSettingsDefaultObject.Settings;
@@ -203,25 +191,11 @@ namespace DevWorkbench.Editor
             if (!PersistReorderedSortOrder(settings, newVisible))
                 return;
 
-            // 同步修改 settings.groups 的内存顺序：本会话内原生 Groups 窗口 Reload 时
-            // 会直接读它（Reload → SortGroups 先按 TreeViewState.sortOrder 排一遍，
-            // 但 TreeViewState 缓存的 sortOrder 只有在 DeserializeState 时才从磁盘同步；
-            // 把内存物理顺序一起改，可避免原生窗口在缓存未同步时显示不一致）。
-            // 注意：SaveAssets 时 OnBeforeSerialize 会把 settings.groups 重新按 GUID
-            // 字典序排，这里的改动不会持久化——持久化永远走 sortSettings.sortOrder。
             ReorderPhysicalGroups(settings, newVisible);
-
-            // 触发原生 Groups 窗口 Reload+Repaint（GroupMoved 事件它不监听，用
-            // BatchModification 强制刷新）。
             settings.SetDirty(AddressableAssetSettings.ModificationEvent.BatchModification, null, true, true);
         }
 
-        // 把新的 visible 顺序写入 sortSettings.sortOrder。
-        // 保持原 sortOrder 中非 visible 项（例如 Built In Data）的相对位置不变，
-        // 只在它们原来占的"visible 槽位"上按 newVisible 顺序重新填。
-        private static bool PersistReorderedSortOrder(
-            AddressableAssetSettings settings,
-            List<AddressableAssetGroup> newVisible)
+        private static bool PersistReorderedSortOrder(AddressableAssetSettings settings, List<AddressableAssetGroup> newVisible)
         {
             var sortSettings = AddressableAssetGroupSortSettings.GetSettings(settings);
             if (sortSettings == null) return false;
@@ -230,7 +204,6 @@ namespace DevWorkbench.Editor
             var allGuidSet = new HashSet<string>(allGroups.Select(g => g.Guid), StringComparer.Ordinal);
             var visibleGuidSet = new HashSet<string>(newVisible.Select(g => g.Guid), StringComparer.Ordinal);
 
-            // 构造 baseline：先按旧 sortOrder 顺序放入仍存在的 GUID，再把遗漏的按名字补到末尾。
             var baseline = new List<string>();
             var seen = new HashSet<string>(StringComparer.Ordinal);
             foreach (var guid in sortSettings.sortOrder ?? Array.Empty<string>())
@@ -245,7 +218,6 @@ namespace DevWorkbench.Editor
                     baseline.Add(g.Guid);
             }
 
-            // 把 baseline 里 visible 槽位按 newVisible 顺序重新填入。
             var slotIndices = new List<int>(newVisible.Count);
             for (var i = 0; i < baseline.Count; i++)
                 if (visibleGuidSet.Contains(baseline[i]))
@@ -260,18 +232,10 @@ namespace DevWorkbench.Editor
             EditorUtility.SetDirty(sortSettings);
             AssetDatabase.SaveAssetIfDirty(sortSettings);
 
-            // 关键：同步所有已打开的原生 Addressables Groups 窗口的 TreeViewState.sortOrder。
-            // Addressables 原生窗口的 m_TreeState.sortOrder 是一份独立内存缓存，只在
-            // 第一次 InitialiseEntryTree→DeserializeState 时才从磁盘读取；之后它 Reload
-            // 用的就是这份内存缓存。更致命的是 OnDisable 里 SerializeState 会用这份
-            // 缓存覆盖磁盘上的 sortSettings.asset——这就是用户看到的"只改磁盘不够、刷新
-            // 一下又回到旧顺序"的根源。必须把新顺序直接写进它的内存缓存。
             SyncNativeGroupTreeSortOrder(newOrder);
             return true;
         }
 
-        // 反射：遍历所有 AddressableAssetsWindow 实例，把新的 sortOrder 灌进
-        // m_GroupEditor.m_TreeState.sortOrder，并让它的 TreeView 重绘。
         private static void SyncNativeGroupTreeSortOrder(string[] newOrder)
         {
             try
@@ -318,9 +282,7 @@ namespace DevWorkbench.Editor
             }
         }
 
-        private static void ReorderPhysicalGroups(
-            AddressableAssetSettings settings,
-            List<AddressableAssetGroup> newVisible)
+        private static void ReorderPhysicalGroups(AddressableAssetSettings settings, List<AddressableAssetGroup> newVisible)
         {
             var visibleGuidSet = new HashSet<string>(newVisible.Select(g => g.Guid), StringComparer.Ordinal);
             var visibleQueue = new Queue<AddressableAssetGroup>(newVisible);
@@ -338,8 +300,6 @@ namespace DevWorkbench.Editor
         }
     }
 
-    // ── entry 行 DTO ──────────────────────────────────────────────────────────────
-
     internal sealed class AddressableEntryRow
     {
         [TableColumn(Header = "Address")] public string Address;
@@ -347,8 +307,6 @@ namespace DevWorkbench.Editor
         [TableColumn(Header = "Labels")] public string Labels;
         [TableColumn(Visible = false)] public string Guid;
     }
-
-    // ── 右侧：条目表格面板 ────────────────────────────────────────────────────────
 
     internal sealed class AddressableEntryPanel
     {
@@ -368,14 +326,10 @@ namespace DevWorkbench.Editor
         private List<AddressableAssetEntry> _entries = new();
         private string _pressedGuid;
 
-        public AddressableEntryPanel()
-        {
-            _tableView.OnRowChanged<AddressableEntryRow>(SyncEntryFromRow);
-        }
+        public AddressableEntryPanel() => _tableView.OnRowChanged<AddressableEntryRow>(SyncEntryFromRow);
 
         public void SetGroup(AddressableAssetGroup group) => _currentGroup = group;
 
-        // 外部调用：使缓存失效，下次 OnGUI 时重建行数据
         public void Invalidate() => _cachedEntryCount = -1;
 
         public void OnGUI(Rect rect)
@@ -387,7 +341,6 @@ namespace DevWorkbench.Editor
                 return;
             }
 
-            // group 切换或条目数变化时重建行数据
             if (_cachedGroup != group || _cachedEntryCount != group.entries.Count)
             {
                 _cachedGroup = group;
@@ -396,7 +349,6 @@ namespace DevWorkbench.Editor
             }
 
             HandleEntryDragStart(rect);
-
             _tableView.Draw(rect, _rows);
         }
 
@@ -417,7 +369,6 @@ namespace DevWorkbench.Editor
             }
         }
 
-        // 将 DTO 的编辑结果写回真实的 Addressable entry
         private void SyncEntryFromRow(int index, AddressableEntryRow row)
         {
             if (index < 0 || index >= _entries.Count) return;
@@ -434,7 +385,6 @@ namespace DevWorkbench.Editor
                 dirty = true;
             }
 
-            // Labels：逗号分隔字符串 → 差量更新
             var newLabels = row.Labels
                 .Split(',')
                 .Select(l => l.Trim())
@@ -460,7 +410,6 @@ namespace DevWorkbench.Editor
             }
         }
 
-        // 在 TableView 处理事件之前检测拖拽发起（MouseDown 记录，MouseDrag 发起 DnD）
         private void HandleEntryDragStart(Rect rect)
         {
             var e = Event.current;

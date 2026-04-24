@@ -5,8 +5,6 @@ using UnityEditor;
 
 namespace DevWorkbench.Editor
 {
-    // 按项目里活跃的 BaseManager 子类增量同步 ManagerOrderConfig.Entries：
-    // 新类型追加末尾、失效条目丢弃、既有顺序保持。幂等，零变化时不写盘。
     internal static class ManagerOrderSync
     {
         public static void Sync(ManagerOrderConfig config)

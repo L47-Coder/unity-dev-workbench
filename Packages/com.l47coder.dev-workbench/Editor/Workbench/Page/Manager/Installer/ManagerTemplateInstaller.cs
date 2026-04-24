@@ -6,14 +6,9 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    // Manager 模板仓（Runtime~/Templates/Managers）——可选模板包入口。
-    // manifest.json 声明每个 id 的 displayName / description / recommended；
-    // 每个 id 对应一份模板包源，由 ManagerInstallerPage 驱动用户按需安装。
-    // Frame 元结构由 DevWindowFrameworkGuard 独立管理，不经此类。
     internal static class ManagerTemplateInstaller
     {
-        private const string TemplateSourceRelative =
-            "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Managers";
+        private const string TemplateSourceRelative = "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Managers";
         private const string ManifestFileName = "manifest.json";
         private const string ManagerRootAssetPath = "Assets/Game/Manager";
 
@@ -63,7 +58,6 @@ namespace DevWorkbench.Editor
 
         public static void InvalidateManifestCache() => _cachedManifest = null;
 
-        // 以"主脚本存在"判定"已安装"——比只看目录更稳（用户清空文件后应视为需重装）。
         public static bool IsPackageInstalled(string packageId)
         {
             if (string.IsNullOrEmpty(packageId)) return false;
@@ -71,8 +65,6 @@ namespace DevWorkbench.Editor
             return File.Exists(marker);
         }
 
-        // 幂等批量安装。返回新装数量；>0 则写 SessionKeyRerunInitialize，让 reload 后
-        // 的 Guard.Ensure 再跑一轮 IPage.OnWorkbenchOpen 把新 Config 补齐 asset/Addressables/Order。
         public static int InstallPackages(IEnumerable<string> packageIds)
         {
             if (packageIds == null) return 0;
