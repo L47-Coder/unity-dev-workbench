@@ -1,4 +1,3 @@
-#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using UnityEditor;
@@ -7,10 +6,11 @@ using DevWorkbench;
 
 internal sealed class AssetManagerRefresher : IManagerRefresher
 {
-    // 框架内部的配置型 Group，只存储 SO 配置资产，不需要通过 AssetManager 加载。
-    // 注意："Prefab" Group 不在排除列表内——PrefabManager 依赖 AssetManager 来
-    // 加载 Prefab 资产，若排除该 Group 会导致 PrefabManager.LoadPrefabAsync 运行时报错。
-    // 如果项目新增了其他纯配置型 Group，可在此追加。
+    // Framework-internal config groups that only hold SO config assets.
+    // These are loaded directly by the framework and must not be exposed through AssetManager.
+    // Note: "Prefab" is intentionally NOT excluded because PrefabManager loads prefabs via
+    // AssetManager.LoadAssetAsync(prefabAddress); excluding it would break LoadPrefabAsync at runtime.
+    // If your project adds more pure-config groups, append their names here.
     private static readonly HashSet<string> ExcludedGroupNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "Built In Data",
@@ -54,4 +54,3 @@ internal sealed class AssetManagerRefresher : IManagerRefresher
         return result;
     }
 }
-#endif

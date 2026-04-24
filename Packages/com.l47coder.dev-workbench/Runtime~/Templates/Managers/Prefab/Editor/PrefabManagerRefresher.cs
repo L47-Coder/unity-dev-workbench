@@ -1,4 +1,3 @@
-#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,4 +50,3 @@ internal sealed class PrefabManagerRefresher : IManagerRefresher
         return result;
     }
 }
-#endif

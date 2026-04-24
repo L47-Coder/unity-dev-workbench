@@ -210,11 +210,14 @@ namespace DevWorkbench.Editor
         {
             if (string.IsNullOrEmpty(plan.RefresherFilePath)) return;
 
+            var refresherFolder = Path.GetDirectoryName(plan.RefresherFilePath);
+            EnsureFolder(refresherFolder);
+            EnsureRefresherAsmref(refresherFolder);
+
             var abs = Path.GetFullPath(Path.Combine(Application.dataPath, "..", plan.RefresherFilePath));
             if (File.Exists(abs)) return;
 
             var builder = new StringBuilder();
-            builder.AppendLine("#if UNITY_EDITOR");
             builder.AppendLine("using UnityEditor;");
             builder.AppendLine("using DevWorkbench;");
             builder.AppendLine();
@@ -231,10 +234,23 @@ namespace DevWorkbench.Editor
             builder.AppendLine("        AssetDatabase.SaveAssets();");
             builder.AppendLine("    }");
             builder.AppendLine("}");
-            builder.AppendLine("#endif");
 
-            EnsureFolder(Path.GetDirectoryName(plan.RefresherFilePath));
             File.WriteAllText(plan.RefresherFilePath, builder.ToString(), Encoding.UTF8);
+        }
+
+        // Editor 子目录里的 .asmref 把此处代码挂进 Game.Editor 程序集；
+        // 不需要每个 Manager 建独立 asmdef。
+        private static void EnsureRefresherAsmref(string refresherFolderAssetPath)
+        {
+            if (string.IsNullOrEmpty(refresherFolderAssetPath)) return;
+
+            var asmrefPath = $"{refresherFolderAssetPath.Replace('\\', '/')}/Game.Editor.asmref";
+            var abs = Path.GetFullPath(Path.Combine(Application.dataPath, "..", asmrefPath));
+            if (File.Exists(abs)) return;
+
+            File.WriteAllText(abs,
+                "{\n    \"reference\": \"Game.Editor\"\n}\n",
+                Encoding.UTF8);
         }
 
         // ── Leaf marker（与 Component 目录一致）────────────────────────────────────

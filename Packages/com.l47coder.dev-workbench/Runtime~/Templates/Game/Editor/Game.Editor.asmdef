@@ -1,9 +1,11 @@
 {
-    "name": "Game.Managers.Editor",
+    "name": "Game.Editor",
     "rootNamespace": "",
     "references": [
         "DevWorkbench",
         "Game.Managers",
+        "Game.Components",
+        "Game.Frame",
         "UniTask",
         "Unity.Addressables",
         "Unity.Addressables.Editor",
