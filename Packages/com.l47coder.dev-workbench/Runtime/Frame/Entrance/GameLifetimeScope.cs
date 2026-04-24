@@ -22,7 +22,6 @@ namespace DevWorkbench
             builder.RegisterEntryPoint<GameBootstrap>();
         }
 
-        // 缓存值为 null 表示"查过但未找到或有冲突"，下次不重复扫描。
         private static readonly Dictionary<string, Type> _managerTypeCache = new(StringComparer.Ordinal);
 
         private static Type ResolveManagerType(string name)

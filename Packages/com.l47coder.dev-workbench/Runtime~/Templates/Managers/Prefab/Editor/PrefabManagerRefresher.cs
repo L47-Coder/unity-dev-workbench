@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using DevWorkbench;
+using DevWorkbench.Editor;
 
 internal static class PrefabManagerRefresher
 {

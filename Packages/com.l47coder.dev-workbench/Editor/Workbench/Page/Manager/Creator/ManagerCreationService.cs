@@ -218,6 +218,7 @@ namespace DevWorkbench.Editor
             var builder = new StringBuilder();
             builder.AppendLine("using UnityEditor;");
             builder.AppendLine("using DevWorkbench;");
+            builder.AppendLine("using DevWorkbench.Editor;");
             builder.AppendLine();
             builder.AppendLine($"internal static class {plan.ManagerName}ManagerRefresher");
             builder.AppendLine("{");

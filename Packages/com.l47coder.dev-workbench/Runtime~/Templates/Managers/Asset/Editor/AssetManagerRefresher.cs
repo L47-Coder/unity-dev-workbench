@@ -3,22 +3,14 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using DevWorkbench;
+using DevWorkbench.Editor;
 
 internal static class AssetManagerRefresher
 {
     private const string ConfigAssetPath = "Assets/Game/Manager/Asset/AssetManagerConfig.asset";
-
-    // Framework-internal config groups that only hold SO config assets.
-    // These are loaded directly by the framework and must not be exposed through AssetManager.
-    // Note: "Prefab" is intentionally NOT excluded because PrefabManager loads prefabs via
-    // AssetManager.LoadAssetAsync(prefabAddress); excluding it would break LoadPrefabAsync at runtime.
-    // If your project adds more pure-config groups, append their names here.
     private static readonly HashSet<string> ExcludedGroupNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "Built In Data",
-        "ManagerConfig",
-        "ComponentConfig",
-        "Frame",
     };
 
     [EditorSync]

@@ -39,21 +39,17 @@ namespace DevWorkbench
             await gameBoot.OnGameStart();
         }
 
-        // 按 IGameBoot 接口扫描场景里所有 MonoBehaviour；不依赖具体实现类型的符号，
-        // 因此具体 GameBoot 类可以住在 Game.Frame 等上层程序集里。
         private static IGameBoot ResolveGameBoot()
         {
-            var behaviours = UnityEngine.Object.FindObjectsByType<MonoBehaviour>(
-                FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
+            var behaviours = UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
 
             IGameBoot first = null;
             int count = 0;
-            MonoBehaviour firstOwner = null;
 
             foreach (var b in behaviours)
             {
                 if (b is not IGameBoot boot) continue;
-                if (first == null) { first = boot; firstOwner = b; }
+                first ??= boot;
                 count++;
             }
 

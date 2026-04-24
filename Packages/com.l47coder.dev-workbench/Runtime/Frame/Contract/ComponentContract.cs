@@ -6,8 +6,7 @@ namespace DevWorkbench
     public abstract class BaseComponentConfig : ScriptableObject
     {
         protected abstract Dictionary<string, BaseComponentData> GetComponentDataDict();
-        public Dictionary<string, BaseComponentData> ExportComponentDataDict() => GetComponentDataDict();
-        //ToDo
+        internal Dictionary<string, BaseComponentData> ExportComponentDataDict() => GetComponentDataDict();
     }
 
     public abstract class BaseComponentData
