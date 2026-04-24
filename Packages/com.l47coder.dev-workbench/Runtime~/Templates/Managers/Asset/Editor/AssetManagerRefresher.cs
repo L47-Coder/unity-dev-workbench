@@ -4,8 +4,10 @@ using UnityEditor;
 using UnityEditor.AddressableAssets;
 using DevWorkbench;
 
-internal sealed class AssetManagerRefresher : IManagerRefresher
+internal static class AssetManagerRefresher
 {
+    private const string ConfigAssetPath = "Assets/Game/Manager/Asset/AssetManagerConfig.asset";
+
     // Framework-internal config groups that only hold SO config assets.
     // These are loaded directly by the framework and must not be exposed through AssetManager.
     // Note: "Prefab" is intentionally NOT excluded because PrefabManager loads prefabs via
@@ -19,17 +21,19 @@ internal sealed class AssetManagerRefresher : IManagerRefresher
         "Frame",
     };
 
-    public void Refresh(BaseManagerConfig config)
+    [EditorSync]
+    public static void Run()
     {
-        var typed = (AssetManagerConfig)config;
+        var cfg = AssetDatabase.LoadAssetAtPath<AssetManagerConfig>(ConfigAssetPath);
+        if (cfg == null) return;
 
         ManagerRefreshUtil.Sync(
-            typed.EditorConfigs,
+            cfg.EditorConfigs,
             CollectTargets(),
             static item => item.Key,
             static (key, address) => new AssetManagerData { Key = key, AssetAddress = address });
 
-        EditorUtility.SetDirty(typed);
+        EditorUtility.SetDirty(cfg);
         AssetDatabase.SaveAssets();
     }
 

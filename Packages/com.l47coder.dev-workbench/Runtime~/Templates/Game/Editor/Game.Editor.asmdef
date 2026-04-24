@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "DevWorkbench",
+        "DevWorkbench.Editor",
         "Game.Managers",
         "Game.Components",
         "Game.Frame",

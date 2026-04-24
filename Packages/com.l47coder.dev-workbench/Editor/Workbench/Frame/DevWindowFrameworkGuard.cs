@@ -31,7 +31,7 @@ namespace DevWorkbench.Editor
         public static event Action EnsureCompleted;
 
         private const string GameRootAssetPath = "Assets/Game";
-        private const string GameBootAssetPath = FrameAssetPaths.Root + "/GameBoot.cs";
+        private const string GameBootAssetPath = GameFramePaths.Root + "/GameBoot.cs";
 
         // 老版本把 GameBoot.cs 投在 Game.Managers 下；升级走 MoveAsset 保住 GUID。
         private const string LegacyGameBootAssetPath = GameRootAssetPath + "/Manager/GameBoot.cs";
@@ -42,9 +42,9 @@ namespace DevWorkbench.Editor
         private const string FrameGroupName = "Frame";
 
         private static readonly string ManagerOrderAddress =
-            $"{FrameGroupName}/{Path.GetFileNameWithoutExtension(FrameAssetPaths.ManagerOrder)}";
+            $"{FrameGroupName}/{Path.GetFileNameWithoutExtension(GameFramePaths.ManagerOrder)}";
         private static readonly string ComponentOrderAddress =
-            $"{FrameGroupName}/{Path.GetFileNameWithoutExtension(FrameAssetPaths.ComponentOrder)}";
+            $"{FrameGroupName}/{Path.GetFileNameWithoutExtension(GameFramePaths.ComponentOrder)}";
 
         static DevWindowFrameworkGuard()
         {
@@ -73,8 +73,8 @@ namespace DevWorkbench.Editor
                 try
                 {
                     EnsureAddressablesInitialized();
-                    EnsureOrderAsset<ManagerOrderConfig>(FrameAssetPaths.ManagerOrder, ManagerOrderAddress);
-                    EnsureOrderAsset<ComponentOrderConfig>(FrameAssetPaths.ComponentOrder, ComponentOrderAddress);
+                    EnsureOrderAsset<ManagerOrderConfig>(GameFramePaths.ManagerOrder, ManagerOrderAddress);
+                    EnsureOrderAsset<ComponentOrderConfig>(GameFramePaths.ComponentOrder, ComponentOrderAddress);
                     EnsurePageOrderAsset();
                 }
                 finally
@@ -128,7 +128,7 @@ namespace DevWorkbench.Editor
             if (File.Exists(AssetPathUtil.ToAbsolute(GameBootAssetPath))) return false;
             if (!File.Exists(AssetPathUtil.ToAbsolute(LegacyGameBootAssetPath))) return false;
 
-            AssetPathUtil.EnsureFolder(FrameAssetPaths.Root);
+            AssetPathUtil.EnsureFolder(GameFramePaths.Root);
 
             var error = AssetDatabase.MoveAsset(LegacyGameBootAssetPath, GameBootAssetPath);
             if (string.IsNullOrEmpty(error))
@@ -158,11 +158,11 @@ namespace DevWorkbench.Editor
         // PageOrder 仅供 DevWindow 菜单/标签排序，editor-only，不挂 Addressables。
         private static void EnsurePageOrderAsset()
         {
-            if (AssetDatabase.LoadAssetAtPath<PageOrder>(FrameAssetPaths.PageOrder) != null) return;
+            if (AssetDatabase.LoadAssetAtPath<PageOrder>(GameFramePaths.PageOrder) != null) return;
 
-            AssetPathUtil.EnsureFolder(FrameAssetPaths.Root);
+            AssetPathUtil.EnsureFolder(GameFramePaths.Root);
             var asset = ScriptableObject.CreateInstance<PageOrder>();
-            AssetDatabase.CreateAsset(asset, FrameAssetPaths.PageOrder);
+            AssetDatabase.CreateAsset(asset, GameFramePaths.PageOrder);
             AssetDatabase.SaveAssets();
         }
 
@@ -171,7 +171,7 @@ namespace DevWorkbench.Editor
             var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
             if (asset == null)
             {
-                AssetPathUtil.EnsureFolder(FrameAssetPaths.Root);
+                AssetPathUtil.EnsureFolder(GameFramePaths.Root);
                 asset = ScriptableObject.CreateInstance<T>();
                 AssetDatabase.CreateAsset(asset, assetPath);
                 AssetDatabase.SaveAssets();

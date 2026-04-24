@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -31,9 +32,16 @@ namespace DevWorkbench
     }
 
 #if UNITY_EDITOR
-    public interface IManagerRefresher
+    /// <summary>
+    /// 标记一段"编辑器侧一次性同步逻辑"。被标记的方法必须是 public / internal static 无参，
+    /// Framework/Sync 页的 Sync Runtime 按钮会反射枚举所有带此标记的方法并按 Order 升序逐一调用。
+    /// 每个 Manager 的 Refresher、或任何 game-level 的编辑器对齐脚本都可以挂这个特性。
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+    public sealed class EditorSyncAttribute : Attribute
     {
-        void Refresh(BaseManagerConfig config);
+        public int Order { get; }
+        public EditorSyncAttribute(int order = 0) { Order = order; }
     }
 #endif
 }

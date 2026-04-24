@@ -54,9 +54,10 @@ namespace DevWorkbench.Editor
         public static int RunSync(string reason)
         {
             DevWindowFrameworkGuard.Ensure();
-            var refreshed = ManagerConfigInstaller.RunAllRefreshers();
-            Debug.Log($"[DevWorkbench] Runtime synced ({reason}). Refreshers executed: {refreshed}.");
-            return refreshed;
+            var executed = EditorSyncRunner.RunAll();
+            
+            Debug.Log($"[DevWorkbench] Runtime synced ({reason}). EditorSync methods executed: {executed}.");
+            return executed;
         }
     }
 }

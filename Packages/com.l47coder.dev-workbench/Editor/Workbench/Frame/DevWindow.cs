@@ -104,7 +104,7 @@ namespace DevWorkbench.Editor
 
         private void TryBuildPageTree()
         {
-            _pageOrder = AssetDatabase.LoadAssetAtPath<PageOrder>(FrameAssetPaths.PageOrder);
+            _pageOrder = AssetDatabase.LoadAssetAtPath<PageOrder>(GameFramePaths.PageOrder);
             if (_pageOrder == null) return;
 
             BuildPageTree();

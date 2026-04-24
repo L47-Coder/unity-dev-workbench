@@ -40,7 +40,7 @@ namespace DevWorkbench.Editor
         {
             ManagerConfigInstaller.EnsureAllRegistered();
 
-            var order = AssetDatabase.LoadAssetAtPath<ManagerOrderConfig>(FrameAssetPaths.ManagerOrder);
+            var order = AssetDatabase.LoadAssetAtPath<ManagerOrderConfig>(GameFramePaths.ManagerOrder);
             if (order != null) ManagerOrderSync.Sync(order);
         }
 

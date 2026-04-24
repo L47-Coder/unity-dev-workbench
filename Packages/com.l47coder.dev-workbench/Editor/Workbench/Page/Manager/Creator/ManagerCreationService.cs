@@ -217,20 +217,27 @@ namespace DevWorkbench.Editor
             var abs = Path.GetFullPath(Path.Combine(Application.dataPath, "..", plan.RefresherFilePath));
             if (File.Exists(abs)) return;
 
+            var configAssetPath = plan.AssetFilePath.Replace('\\', '/');
+
             var builder = new StringBuilder();
             builder.AppendLine("using UnityEditor;");
             builder.AppendLine("using DevWorkbench;");
             builder.AppendLine();
-            builder.AppendLine($"internal sealed class {plan.ManagerName}ManagerRefresher : IManagerRefresher");
+            builder.AppendLine($"internal static class {plan.ManagerName}ManagerRefresher");
             builder.AppendLine("{");
-            builder.AppendLine("    public void Refresh(BaseManagerConfig config)");
+            builder.AppendLine($"    private const string ConfigAssetPath = \"{configAssetPath}\";");
+            builder.AppendLine();
+            builder.AppendLine("    [EditorSync]");
+            builder.AppendLine("    public static void Run()");
             builder.AppendLine("    {");
-            builder.AppendLine($"        var typed = ({plan.ConfigClassName})config;");
-            builder.AppendLine("        var list = typed.EditorConfigs;");
+            builder.AppendLine($"        var cfg = AssetDatabase.LoadAssetAtPath<{plan.ConfigClassName}>(ConfigAssetPath);");
+            builder.AppendLine("        if (cfg == null) return;");
+            builder.AppendLine();
+            builder.AppendLine("        var list = cfg.EditorConfigs;");
             builder.AppendLine();
             builder.AppendLine("        // TODO: implement the custom refresh logic here.");
             builder.AppendLine();
-            builder.AppendLine("        EditorUtility.SetDirty(typed);");
+            builder.AppendLine("        EditorUtility.SetDirty(cfg);");
             builder.AppendLine("        AssetDatabase.SaveAssets();");
             builder.AppendLine("    }");
             builder.AppendLine("}");

@@ -5,22 +5,25 @@ using UnityEditor;
 using UnityEditor.AddressableAssets;
 using DevWorkbench;
 
-internal sealed class PrefabManagerRefresher : IManagerRefresher
+internal static class PrefabManagerRefresher
 {
+    private const string ConfigAssetPath = "Assets/Game/Manager/Prefab/PrefabManagerConfig.asset";
     private const string PrefabGroupName = "Prefab";
     private const string PrefabAddressPrefix = "Prefab/";
 
-    public void Refresh(BaseManagerConfig config)
+    [EditorSync]
+    public static void Run()
     {
-        var typed = (PrefabManagerConfig)config;
+        var cfg = AssetDatabase.LoadAssetAtPath<PrefabManagerConfig>(ConfigAssetPath);
+        if (cfg == null) return;
 
         ManagerRefreshUtil.Sync(
-            typed.EditorConfigs,
+            cfg.EditorConfigs,
             CollectTargets(),
             static item => item.Key,
             static (key, address) => new PrefabManagerData { Key = key, PrefabAddress = address });
 
-        EditorUtility.SetDirty(typed);
+        EditorUtility.SetDirty(cfg);
         AssetDatabase.SaveAssets();
     }
 

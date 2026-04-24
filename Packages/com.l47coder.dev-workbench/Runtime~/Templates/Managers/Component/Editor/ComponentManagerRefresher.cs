@@ -5,21 +5,24 @@ using UnityEditor;
 using UnityEditor.AddressableAssets;
 using DevWorkbench;
 
-internal sealed class ComponentManagerRefresher : IManagerRefresher
+internal static class ComponentManagerRefresher
 {
+    private const string ConfigAssetPath = "Assets/Game/Manager/Component/ComponentManagerConfig.asset";
     private const string TargetGroupName = "ComponentConfig";
 
-    public void Refresh(BaseManagerConfig config)
+    [EditorSync]
+    public static void Run()
     {
-        var typed = (ComponentManagerConfig)config;
+        var cfg = AssetDatabase.LoadAssetAtPath<ComponentManagerConfig>(ConfigAssetPath);
+        if (cfg == null) return;
 
         ManagerRefreshUtil.Sync(
-            typed.EditorConfigs,
+            cfg.EditorConfigs,
             CollectTargets(),
             static item => item.Key,
             static (key, address) => new ComponentManagerData { Key = key, ComponentConfigAddress = address });
 
-        EditorUtility.SetDirty(typed);
+        EditorUtility.SetDirty(cfg);
         AssetDatabase.SaveAssets();
     }
 

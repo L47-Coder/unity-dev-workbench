@@ -7,7 +7,7 @@ using UnityEngine;
 namespace DevWorkbench.Editor
 {
     // 批量确保每个 BaseManagerConfig 子类对应的 .asset 存在、挂在 "ManagerConfig" 组、
-    // 地址为 "ManagerConfig/<Name>"；并提供批跑 IManagerRefresher 的入口。
+    // 地址为 "ManagerConfig/<Name>"。刷新数据的职责已拆走：见 EditorSyncRunner + [EditorSync]。
     internal static class ManagerConfigInstaller
     {
         private const string ManagerRootAssetPath = "Assets/Game/Manager";
@@ -75,32 +75,6 @@ namespace DevWorkbench.Editor
             return changed;
         }
 
-        public static int RunAllRefreshers()
-        {
-            var executed = 0;
-            foreach (var info in Collect())
-            {
-                if (!info.AssetExists) continue;
-
-                var asset = AssetDatabase.LoadAssetAtPath<BaseManagerConfig>(info.AssetPath);
-                if (asset == null) continue;
-
-                var refresher = ResolveRefresher(info);
-                if (refresher == null) continue;
-
-                try
-                {
-                    refresher.Refresh(asset);
-                    executed++;
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"[ManagerConfigInstaller] Running {info.ManagerName}ManagerRefresher failed: {ex}");
-                }
-            }
-            return executed;
-        }
-
         private static IEnumerable<Type> EnumerateConcreteConfigTypes()
         {
             foreach (var t in TypeCache.GetTypesDerivedFrom<BaseManagerConfig>())
@@ -119,19 +93,6 @@ namespace DevWorkbench.Editor
             if (!string.IsNullOrEmpty(found)) return found;
 
             return $"{ManagerRootAssetPath}/{managerName}/{fileName}";
-        }
-
-        private static IManagerRefresher ResolveRefresher(ConfigEntryInfo info)
-        {
-            var refresherType = ManagerRefresherLocator.FindRefresherType(info.ManagerName, info.AssetPath);
-            if (refresherType == null) return null;
-
-            try { return (IManagerRefresher)Activator.CreateInstance(refresherType); }
-            catch (Exception ex)
-            {
-                Debug.LogWarning($"[ManagerConfigInstaller] Failed to instantiate {refresherType.Name}: {ex.Message}");
-                return null;
-            }
         }
     }
 }

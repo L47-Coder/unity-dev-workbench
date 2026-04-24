@@ -40,7 +40,7 @@ namespace DevWorkbench.Editor
         {
             ComponentConfigInstaller.EnsureAllRegistered();
 
-            var order = AssetDatabase.LoadAssetAtPath<ComponentOrderConfig>(FrameAssetPaths.ComponentOrder);
+            var order = AssetDatabase.LoadAssetAtPath<ComponentOrderConfig>(GameFramePaths.ComponentOrder);
             if (order != null) ComponentOrderSync.Sync(order);
         }
 

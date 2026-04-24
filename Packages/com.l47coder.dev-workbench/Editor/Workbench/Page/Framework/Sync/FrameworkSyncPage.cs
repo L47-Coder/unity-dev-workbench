@@ -6,9 +6,10 @@ namespace DevWorkbench.Editor
     // Framework / Sync —— 运行前手动"把所有东西对齐"的入口。
     //
     // 相对于 DevWindow.Open 自动跑的 DevWindowFrameworkGuard.Ensure()，这里多一步
-    // RunAllRefreshers：Refresher 会覆盖每个 ManagerConfig 的 _configs 列表内容，属于
-    // "可能破坏用户在 Inspector 里手填数据"的集体同步。所以不放进自动流程，只由这个
-    // 页面上的按钮 / 用户自选的自动触发时机显式触发。
+    // EditorSyncRunner.RunAll：枚举所有 [EditorSync] 标记的静态方法并逐一调用。
+    // 典型的 Refresher 会覆盖 ManagerConfig 的 _configs 列表内容，属于"可能破坏用户
+    // 在 Inspector 里手填数据"的集体同步，故不放进自动流程，只由这个页面上的按钮
+    // / 用户自选的自动触发时机显式触发。
     //
     // 自动触发时机的配置和挂钩在 FrameworkSyncSettings；这里只负责 UI。
     internal sealed class FrameworkSyncPage : IPage
@@ -67,7 +68,7 @@ namespace DevWorkbench.Editor
             BeginCard();
             DrawHeader("Sync Runtime");
             GUILayout.Label(
-                "Ensure the framework's scaffolding assets exist and run every IManagerRefresher once. "
+                "Ensure the framework's scaffolding assets exist and run every [EditorSync] method once. "
                 + "Refreshers overwrite each ManagerConfig's _configs list, so this is kept behind an "
                 + "explicit trigger instead of running on window open.",
                 IntroStyle);

@@ -6,8 +6,8 @@ using System.Linq;
 namespace DevWorkbench
 {
     /// <summary>
-    /// Editor-only helpers used by <see cref="IManagerRefresher"/>
-    /// implementations to reconcile a serialised list with a set of target keys.
+    /// Editor-only helpers used by <see cref="EditorSyncAttribute"/>-marked
+    /// methods to reconcile a serialised list with a set of target keys.
     /// Entries whose keys are no longer present are removed; entries for
     /// newly-seen keys are produced through a user-supplied factory.
     /// </summary>

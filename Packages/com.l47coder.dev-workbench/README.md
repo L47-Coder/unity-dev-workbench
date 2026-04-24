@@ -95,8 +95,8 @@ pick it up automatically as an embedded package.
 4. Use the *Manager&nbsp;/&nbsp;Creator* or *Component&nbsp;/&nbsp;Creator*
    tab to scaffold your own Manager / Component. Addressable entries are
    kept up to date automatically; use *Framework&nbsp;/&nbsp;Sync* to run
-   every `IManagerRefresher` on demand (or configure it to run on window
-   close / before Play Mode).
+   every `[EditorSync]`-marked method on demand (or configure it to run on
+   window close / before Play Mode).
 5. In your boot scene, drop the generated `GameBoot` MonoBehaviour onto any
    GameObject and override `OnGameStart` to wire up gameplay. A
    `GameLifetimeScope` is spawned automatically by the framework.

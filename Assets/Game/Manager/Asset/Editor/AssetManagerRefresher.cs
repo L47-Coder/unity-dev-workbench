@@ -4,23 +4,15 @@ using UnityEditor;
 using UnityEditor.AddressableAssets;
 using DevWorkbench;
 
-internal static partial class a
+internal static class AssetManagerRefresher
 {
-    public static partial void A() { }
-}
+    private const string ConfigAssetPath = "Assets/Game/Manager/Asset/AssetManagerConfig.asset";
 
-internal static partial class a
-{
-
-}
-internal static partial class a
-{
-
-}
-
-
-internal sealed class AssetManagerRefresher : IManagerRefresher
-{
+    // Framework-internal config groups that only hold SO config assets.
+    // These are loaded directly by the framework and must not be exposed through AssetManager.
+    // Note: "Prefab" is intentionally NOT excluded because PrefabManager loads prefabs via
+    // AssetManager.LoadAssetAsync(prefabAddress); excluding it would break LoadPrefabAsync at runtime.
+    // If your project adds more pure-config groups, append their names here.
     private static readonly HashSet<string> ExcludedGroupNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "Built In Data",
@@ -29,17 +21,19 @@ internal sealed class AssetManagerRefresher : IManagerRefresher
         "Frame",
     };
 
-    public void Refresh(BaseManagerConfig config)
+    [EditorSync]
+    public static void Run()
     {
-        var typed = (AssetManagerConfig)config;
+        var cfg = AssetDatabase.LoadAssetAtPath<AssetManagerConfig>(ConfigAssetPath);
+        if (cfg == null) return;
 
         ManagerRefreshUtil.Sync(
-            typed.EditorConfigs,
+            cfg.EditorConfigs,
             CollectTargets(),
             static item => item.Key,
             static (key, address) => new AssetManagerData { Key = key, AssetAddress = address });
 
-        EditorUtility.SetDirty(typed);
+        EditorUtility.SetDirty(cfg);
         AssetDatabase.SaveAssets();
     }
 

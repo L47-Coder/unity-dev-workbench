@@ -5,9 +5,6 @@ using UnityEditor;
 
 namespace DevWorkbench.Editor
 {
-    // 资源导入完成后自动触发一次 IDE 项目文件（.sln / .csproj）重写，
-    // 避免新建脚本 / asmdef 后 Cursor 等外部 IDE 读到旧的 csproj 报
-    // "未能找到类型或命名空间名" 的假阳性错误。
     internal sealed class ProjectFilesAutoSync : AssetPostprocessor
     {
         private static bool _pending;
