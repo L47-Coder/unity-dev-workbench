@@ -8,7 +8,7 @@ namespace DevWorkbench.Editor
 {
     internal sealed class ComponentCreatorState
     {
-        public const string RootAssetPath = "Assets/Game/Component";
+        public const string RootAssetPath = GameProjectPaths.ComponentRoot;
         public const string AddressableGroupName = "ComponentConfig";
         public const string GeneratedFolderName = "Generated";
 

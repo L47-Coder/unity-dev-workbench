@@ -170,7 +170,7 @@ namespace DevWorkbench.Editor
                 GUILayout.Space(6f);
                 EditorGUILayout.HelpBox(
                     "No built-in Manager templates ship with this package version. "
-                    + "Use the Creator tab to scaffold your own Manager classes under Assets/Game/Manager/.",
+                    + $"Use the Creator tab to scaffold your own Manager classes under {GameProjectPaths.ManagerRoot}/.",
                     MessageType.Info);
             }
             EndCard();

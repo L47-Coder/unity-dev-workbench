@@ -8,9 +8,9 @@ namespace DevWorkbench.Editor
 {
     internal static class ManagerTemplateInstaller
     {
-        private const string TemplateSourceRelative = "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Managers";
+        private const string TemplateSourceRelative = DevWorkbenchPackageInfo.ManagerTemplatesFolder;
         private const string ManifestFileName = "manifest.json";
-        private const string ManagerRootAssetPath = "Assets/Game/Manager";
+        private const string ManagerRootAssetPath = GameProjectPaths.ManagerRoot;
 
         [Serializable]
         public sealed class PackageInfo

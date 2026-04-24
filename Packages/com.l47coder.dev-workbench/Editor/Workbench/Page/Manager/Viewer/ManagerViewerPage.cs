@@ -69,7 +69,7 @@ namespace DevWorkbench.Editor
             _treeView.OnAddClicked(() => _treeView.CreateFolderAtSelected());
         }
 
-        public void OnGUI(Rect rect) => _treeView.Draw(rect, "Assets/Game/Manager");
+        public void OnGUI(Rect rect) => _treeView.Draw(rect, GameProjectPaths.ManagerRoot);
     }
 
     internal sealed class ManagerRightPanel

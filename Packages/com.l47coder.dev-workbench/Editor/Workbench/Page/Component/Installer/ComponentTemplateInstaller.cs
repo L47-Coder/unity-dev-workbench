@@ -8,9 +8,9 @@ namespace DevWorkbench.Editor
 {
     internal static class ComponentTemplateInstaller
     {
-        private const string TemplateSourceRelative = "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Components";
+        private const string TemplateSourceRelative = DevWorkbenchPackageInfo.ComponentTemplatesFolder;
         private const string ManifestFileName = "manifest.json";
-        private const string ComponentRootAssetPath = "Assets/Game/Component";
+        private const string ComponentRootAssetPath = GameProjectPaths.ComponentRoot;
 
         [Serializable]
         public sealed class PackageInfo

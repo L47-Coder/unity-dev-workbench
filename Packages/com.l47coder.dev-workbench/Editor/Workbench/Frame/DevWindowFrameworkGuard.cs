@@ -12,10 +12,9 @@ namespace DevWorkbench.Editor
     internal static class DevWindowFrameworkGuard
     {
         public const string SessionKeyRerunInitialize = "DevWorkbench.FrameworkGuard.RerunInitialize";
-        private const string GameRootAssetPath = "Assets/Game";
         private const string GameBootAssetPath = GameFramePaths.Root + "/GameBoot.cs";
-        private const string LegacyGameBootAssetPath = GameRootAssetPath + "/Manager/GameBoot.cs";
-        private const string GameSkeletonSourceRelative = "Packages/com.l47coder.dev-workbench/Runtime~/Templates/Game";
+        private const string LegacyGameBootAssetPath = GameProjectPaths.ManagerRoot + "/GameBoot.cs";
+        private const string GameSkeletonSourceRelative = DevWorkbenchPackageInfo.GameSkeletonTemplateFolder;
         private const string FrameGroupName = "Frame";
         private static readonly string ManagerOrderAddress = $"{FrameGroupName}/{Path.GetFileNameWithoutExtension(GameFramePaths.ManagerOrder)}";
         private static readonly string ComponentOrderAddress = $"{FrameGroupName}/{Path.GetFileNameWithoutExtension(GameFramePaths.ComponentOrder)}";
@@ -77,7 +76,7 @@ namespace DevWorkbench.Editor
             int copied;
             try
             {
-                copied = AssetFolderCopier.Import(GameSkeletonSourceRelative, GameRootAssetPath);
+                copied = AssetFolderCopier.Import(GameSkeletonSourceRelative, GameProjectPaths.GameRoot);
             }
             catch (FileNotFoundException)
             {

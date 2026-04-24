@@ -8,7 +8,7 @@ namespace DevWorkbench.Editor
 {
     internal sealed class ManagerCreatorState
     {
-        public const string RootAssetPath = "Assets/Game/Manager";
+        public const string RootAssetPath = GameProjectPaths.ManagerRoot;
         public const string AddressableGroupName = "ManagerConfig";
         public const string GeneratedFolderName = "Generated";
 
