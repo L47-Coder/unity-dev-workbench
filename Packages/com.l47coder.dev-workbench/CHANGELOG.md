@@ -5,6 +5,86 @@ All notable changes to this package will be documented in this file.
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0-preview.1] &mdash; 2026-04-25
+
+Fourth preview, and the first pass of the "road to 1.0" architecture work.
+This release sharpens the package's extension surface (pages, contributions,
+config lists) and collapses the scattered `Assets/Game` / package-id string
+literals into a single source of truth, so later releases can layer a
+user-authored settings asset on top without touching call sites.
+
+### Added
+
+- **`IPage` is now `public`** (`Editor/Workbench/Frame/IPage.cs`). Any Editor
+  assembly that references `DevWorkbench.Editor` can contribute a new tab to
+  the Dev Workbench window just by implementing `IPage`; `TypeCache`
+  discovery picks it up automatically. Full XML docs describe the contract
+  and the expected no-op default implementations.
+- **`IWorkbenchContribution`** (`Editor/Workbench/Frame/IWorkbenchContribution.cs`).
+  A dedicated, single-method interface for project-level `ensure` work
+  (asset registration, order-asset sync, &hellip;). `DevWindowFrameworkGuard`
+  now fans out to `IWorkbenchContribution` implementations instead of every
+  `IPage`, so adding a page no longer implicitly subscribes it to the global
+  first-open pass.
+- **`IConfigListOwner`** (`Runtime/Frame/Contract/IConfigListOwner.cs`).
+  Explicit contract that lets tooling read a config asset's underlying list
+  (`GetConfigList()` / `ConfigItemType`) without reflecting into a private
+  `_configs` backing field. Generated Manager / Component config partials
+  now implement this interface.
+- **Centralized path constants**
+  (`Editor/Workbench/Frame/GameProjectPaths.cs`,
+  `Editor/Workbench/Frame/DevWorkbenchPackageInfo.cs`). Single source of
+  truth for `Assets/Game{,/Frame,/Manager,/Component}` and
+  `Packages/com.l47coder.dev-workbench/Runtime~/Templates/*`. All Creators,
+  Installers, Viewers, Guards and user-visible hints resolve through these
+  constants.
+- **`ManagerWorkbenchContribution` / `ComponentWorkbenchContribution`**
+  (`Editor/Workbench/Page/Manager/`, `Editor/Workbench/Page/Component/`).
+  Host the subsystem-level ensure work (`EnsureAllRegistered` + `OrderSync`)
+  that previously lived on the Viewer pages' `OnWorkbenchOpen`.
+
+### Changed
+
+- **`BaseManagerConfig` / `BaseComponentConfig` viewers** no longer use
+  `BindingFlags.NonPublic` reflection to access `_configs`. They cast to
+  `IConfigListOwner` and read the list through its public surface, so the
+  serialized field name is free to change without breaking the workbench.
+- **Manager / Component code generation** (`ManagerCreationService`,
+  `ComponentCreationService`) emits config partials that implement
+  `IConfigListOwner` out of the box, alongside the existing
+  `EditorConfigs` editor-only helper.
+- **`DevWindowFrameworkGuard`** renamed its internal fan-out step from
+  `RunAllPageContributions` to `RunAllContributions` and switched its
+  `TypeCache` scan from `IPage` to `IWorkbenchContribution`. Exception logs
+  now read `&lt;Type&gt;.Contribute threw: &hellip;`.
+
+### Removed
+
+- **`IPage.OnWorkbenchOpen` default method.** Pages are now pure UI.
+  Project-level bootstrapping must be expressed as an
+  `IWorkbenchContribution`. Because `IPage` only became `public` in this
+  same release, no shipped API surface is broken by this removal.
+- **Scattered `"Assets/Game*"` and `"Packages/com.l47coder.dev-workbench/&hellip;"`
+  string literals** across Creators, Installers, Viewers and the framework
+  guard &mdash; all replaced by constants exported from `GameProjectPaths`
+  and `DevWorkbenchPackageInfo`.
+
+### Notes
+
+- `Runtime~/Templates/Managers/*/Editor/*Refresher.cs` still carry
+  hard-coded `Assets/Game/Manager/&hellip;/*Config.asset` paths. Those files
+  are copied into the user's project verbatim, so parameterising them needs
+  a `DevWorkbenchSettings` ScriptableObject + template placeholders and is
+  explicitly deferred to the next release.
+- Upgrading from `0.1.0-preview.3`:
+  - If you authored a page that implemented `IPage.OnWorkbenchOpen`, move
+    the body into a small `IWorkbenchContribution` class. `IPage` no longer
+    exposes the method.
+  - If you built tooling that reflected into `_configs`, consume
+    `IConfigListOwner` instead; generated configs already implement it and
+    existing `BaseManagerConfig` / `BaseComponentConfig` subclasses can opt
+    in by adding the interface to their class declaration.
+
 ## [0.1.0-preview.3] &mdash; 2026-04-23
 
 Third preview. Introduces a dedicated `Game.Frame` assembly as the top-most
