@@ -7,17 +7,6 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    internal interface IPage
-    {
-        string GroupTitle { get; }
-        string TabTitle { get; }
-        void OnWorkbenchOpen() { }
-        void OnFirstEnter() { }
-        void OnEnter() { }
-        void OnGUI(Rect rect) { }
-        void OnLeave() { }
-    }
-
     internal sealed class DevWindow : EditorWindow
     {
         private const float StartWidth = 1200f;
