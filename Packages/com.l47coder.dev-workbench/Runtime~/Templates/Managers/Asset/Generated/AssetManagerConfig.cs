@@ -3,6 +3,7 @@
 // </auto-generated>
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -15,10 +16,13 @@ public sealed partial class AssetManagerConfig
 }
 #endif
 
-public sealed partial class AssetManagerConfig : BaseManagerConfig
+public sealed partial class AssetManagerConfig : BaseManagerConfig, IConfigListOwner
 {
     [SerializeField]
     private List<AssetManagerData> _configs = new();
+
+    Type IConfigListOwner.ConfigItemType => typeof(AssetManagerData);
+    IList IConfigListOwner.GetConfigList() => _configs;
 
     protected override Dictionary<string, BaseManagerData> GetManagerDataDict() => _configs
         .Where(static c => !string.IsNullOrWhiteSpace(c.Key))

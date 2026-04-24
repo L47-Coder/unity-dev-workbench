@@ -146,13 +146,12 @@ namespace DevWorkbench.Editor
                 _tableView = null;
                 _cachedRefresherScript = null;
 
-                if (_cachedAsset != null)
+                if (_cachedAsset is IConfigListOwner owner)
                 {
-                    var field = _cachedAsset.GetType().GetField("_configs", BindingFlags.Instance | BindingFlags.NonPublic);
-                    if (field != null && field.FieldType.IsGenericType)
+                    _cachedList = owner.GetConfigList();
+                    var elemType = owner.ConfigItemType;
+                    if (_cachedList != null && elemType != null)
                     {
-                        _cachedList = field.GetValue(_cachedAsset);
-                        var elemType = field.FieldType.GetGenericArguments()[0];
                         _tableView = new TableView();
                         _cachedDrawMethod = typeof(TableView).GetMethod(nameof(TableView.Draw)).MakeGenericMethod(elemType);
 
