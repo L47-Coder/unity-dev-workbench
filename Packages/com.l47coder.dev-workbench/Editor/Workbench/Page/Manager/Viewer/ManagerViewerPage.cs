@@ -72,7 +72,7 @@ namespace DevWorkbench.Editor
 
         public void OnFirstEnter(Action<string> onSelected)
         {
-            _treeView.IgnoredNames = new() { "**/Generated", "**/*Game.Managers.InternalsVisibleTo.cs", "**/*.asmdef" };
+            _treeView.IgnoredNames = new() { "**/Generated", "**/Editor", "**/*.InternalsVisibleTo.cs", "**/*.asmdef" };
             _treeView.OnNodeSelected(onSelected);
             _treeView.OnAddClicked(() => _treeView.CreateFolderAtSelected());
         }
