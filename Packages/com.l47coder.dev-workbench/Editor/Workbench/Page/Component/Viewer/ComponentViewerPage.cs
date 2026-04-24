@@ -21,13 +21,6 @@ namespace DevWorkbench.Editor
         private readonly ComponentRightPanel _rightPanel = new();
         private float _splitterX = LeftPanelStart;
         private bool _dragging;
-        public void OnWorkbenchOpen()
-        {
-            ComponentConfigInstaller.EnsureAllRegistered();
-
-            var order = AssetDatabase.LoadAssetAtPath<ComponentOrderConfig>(GameFramePaths.ComponentOrder);
-            if (order != null) ComponentOrderSync.Sync(order);
-        }
 
         public void OnFirstEnter() => _leftPanel.OnFirstEnter(_rightPanel.SetPath);
 

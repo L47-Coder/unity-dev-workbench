@@ -61,7 +61,7 @@ namespace DevWorkbench.Editor
                 EditorUtility.DisplayDialog("Dev Workbench", $"Framework auto-initialise failed:\n{ex.Message}\n\nSee Console for details.", "OK");
             }
 
-            RunAllPageContributions();
+            RunAllContributions();
 
             try { EnsureCompleted?.Invoke(); }
             catch (Exception ex)
@@ -169,26 +169,26 @@ namespace DevWorkbench.Editor
             AssetDatabase.SaveAssets();
         }
 
-        private static void RunAllPageContributions()
+        private static void RunAllContributions()
         {
-            foreach (var type in TypeCache.GetTypesDerivedFrom<IPage>())
+            foreach (var type in TypeCache.GetTypesDerivedFrom<IWorkbenchContribution>())
             {
                 if (type.IsAbstract || type.IsInterface) continue;
 
-                IPage page;
-                try { page = Activator.CreateInstance(type) as IPage; }
+                IWorkbenchContribution contribution;
+                try { contribution = Activator.CreateInstance(type) as IWorkbenchContribution; }
                 catch (Exception ex)
                 {
                     Debug.LogWarning($"[DevWindowFrameworkGuard] Failed to instantiate {type.FullName}: {ex.Message}");
                     continue;
                 }
 
-                if (page == null) continue;
+                if (contribution == null) continue;
 
-                try { page.OnWorkbenchOpen(); }
+                try { contribution.Contribute(); }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"[DevWindowFrameworkGuard] {type.Name}.OnWorkbenchOpen threw: {ex}");
+                    Debug.LogError($"[DevWindowFrameworkGuard] {type.Name}.Contribute threw: {ex}");
                 }
             }
         }

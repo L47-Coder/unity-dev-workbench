@@ -13,6 +13,14 @@ namespace DevWorkbench.Editor
     /// <see cref="GroupTitle"/> and <see cref="TabTitle"/>, every member has a
     /// no-op default implementation so pages only override what they need.
     /// </para>
+    /// <para>
+    /// Pages are pure UI: they must not assume they will be constructed during
+    /// the framework-guard ensure pass. Project-level bootstrap work (asset
+    /// registration, order-asset sync, ...) belongs in a dedicated
+    /// <see cref="IWorkbenchContribution"/> implementation instead; that keeps
+    /// page construction cheap and avoids firing every external page during
+    /// the global first-open fan-out.
+    /// </para>
     /// </summary>
     public interface IPage
     {
@@ -24,14 +32,6 @@ namespace DevWorkbench.Editor
         /// <summary>Display name of the page's tab inside its group
         /// (e.g. <c>"Viewer"</c>, <c>"Creator"</c>).</summary>
         string TabTitle { get; }
-
-        /// <summary>
-        /// Invoked once per Editor session by the framework guard, after
-        /// the project-level scaffolding has been ensured and before the
-        /// window is first shown. Intended for page-level bootstrapping that
-        /// must run regardless of whether the user opens this specific tab.
-        /// </summary>
-        void OnWorkbenchOpen() { }
 
         /// <summary>
         /// Invoked the first time the page becomes active within a given

@@ -22,14 +22,6 @@ namespace DevWorkbench.Editor
         private float _splitterX = LeftPanelStart;
         private bool _dragging;
 
-        public void OnWorkbenchOpen()
-        {
-            ManagerConfigInstaller.EnsureAllRegistered();
-
-            var order = AssetDatabase.LoadAssetAtPath<ManagerOrderConfig>(GameFramePaths.ManagerOrder);
-            if (order != null) ManagerOrderSync.Sync(order);
-        }
-
         public void OnFirstEnter() => _leftPanel.OnFirstEnter(_rightPanel.SetPath);
 
         public void OnGUI(Rect rect)
