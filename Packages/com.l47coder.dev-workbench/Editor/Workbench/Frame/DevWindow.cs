@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.Search;
 using UnityEngine;
@@ -43,6 +44,29 @@ namespace DevWorkbench.Editor
         {
             public string Title;
             public readonly List<IPage> Pages = new();
+        }
+
+        /// <summary>Resolved display metadata for a page (attribute-first, interface fallback).</summary>
+        private readonly struct PageMeta
+        {
+            public readonly string Group;
+            public readonly string Tab;
+            public readonly int HintOrder;
+
+            public PageMeta(string group, string tab, int hintOrder)
+            {
+                Group = group;
+                Tab = tab;
+                HintOrder = hintOrder;
+            }
+        }
+
+        private static PageMeta GetMeta(IPage page)
+        {
+            var attr = page.GetType().GetCustomAttribute<WorkbenchPageAttribute>();
+            return attr != null
+                ? new PageMeta(attr.Group, attr.Tab, attr.Order)
+                : new PageMeta(page.GroupTitle, page.TabTitle, int.MaxValue);
         }
 
         private readonly List<PageGroup> _groups = new();
@@ -94,29 +118,43 @@ namespace DevWorkbench.Editor
 
         private void BuildPageTree()
         {
-            var pages = new List<IPage>();
+            var entries = new List<(IPage page, PageMeta meta)>();
             foreach (var type in TypeCache.GetTypesDerivedFrom<IPage>())
             {
                 if (type.IsAbstract || type.IsInterface) continue;
                 try
                 {
                     if (Activator.CreateInstance(type) is IPage page)
-                        pages.Add(page);
+                        entries.Add((page, GetMeta(page)));
                 }
                 catch (Exception ex)
                 {
                     Debug.LogWarning($"[DevWindow] Failed to instantiate {type.FullName}: {ex.Message}");
                 }
             }
-            if (pages.Count == 0) return;
+            if (entries.Count == 0) return;
 
-            var groupOrder = SyncOrderMap(pages.Select(p => p.GroupTitle).Distinct(), _pageOrder.GetGroupDict(), PageOrderDefaults.Groups);
+            var groupOrder = SyncOrderMap(
+                entries.Select(e => e.meta.Group).Distinct(),
+                _pageOrder.GetGroupDict(),
+                PageOrderDefaults.Groups);
             _pageOrder.SetGroupDict(groupOrder);
 
             var tabOrders = new Dictionary<string, Dictionary<string, int>>();
             foreach (var g in groupOrder.Keys)
             {
-                var tabOrder = SyncOrderMap(pages.Where(p => p.GroupTitle == g).Select(p => p.TabTitle), _pageOrder.GetTabDict(g), PageOrderDefaults.GetTabs(g));
+                // Merge attribute order hints with the static defaults.
+                var attrSorted = entries
+                    .Where(e => e.meta.Group == g)
+                    .OrderBy(e => e.meta.HintOrder)
+                    .Select(e => e.meta.Tab)
+                    .ToList();
+                var merged = PageOrderDefaults.GetTabs(g).Union(attrSorted).Distinct().ToList();
+
+                var tabOrder = SyncOrderMap(
+                    entries.Where(e => e.meta.Group == g).Select(e => e.meta.Tab),
+                    _pageOrder.GetTabDict(g),
+                    merged);
                 _pageOrder.SetTabDict(g, tabOrder);
                 tabOrders[g] = tabOrder;
             }
@@ -125,18 +163,20 @@ namespace DevWorkbench.Editor
 
             _groups.Clear();
             _initializedPages.Clear();
-            foreach (var page in pages.OrderBy(p => groupOrder[p.GroupTitle]).ThenBy(p => tabOrders[p.GroupTitle][p.TabTitle]))
+            foreach (var (page, meta) in entries
+                .OrderBy(e => groupOrder[e.meta.Group])
+                .ThenBy(e => tabOrders[e.meta.Group][e.meta.Tab]))
             {
-                var group = _groups.FirstOrDefault(x => x.Title == page.GroupTitle);
+                var group = _groups.FirstOrDefault(x => x.Title == meta.Group);
                 if (group == null)
-                    _groups.Add(group = new PageGroup { Title = page.GroupTitle });
+                    _groups.Add(group = new PageGroup { Title = meta.Group });
                 group.Pages.Add(page);
             }
 
             _currentGroup = _groups.FirstOrDefault(g => g.Title == _persistedGroupTitle) ?? _groups[0];
-            _currentPage = _currentGroup.Pages.FirstOrDefault(p => p.TabTitle == _persistedTabTitle) ?? _currentGroup.Pages[0];
+            _currentPage = _currentGroup.Pages.FirstOrDefault(p => GetMeta(p).Tab == _persistedTabTitle) ?? _currentGroup.Pages[0];
             _persistedGroupTitle = _currentGroup.Title;
-            _persistedTabTitle = _currentPage.TabTitle;
+            _persistedTabTitle = GetMeta(_currentPage).Tab;
             ActivatePage(_currentPage);
         }
 
@@ -184,7 +224,7 @@ namespace DevWorkbench.Editor
             _currentGroup = group;
             _currentPage = page;
             _persistedGroupTitle = _currentGroup.Title;
-            _persistedTabTitle = _currentPage.TabTitle;
+            _persistedTabTitle = GetMeta(_currentPage).Tab;
             ActivatePage(page);
         }
 

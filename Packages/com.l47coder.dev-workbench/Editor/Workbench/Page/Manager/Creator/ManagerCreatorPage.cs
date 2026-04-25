@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
+    [WorkbenchPage("Manager", "Creator", order: 1)]
     internal sealed class ManagerCreatorPage : IPage
     {
         public string GroupTitle => "Manager";

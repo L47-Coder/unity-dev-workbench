@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
+    [WorkbenchPage("Framework", "Sync", order: 0)]
     internal sealed class FrameworkSyncPage : IPage
     {
         public string GroupTitle => "Framework";

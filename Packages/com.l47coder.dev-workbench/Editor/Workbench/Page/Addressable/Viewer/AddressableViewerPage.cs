@@ -10,6 +10,7 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
+    [WorkbenchPage("Addressable", "Viewer", order: 0)]
     internal sealed class AddressableViewerPage : IPage
     {
         public string GroupTitle => "Addressable";

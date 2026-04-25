@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
+    [WorkbenchPage("Component", "Viewer", order: 0)]
     internal sealed class ComponentViewerPage : IPage
     {
         public string GroupTitle => "Component";
