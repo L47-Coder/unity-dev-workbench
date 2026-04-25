@@ -106,8 +106,11 @@ namespace DevWorkbench.Editor
 
             switch (Path.GetExtension(_currentPath).ToLowerInvariant())
             {
-                case ".cs": DrawCsFile(rect, _currentPath); break;
+                case ".cs":    DrawCsFile(rect, _currentPath);    break;
                 case ".asset": DrawAssetFile(rect, _currentPath); break;
+                default:
+                    GUI.Label(rect, "Unsupported file type.", EditorStyles.centeredGreyMiniLabel);
+                    break;
             }
         }
 

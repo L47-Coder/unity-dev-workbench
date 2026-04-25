@@ -38,9 +38,7 @@ namespace DevWorkbench.Editor
 
         public static int RunSync(string reason)
         {
-            DevWindowFrameworkGuard.Ensure();
             var executed = EditorSyncRunner.RunAll();
-            
             Debug.Log($"[DevWorkbench] Runtime synced ({reason}). EditorSync methods executed: {executed}.");
             return executed;
         }

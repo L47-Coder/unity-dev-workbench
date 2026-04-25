@@ -17,19 +17,19 @@ namespace DevWorkbench.Editor
         private readonly TableView _tableView;
 
         public abstract string GroupTitle { get; }
-        public abstract string TabTitle   { get; }
+        public abstract string TabTitle { get; }
 
-        protected abstract string ConfigAssetPath    { get; }
+        protected abstract string ConfigAssetPath { get; }
         protected abstract string SearchColumnHeader { get; }
-        protected abstract void   Sync(TConfig config);
+        protected abstract void Sync(TConfig config);
         protected abstract List<TEntry> GetEntries(TConfig config);
 
         protected OrderPageBase()
         {
             _tableView = new TableView
             {
-                CanAdd             = false,
-                CanRemove          = false,
+                CanAdd = false,
+                CanRemove = false,
                 ShowToolbarButtons = false,
             };
         }

@@ -1,6 +1,6 @@
 using System;
 
-namespace DevWorkbench
+namespace DevWorkbench.Editor
 {
     public static class ManagerAddressConvention
     {
