@@ -11,23 +11,35 @@ namespace DevWorkbench.Editor
         {
             if (config == null) return;
 
-            var live = new HashSet<string>(
-                TypeCache.GetTypesDerivedFrom<BaseManager>()
-                    .Where(t => !t.IsAbstract)
-                    .Select(t => t.Name),
-                StringComparer.Ordinal);
+            var liveTypes = TypeCache.GetTypesDerivedFrom<BaseManager>()
+                .Where(t => !t.IsAbstract)
+                .ToDictionary(t => t.Name, t => t, StringComparer.Ordinal);
 
-            var removed = config.Entries.RemoveAll(e => !live.Contains(e.Name)) > 0;
+            var removed = config.Entries.RemoveAll(e => !liveTypes.ContainsKey(e.Name)) > 0;
 
             var existing = new HashSet<string>(config.Entries.Select(e => e.Name), StringComparer.Ordinal);
             var added = false;
-            foreach (var name in live.Where(n => !existing.Contains(n)))
+            foreach (var kv in liveTypes.Where(kv => !existing.Contains(kv.Key)))
             {
-                config.Entries.Add(new ManagerOrderEntry { Name = name });
+                config.Entries.Add(new ManagerOrderEntry
+                {
+                    Name = kv.Key,
+                    AssemblyQualifiedName = kv.Value.AssemblyQualifiedName,
+                });
                 added = true;
             }
 
-            if (!removed && !added) return;
+            // Backfill AQN for entries that pre-date this field (legacy assets).
+            var backfilled = false;
+            foreach (var entry in config.Entries)
+            {
+                if (!string.IsNullOrEmpty(entry.AssemblyQualifiedName)) continue;
+                if (!liveTypes.TryGetValue(entry.Name, out var t)) continue;
+                entry.AssemblyQualifiedName = t.AssemblyQualifiedName;
+                backfilled = true;
+            }
+
+            if (!removed && !added && !backfilled) return;
 
             EditorUtility.SetDirty(config);
             AssetDatabase.SaveAssets();
