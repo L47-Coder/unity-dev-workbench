@@ -135,10 +135,10 @@ namespace DevWorkbench.Editor
                 _cachedDrawMethod = null;
                 _tableView = null;
 
-                if (_cachedAsset is IConfigListOwner owner)
+                if (_cachedAsset != null)
                 {
-                    _cachedList = owner.GetConfigList();
-                    var elemType = owner.ConfigItemType;
+                    _cachedList = _cachedAsset.GetConfigList();
+                    var elemType = _cachedAsset.ConfigItemType;
                     if (_cachedList != null && elemType != null)
                     {
                         _tableView = new TableView();

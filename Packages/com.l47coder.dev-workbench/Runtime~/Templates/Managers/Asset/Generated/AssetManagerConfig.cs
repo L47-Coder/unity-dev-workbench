@@ -9,20 +9,13 @@ using System.Linq;
 using UnityEngine;
 using DevWorkbench;
 
-#if UNITY_EDITOR
-public sealed partial class AssetManagerConfig
-{
-    internal List<AssetManagerData> EditorConfigs => _configs;
-}
-#endif
-
-public sealed partial class AssetManagerConfig : BaseManagerConfig, IConfigListOwner
+public sealed partial class AssetManagerConfig : BaseManagerConfig
 {
     [SerializeField]
     private List<AssetManagerData> _configs = new();
 
-    Type IConfigListOwner.ConfigItemType => typeof(AssetManagerData);
-    IList IConfigListOwner.GetConfigList() => _configs;
+    public override Type ConfigItemType => typeof(AssetManagerData);
+    public override IList GetConfigList() => _configs;
 
     protected override Dictionary<string, BaseManagerData> GetManagerDataDict() => _configs
         .Where(static c => !string.IsNullOrWhiteSpace(c.Key))

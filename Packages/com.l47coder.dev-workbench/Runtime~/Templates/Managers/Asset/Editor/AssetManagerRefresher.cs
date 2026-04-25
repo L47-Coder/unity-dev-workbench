@@ -20,7 +20,7 @@ internal static class AssetManagerRefresher
         if (cfg == null) return;
 
         ManagerRefreshUtil.Sync(
-            cfg.EditorConfigs,
+            (List<AssetManagerData>)cfg.GetConfigList(),
             CollectTargets(),
             static item => item.Key,
             static (key, address) => new AssetManagerData { Key = key, AssetAddress = address });

@@ -19,7 +19,7 @@ internal static class PrefabManagerRefresher
         if (cfg == null) return;
 
         ManagerRefreshUtil.Sync(
-            cfg.EditorConfigs,
+            (List<PrefabManagerData>)cfg.GetConfigList(),
             CollectTargets(),
             static item => item.Key,
             static (key, address) => new PrefabManagerData { Key = key, PrefabAddress = address });

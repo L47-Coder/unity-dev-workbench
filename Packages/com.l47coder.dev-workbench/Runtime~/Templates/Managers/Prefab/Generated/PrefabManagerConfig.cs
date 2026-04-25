@@ -9,20 +9,13 @@ using System.Linq;
 using UnityEngine;
 using DevWorkbench;
 
-#if UNITY_EDITOR
-public sealed partial class PrefabManagerConfig
-{
-    internal List<PrefabManagerData> EditorConfigs => _configs;
-}
-#endif
-
-public sealed partial class PrefabManagerConfig : BaseManagerConfig, IConfigListOwner
+public sealed partial class PrefabManagerConfig : BaseManagerConfig
 {
     [SerializeField]
     private List<PrefabManagerData> _configs = new();
 
-    Type IConfigListOwner.ConfigItemType => typeof(PrefabManagerData);
-    IList IConfigListOwner.GetConfigList() => _configs;
+    public override Type ConfigItemType => typeof(PrefabManagerData);
+    public override IList GetConfigList() => _configs;
 
     protected override Dictionary<string, BaseManagerData> GetManagerDataDict() => _configs
         .Where(static c => !string.IsNullOrWhiteSpace(c.Key))

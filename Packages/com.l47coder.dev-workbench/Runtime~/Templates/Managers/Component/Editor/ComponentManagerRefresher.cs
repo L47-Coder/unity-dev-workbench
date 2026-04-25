@@ -18,7 +18,7 @@ internal static class ComponentManagerRefresher
         if (cfg == null) return;
 
         ManagerRefreshUtil.Sync(
-            cfg.EditorConfigs,
+            (List<ComponentManagerData>)cfg.GetConfigList(),
             CollectTargets(),
             static item => item.Key,
             static (key, address) => new ComponentManagerData { Key = key, ComponentConfigAddress = address });

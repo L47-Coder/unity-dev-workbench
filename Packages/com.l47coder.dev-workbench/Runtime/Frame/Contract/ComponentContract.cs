@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,6 +7,9 @@ namespace DevWorkbench
 {
     public abstract class BaseComponentConfig : ScriptableObject
     {
+        public abstract Type ConfigItemType { get; }
+        public abstract IList GetConfigList();
+
         protected abstract Dictionary<string, BaseComponentData> GetComponentDataDict();
         internal Dictionary<string, BaseComponentData> ExportComponentDataDict() => GetComponentDataDict();
     }
