@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
@@ -306,8 +307,13 @@ namespace DevWorkbench.Editor
             {
                 try
                 {
-                    var t = assembly.GetType(typeName);
-                    if (t != null) return t;
+                    foreach (var t in assembly.GetTypes())
+                        if (t.Name == typeName) return t;
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    foreach (var t in e.Types)
+                        if (t != null && t.Name == typeName) return t;
                 }
                 catch { }
             }

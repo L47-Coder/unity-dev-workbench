@@ -31,11 +31,13 @@ namespace DevWorkbench.Editor
 
         public static void Ensure()
         {
+            var ensureSucceeded = false;
             try
             {
                 var skeletonCopied = EnsureGameSkeleton();
                 if (skeletonCopied > 0)
                 {
+                    // Domain reload is pending; contributions will run after re-entry.
                     SessionState.SetBool(SessionKeyRerunInitialize, true);
                     return;
                 }
@@ -53,12 +55,16 @@ namespace DevWorkbench.Editor
                     AssetDatabase.StopAssetEditing();
                     AssetDatabase.SaveAssets();
                 }
+
+                ensureSucceeded = true;
             }
             catch (Exception ex)
             {
                 Debug.LogError($"[DevWindowFrameworkGuard] Ensure failed: {ex}");
                 EditorUtility.DisplayDialog("Dev Workbench", $"Framework auto-initialise failed:\n{ex.Message}\n\nSee Console for details.", "OK");
             }
+
+            if (!ensureSucceeded) return;
 
             RunAllContributions();
 

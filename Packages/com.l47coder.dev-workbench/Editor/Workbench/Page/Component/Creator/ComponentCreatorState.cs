@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -283,7 +284,16 @@ namespace DevWorkbench.Editor
             if (string.IsNullOrEmpty(typeName)) return false;
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                try { if (assembly.GetType(typeName) != null) return true; }
+                try
+                {
+                    foreach (var t in assembly.GetTypes())
+                        if (t.Name == typeName) return true;
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    foreach (var t in e.Types)
+                        if (t != null && t.Name == typeName) return true;
+                }
                 catch { }
             }
             return false;
