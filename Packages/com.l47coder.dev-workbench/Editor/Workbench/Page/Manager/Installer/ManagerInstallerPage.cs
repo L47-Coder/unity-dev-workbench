@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    [WorkbenchPage("Manager", "Installer", order: 3)]
     internal sealed class ManagerInstallerPage : IPage
     {
         public string GroupTitle => "Manager";

@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace DevWorkbench.Editor
 {
-    [WorkbenchPage("Component", "Order", order: 2)]
     internal sealed class ComponentOrderPage : IPage
     {
         public string GroupTitle => "Component";
