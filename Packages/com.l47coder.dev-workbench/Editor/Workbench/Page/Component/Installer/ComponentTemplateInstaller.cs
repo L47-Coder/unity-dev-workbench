@@ -10,7 +10,7 @@ namespace DevWorkbench.Editor
     {
         private const string TemplateSourceRelative = DevWorkbenchPackageInfo.ComponentTemplatesFolder;
         private const string ManifestFileName = "manifest.json";
-        private static string ComponentRootAssetPath => GameProjectPaths.ComponentRoot;
+        private const string ComponentRootAssetPath = GameProjectPaths.ComponentRoot;
 
         [Serializable]
         public sealed class PackageInfo
