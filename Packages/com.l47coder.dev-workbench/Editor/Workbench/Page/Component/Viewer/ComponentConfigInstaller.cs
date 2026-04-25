@@ -9,7 +9,7 @@ namespace DevWorkbench.Editor
     internal static class ComponentConfigInstaller
     {
         private const string ConfigClassSuffix = "ComponentConfig";
-        private const string ComponentRootAssetPath = GameProjectPaths.ComponentRoot;
+        private static string ComponentRootAssetPath => GameProjectPaths.ComponentRoot;
 
         public sealed class ConfigEntryInfo
         {

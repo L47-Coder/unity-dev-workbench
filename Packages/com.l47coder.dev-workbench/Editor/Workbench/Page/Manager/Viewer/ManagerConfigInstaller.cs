@@ -8,7 +8,7 @@ namespace DevWorkbench.Editor
 {
     internal static class ManagerConfigInstaller
     {
-        private const string ManagerRootAssetPath = GameProjectPaths.ManagerRoot;
+        private static string ManagerRootAssetPath => GameProjectPaths.ManagerRoot;
 
         public sealed class ConfigEntryInfo
         {

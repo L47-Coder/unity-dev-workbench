@@ -12,12 +12,14 @@ namespace DevWorkbench.Editor
     internal static class DevWindowFrameworkGuard
     {
         public const string SessionKeyRerunInitialize = "DevWorkbench.FrameworkGuard.RerunInitialize";
-        private const string GameBootAssetPath = GameFramePaths.Root + "/GameBoot.cs";
-        private const string LegacyGameBootAssetPath = GameProjectPaths.ManagerRoot + "/GameBoot.cs";
         private const string GameSkeletonSourceRelative = DevWorkbenchPackageInfo.GameSkeletonTemplateFolder;
         private const string FrameGroupName = "Frame";
-        private static readonly string ManagerOrderAddress = $"{FrameGroupName}/{Path.GetFileNameWithoutExtension(GameFramePaths.ManagerOrder)}";
-        private static readonly string ComponentOrderAddress = $"{FrameGroupName}/{Path.GetFileNameWithoutExtension(GameFramePaths.ComponentOrder)}";
+
+        // These depend on GameFramePaths which reads DevWorkbenchSettings, so they must be properties.
+        private static string GameBootAssetPath => GameFramePaths.Root + "/GameBoot.cs";
+        private static string LegacyGameBootAssetPath => GameProjectPaths.ManagerRoot + "/GameBoot.cs";
+        private static string ManagerOrderAddress => $"{FrameGroupName}/{Path.GetFileNameWithoutExtension(GameFramePaths.ManagerOrder)}";
+        private static string ComponentOrderAddress => $"{FrameGroupName}/{Path.GetFileNameWithoutExtension(GameFramePaths.ComponentOrder)}";
         public static event Action EnsureCompleted;
 
         static DevWindowFrameworkGuard() => EditorApplication.delayCall += TryRerunAfterReload;
@@ -33,6 +35,7 @@ namespace DevWorkbench.Editor
         {
             try
             {
+                EnsureDevWorkbenchSettings();
                 var skeletonCopied = EnsureGameSkeleton();
                 if (skeletonCopied > 0)
                 {
@@ -67,6 +70,17 @@ namespace DevWorkbench.Editor
             {
                 Debug.LogError($"[DevWindowFrameworkGuard] EnsureCompleted subscriber threw: {ex}");
             }
+        }
+
+        private static void EnsureDevWorkbenchSettings()
+        {
+            if (AssetDatabase.LoadAssetAtPath<DevWorkbenchSettings>(DevWorkbenchSettings.AssetPath) != null)
+                return;
+
+            var asset = ScriptableObject.CreateInstance<DevWorkbenchSettings>();
+            AssetDatabase.CreateAsset(asset, DevWorkbenchSettings.AssetPath);
+            AssetDatabase.SaveAssets();
+            Debug.Log($"[DevWindowFrameworkGuard] Created DevWorkbenchSettings at {DevWorkbenchSettings.AssetPath}.");
         }
 
         private static int EnsureGameSkeleton()
