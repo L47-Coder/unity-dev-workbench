@@ -36,6 +36,7 @@ namespace DevWorkbench.Editor
             var manifestAbs = ResolveSourceAbsolute(ManifestFileName);
             if (string.IsNullOrEmpty(manifestAbs) || !File.Exists(manifestAbs))
             {
+                Debug.LogWarning($"[ComponentTemplateInstaller] manifest.json not found at {TemplateSourceRelative}/{ManifestFileName}.");
                 _cachedManifest = new List<PackageInfo>();
                 return _cachedManifest;
             }

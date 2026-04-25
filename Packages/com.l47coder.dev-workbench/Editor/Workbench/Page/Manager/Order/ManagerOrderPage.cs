@@ -1,37 +1,15 @@
-using UnityEditor;
-using UnityEngine;
+using System.Collections.Generic;
 
 namespace DevWorkbench.Editor
 {
-    internal sealed class ManagerOrderPage : IPage
+    internal sealed class ManagerOrderPage : OrderPageBase<ManagerOrderConfig, ManagerOrderEntry>
     {
-        public string GroupTitle => "Manager";
-        public string TabTitle => "Order";
+        public override string GroupTitle => "Manager";
+        public override string TabTitle   => "Order";
 
-        private ManagerOrderConfig _config;
-        private readonly TableView _tableView = new() { CanAdd = false, CanRemove = false, SearchField = "Manager", ShowToolbarButtons = false };
-
-        public void OnFirstEnter()
-        {
-            _config = AssetDatabase.LoadAssetAtPath<ManagerOrderConfig>(GameFramePaths.ManagerOrder);
-            _tableView.OnRowChanged<ManagerOrderEntry>((_, _) => EditorUtility.SetDirty(_config));
-        }
-
-        public void OnEnter()
-        {
-            if (_config == null) return;
-            ManagerOrderSync.Sync(_config);
-        }
-
-        public void OnGUI(Rect rect)
-        {
-            if (_config == null)
-            {
-                GUI.Label(rect, "Failed to load config.", EditorStyles.centeredGreyMiniLabel);
-                return;
-            }
-
-            _tableView.Draw(rect, _config.Entries);
-        }
+        protected override string ConfigAssetPath    => GameFramePaths.ManagerOrder;
+        protected override string SearchColumnHeader => "Manager";
+        protected override void   Sync(ManagerOrderConfig config) => ManagerOrderSync.Sync(config);
+        protected override List<ManagerOrderEntry> GetEntries(ManagerOrderConfig config) => config.Entries;
     }
 }

@@ -369,22 +369,6 @@ namespace DevWorkbench.Editor
         }
 
         private string EntityFolderPath => Path.GetDirectoryName(ManagerTargetFilePath)?.Replace('\\', '/');
-
-        public enum PreviewStatus { Neutral, Create, Write, Skip }
-
-        public readonly struct PreviewItem
-        {
-            public readonly string Label;
-            public readonly string Value;
-            public readonly PreviewStatus Status;
-
-            public PreviewItem(string label, string value, PreviewStatus status)
-            {
-                Label = label;
-                Value = value;
-                Status = status;
-            }
-        }
     }
 
     internal readonly struct ManagerCreationPlan

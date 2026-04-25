@@ -1,37 +1,15 @@
-using UnityEditor;
-using UnityEngine;
+using System.Collections.Generic;
 
 namespace DevWorkbench.Editor
 {
-    internal sealed class ComponentOrderPage : IPage
+    internal sealed class ComponentOrderPage : OrderPageBase<ComponentOrderConfig, ComponentOrderEntry>
     {
-        public string GroupTitle => "Component";
-        public string TabTitle => "Order";
+        public override string GroupTitle => "Component";
+        public override string TabTitle   => "Order";
 
-        private ComponentOrderConfig _config;
-        private readonly TableView _tableView = new() { CanAdd = false, CanRemove = false, SearchField = "Component", ShowToolbarButtons = false };
-
-        public void OnFirstEnter()
-        {
-            _config = AssetDatabase.LoadAssetAtPath<ComponentOrderConfig>(GameFramePaths.ComponentOrder);
-            _tableView.OnRowChanged<ComponentOrderEntry>((_, _) => EditorUtility.SetDirty(_config));
-        }
-
-        public void OnEnter()
-        {
-            if (_config == null) return;
-            ComponentOrderSync.Sync(_config);
-        }
-
-        public void OnGUI(Rect rect)
-        {
-            if (_config == null)
-            {
-                GUI.Label(rect, "Failed to load config.", EditorStyles.centeredGreyMiniLabel);
-                return;
-            }
-
-            _tableView.Draw(rect, _config.Entries);
-        }
+        protected override string ConfigAssetPath    => GameFramePaths.ComponentOrder;
+        protected override string SearchColumnHeader => "Component";
+        protected override void   Sync(ComponentOrderConfig config) => ComponentOrderSync.Sync(config);
+        protected override List<ComponentOrderEntry> GetEntries(ComponentOrderConfig config) => config.Entries;
     }
 }
