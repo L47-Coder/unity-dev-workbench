@@ -5,6 +5,59 @@ All notable changes to this package will be documented in this file.
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] &mdash; 2026-04-26
+
+Stable 0.2 release. Promotes the `0.2.0-preview.1` architecture work and adds
+one more hardening pass over Manager / Component scaffolding, config
+registration and the Workbench editor UI before publishing the release tag.
+
+### Changed
+
+- **Creator and Order pages now share base implementations.**
+  `CreatorShared` (`Editor/Workbench/Shared/CreatorShared.cs`) centralises the
+  preview-panel draw logic used by both Manager and Component creators.
+  `OrderPageBase` (`Editor/Workbench/Shared/OrderPageBase.cs`) holds the
+  common table-draw and entry-management code for both Order tabs. The
+  ~300-line Manager/Component mirroring in those four files is eliminated.
+- **Installer pages now share one implementation**
+  (`Editor/Workbench/Shared/InstallerPageBase.cs`). Manager / Component
+  installer tabs keep their original behaviour and copy, but the duplicated
+  selection UI, card layout, row rendering, style cache and import button
+  logic now live in one shared base.
+- **Order config assets share a common runtime base**
+  (`Runtime/Frame/Entrance/OrderConfigBase.cs`). `ManagerOrderConfig` and
+  `ComponentOrderConfig` preserve their public `Entries` surface and serialized
+  `_entries` field while reusing the same list/entry infrastructure.
+- **Component config addresses now use a dedicated convention helper**
+  (`Editor/Tool/ComponentAddressConvention.cs`), matching the Manager-side
+  `ManagerAddressConvention` and keeping address construction out of Creator
+  state internals.
+- **`Framework / Sync` is now only a sync pass.** `RunSync()` no longer calls
+  the full framework ensure step; editor startup still owns one-time skeleton
+  and Addressables initialization.
+
+### Fixed
+
+- **Component order entries now store assembly-qualified names**, matching
+  Manager order entries and avoiding ambiguity when multiple assemblies contain
+  same-named Component types.
+- **Creator preview state now resolves generated types by short name** instead
+  of full name, so Create / Skip state is correct for global-namespace
+  host-project classes.
+- **Framework guard contributors only run after ensure succeeds.** Failed
+  initialization no longer proceeds into contribution execution.
+- **Viewer panels show an unsupported-file message** instead of a blank right
+  panel when selecting files such as `.meta`.
+- **Config registration counts only real writes.** `EnsureAllRegistered()` now
+  increments its change count only when `EnsureAssetAndAddressable()` succeeds.
+- **Config asset existence checks use `AssetPathToGUID()`** instead of loading
+  as `ScriptableObject`, so non-SO assets are not misreported as missing.
+- **Config installer skips are logged.** Manager / Component config types that
+  do not follow the naming convention now emit warning logs instead of being
+  skipped silently.
+- **Component template installer logs missing manifests**, matching Manager
+  installer diagnostics.
+
 ## [0.2.0-preview.1] &mdash; 2026-04-25
 
 Fourth preview, and the first pass of the "road to 1.0" architecture work.
