@@ -29,7 +29,11 @@ namespace DevWorkbench.Editor
             foreach (var type in EnumerateConcreteConfigTypes())
             {
                 var managerName = ManagerAddressConvention.ManagerNameOf(type);
-                if (string.IsNullOrEmpty(managerName)) continue;
+                if (string.IsNullOrEmpty(managerName))
+                {
+                    Debug.LogWarning($"[ManagerConfigInstaller] Cannot derive manager name from type '{type.Name}'; expected suffix 'ManagerConfig'. Skipping.");
+                    continue;
+                }
 
                 var assetPath = LocateConfigAssetPath(type.Name, managerName);
                 var address = ManagerAddressConvention.AddressOf(managerName);
@@ -40,7 +44,7 @@ namespace DevWorkbench.Editor
                     ManagerName = managerName,
                     AssetPath = assetPath,
                     Address = address,
-                    AssetExists = !string.IsNullOrEmpty(assetPath) && AssetDatabase.LoadAssetAtPath<ScriptableObject>(assetPath) != null,
+                    AssetExists = !string.IsNullOrEmpty(assetPath) && !string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(assetPath)),
                 };
 
                 if (settings != null && info.AssetExists)
@@ -63,11 +67,10 @@ namespace DevWorkbench.Editor
             foreach (var info in Collect())
             {
                 if (info.AddressMatches) continue;
-
                 if (!info.AssetExists && string.IsNullOrEmpty(info.AssetPath)) continue;
 
-                ManagerCreationService.EnsureAssetAndAddressable(info.ManagerName, info.AssetPath, info.Address);
-                changed++;
+                if (ManagerCreationService.EnsureAssetAndAddressable(info.ManagerName, info.AssetPath, info.Address))
+                    changed++;
             }
             return changed;
         }

@@ -152,7 +152,7 @@ namespace DevWorkbench.Editor
             GeneratedConfigFilePath = $"{GeneratedFolderPath}/{ConfigClassName}.cs";
             GeneratedDataFilePath = $"{GeneratedFolderPath}/{ComponentDataClassName}.cs";
             AssetFilePath = $"{folder}/{ConfigClassName}.asset";
-            AddressableAddress = $"ComponentConfig/{trimmed}";
+            AddressableAddress = ComponentAddressConvention.AddressOf(trimmed);
 
             RefreshPreview();
         }

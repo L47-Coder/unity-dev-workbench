@@ -10,8 +10,7 @@ namespace DevWorkbench.Editor
     /// then render a read-only TableView.  Only the config type, asset path, search
     /// column header, sync delegate, and entries accessor differ.
     /// </summary>
-    internal abstract class OrderPageBase<TConfig, TEntry> : IPage
-        where TConfig : ScriptableObject
+    internal abstract class OrderPageBase<TConfig, TEntry> : IPage where TConfig : ScriptableObject
     {
         private TConfig _config;
         private readonly TableView _tableView;

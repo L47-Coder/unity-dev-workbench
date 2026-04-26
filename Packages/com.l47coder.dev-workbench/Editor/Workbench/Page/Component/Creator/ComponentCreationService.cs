@@ -166,7 +166,7 @@ namespace DevWorkbench.Editor
                 File.WriteAllText(abs, string.Empty);
         }
 
-        internal static void EnsureAssetAndAddressable(string componentName, string assetPath, string assetAddress)
+        internal static bool EnsureAssetAndAddressable(string componentName, string assetPath, string assetAddress)
         {
             var asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>(assetPath);
             if (asset == null)
@@ -177,7 +177,7 @@ namespace DevWorkbench.Editor
                 if (configType == null)
                 {
                     Debug.LogError($"[ComponentCreationService] Config type not found: {componentName}ComponentConfig");
-                    return;
+                    return false;
                 }
 
                 asset = ScriptableObject.CreateInstance(configType);
@@ -189,7 +189,7 @@ namespace DevWorkbench.Editor
             if (settings == null)
             {
                 Debug.LogWarning("[ComponentCreationService] AddressableAssetSettings not found; skipping Addressables configuration.");
-                return;
+                return false;
             }
 
             var groupName = ComponentCreatorState.AddressableGroupName;
@@ -203,6 +203,7 @@ namespace DevWorkbench.Editor
             AssetDatabase.SaveAssets();
             ComponentAssetIndex.Invalidate();
             Debug.Log($"[ComponentCreationService] {componentName}Component created successfully.");
+            return true;
         }
 
         private static Type FindType(string typeName)

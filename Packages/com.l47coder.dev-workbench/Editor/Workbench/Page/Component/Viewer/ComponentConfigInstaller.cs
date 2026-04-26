@@ -30,13 +30,17 @@ namespace DevWorkbench.Editor
             foreach (var type in EnumerateConcreteConfigTypes())
             {
                 var typeName = type.Name;
-                if (!typeName.EndsWith(ConfigClassSuffix, StringComparison.Ordinal)) continue;
+                if (!typeName.EndsWith(ConfigClassSuffix, StringComparison.Ordinal))
+                {
+                    Debug.LogWarning($"[ComponentConfigInstaller] Type '{typeName}' does not follow the '*ComponentConfig' naming convention. Skipping.");
+                    continue;
+                }
 
                 var componentName = typeName[..^ConfigClassSuffix.Length];
                 if (string.IsNullOrEmpty(componentName)) continue;
 
                 var assetPath = LocateConfigAssetPath(typeName, componentName);
-                var address = $"{ComponentCreatorState.AddressableGroupName}/{componentName}";
+                var address = ComponentAddressConvention.AddressOf(componentName);
 
                 var info = new ConfigEntryInfo
                 {
@@ -44,7 +48,7 @@ namespace DevWorkbench.Editor
                     ComponentName = componentName,
                     AssetPath = assetPath,
                     Address = address,
-                    AssetExists = !string.IsNullOrEmpty(assetPath) && AssetDatabase.LoadAssetAtPath<ScriptableObject>(assetPath) != null,
+                    AssetExists = !string.IsNullOrEmpty(assetPath) && !string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(assetPath)),
                 };
 
                 if (settings != null && info.AssetExists)
@@ -69,8 +73,8 @@ namespace DevWorkbench.Editor
                 if (info.AddressMatches) continue;
                 if (!info.AssetExists && string.IsNullOrEmpty(info.AssetPath)) continue;
 
-                ComponentCreationService.EnsureAssetAndAddressable(info.ComponentName, info.AssetPath, info.Address);
-                changed++;
+                if (ComponentCreationService.EnsureAssetAndAddressable(info.ComponentName, info.AssetPath, info.Address))
+                    changed++;
             }
             return changed;
         }

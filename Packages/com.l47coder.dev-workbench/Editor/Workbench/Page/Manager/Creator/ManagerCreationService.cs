@@ -263,7 +263,7 @@ namespace DevWorkbench.Editor
                 File.WriteAllText(abs, string.Empty);
         }
 
-        internal static void EnsureAssetAndAddressable(string managerName, string assetPath, string assetAddress)
+        internal static bool EnsureAssetAndAddressable(string managerName, string assetPath, string assetAddress)
         {
             var asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>(assetPath);
             if (asset == null)
@@ -274,7 +274,7 @@ namespace DevWorkbench.Editor
                 if (configType == null)
                 {
                     Debug.LogError($"[ManagerCreationService] Config type not found: {managerName}ManagerConfig");
-                    return;
+                    return false;
                 }
 
                 asset = ScriptableObject.CreateInstance(configType);
@@ -286,7 +286,7 @@ namespace DevWorkbench.Editor
             if (settings == null)
             {
                 Debug.LogWarning("[ManagerCreationService] AddressableAssetSettings not found; skipping Addressables configuration.");
-                return;
+                return false;
             }
 
             var groupName = ManagerCreatorState.AddressableGroupName;
@@ -299,6 +299,7 @@ namespace DevWorkbench.Editor
             AssetDatabase.SaveAssets();
             ManagerAssetIndex.Invalidate();
             Debug.Log($"[ManagerCreationService] {managerName}Manager created successfully.");
+            return true;
         }
 
         private static Type FindType(string typeName)
