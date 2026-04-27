@@ -42,10 +42,13 @@ namespace DevWorkbench.Editor
                     return;
                 }
 
+                // Must run outside StartAssetEditing: GetSettings(true) may show a modal dialog
+                // and creates assets internally; both are incompatible with the batch-edit block.
+                EnsureAddressablesInitialized();
+
                 AssetDatabase.StartAssetEditing();
                 try
                 {
-                    EnsureAddressablesInitialized();
                     EnsureOrderAsset<ManagerOrderConfig>(GameFramePaths.ManagerOrder, ManagerOrderAddress);
                     EnsureOrderAsset<ComponentOrderConfig>(GameFramePaths.ComponentOrder, ComponentOrderAddress);
                     EnsurePageOrderAsset();

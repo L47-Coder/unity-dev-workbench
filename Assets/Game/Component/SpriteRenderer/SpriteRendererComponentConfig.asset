@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: SpriteRendererComponentConfig
   m_EditorClassIdentifier: 
   _configs:
-  - Key: default
-    Sprite: {fileID: 0}
+  - Key: Ground
+    Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
     Color: {r: 1, g: 1, b: 1, a: 1}
     FlipX: 0
     FlipY: 0

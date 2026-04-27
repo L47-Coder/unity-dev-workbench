@@ -12,4 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9da8cd04d2cd694296a629fecbb1b1e, type: 3}
   m_Name: ComponentManagerConfig
   m_EditorClassIdentifier: 
-  _configs: []
+  _configs:
+  - Key: ComponentConfig/BoxCollider2D
+    ComponentConfigAddress: ComponentConfig/BoxCollider2D
+  - Key: ComponentConfig/Rigidbody2D
+    ComponentConfigAddress: ComponentConfig/Rigidbody2D
+  - Key: ComponentConfig/SpriteRenderer
+    ComponentConfigAddress: ComponentConfig/SpriteRenderer
