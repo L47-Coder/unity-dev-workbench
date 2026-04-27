@@ -79,12 +79,18 @@ namespace DevWorkbench.Editor
             if (type == typeof(LayerMask)) return 120f;
             if (type == typeof(AnimationCurve) || type == typeof(Gradient)) return 120f;
             if (IsStringList(type)) return 120f;
+            if (IsComponentRefList(type)) return 160f;
             if (type == typeof(Vector2) || type == typeof(Vector2Int)) return 140f;
             if (type == typeof(Vector3) || type == typeof(Vector3Int) || type == typeof(Quaternion)) return 210f;
             if (type == typeof(Vector4)) return 280f;
             if (typeof(UnityEngine.Object).IsAssignableFrom(type)) return 140f;
             return DefaultFallbackMinWidth;
         }
+
+        internal static bool IsComponentRefList(Type type) =>
+            type.IsGenericType &&
+            type.GetGenericTypeDefinition() == typeof(List<>) &&
+            type.GetGenericArguments()[0] == typeof(ComponentRef);
 
         /// <summary>
         /// 确保 <see cref="_columnMinWidths"/> / <see cref="_columnPreferredWidths"/> 与当前列集合匹配。

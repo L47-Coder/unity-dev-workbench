@@ -182,6 +182,10 @@ namespace DevWorkbench.Editor
 
                 asset = ScriptableObject.CreateInstance(configType);
                 AssetDatabase.CreateAsset(asset, assetPath);
+
+                if (asset is BaseComponentConfig newConfig)
+                    InjectDefaultEntry(newConfig);
+
                 AssetDatabase.SaveAssets();
             }
 
@@ -204,6 +208,19 @@ namespace DevWorkbench.Editor
             ComponentAssetIndex.Invalidate();
             Debug.Log($"[ComponentCreationService] {componentName}Component created successfully.");
             return true;
+        }
+
+        private static void InjectDefaultEntry(BaseComponentConfig config)
+        {
+            var list = config.GetConfigList();
+            var itemType = config.ConfigItemType;
+            if (list == null || itemType == null) return;
+
+            var item = Activator.CreateInstance(itemType);
+            var keyField = itemType.GetField("Key", BindingFlags.Public | BindingFlags.Instance);
+            keyField?.SetValue(item, "default");
+            list.Add(item);
+            EditorUtility.SetDirty(config);
         }
 
         private static Type FindType(string typeName)

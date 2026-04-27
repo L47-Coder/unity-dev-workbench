@@ -381,6 +381,21 @@ namespace DevWorkbench.Editor
             var value = field.GetValue(boxed);
             var type = field.FieldType;
 
+            if (IsComponentRefList(type))
+            {
+                var refList = value as List<ComponentRef>;
+                if (refList == null)
+                {
+                    refList = new List<ComponentRef>();
+                    field.SetValue(boxed, refList);
+                    list[index] = (T)boxed;
+                    GUI.changed = true;
+                    _onChange?.Invoke(index, boxed);
+                }
+                DrawComponentRefListCell(rect, refList, index, boxed);
+                return;
+            }
+
             if (IsStringList(type))
             {
                 var stringList = value as List<string>;

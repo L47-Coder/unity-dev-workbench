@@ -15,8 +15,23 @@ MonoBehaviour:
   m_GroupName: ManagerConfig
   m_Data:
     m_SerializedData: []
-  m_GUID: 8617849308d3085449688d96f9eb6da1
-  m_SerializeEntries: []
+  m_GUID: 228bb1190b3416c42bfedc72e2afaf55
+  m_SerializeEntries:
+  - m_GUID: 98f9ab6b3d86c814ca0269c0dc492f0c
+    m_Address: ManagerConfig/Component
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b88a55679f56b3e4f90f49c546524a9e
+    m_Address: ManagerConfig/Asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e50ce6362085e0b49bb4fe11e20e9245
+    m_Address: ManagerConfig/Prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 1334c67fee1d15d45b12dccff7e140e5, type: 2}
   m_SchemaSet:

@@ -54,7 +54,7 @@ internal sealed partial class PrefabManagerData
 
     [TableColumn(Editable = false)]
     public string PrefabAddress;
-    public List<string> InitialComponent = new();
+    public List<ComponentRef> InitialComponent = new();
 }
 
 internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncInitManager
@@ -243,10 +243,10 @@ internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncI
         bridge.CollisionEnter += (_, c)     => DispatchCollisionEnter(newPrefabData, c);
         bridge.CollisionExit  += (_, c)     => DispatchCollisionExit(newPrefabData, c);
 
-        foreach (var typeKey in data.InitialComponent)
+        foreach (var compRef in data.InitialComponent)
         {
-            if (string.IsNullOrEmpty(typeKey)) continue;
-            newPrefabData.InitialTypeKeys.Add(typeKey);
+            if (!compRef.IsValid) continue;
+            newPrefabData.InitialTypeKeys.Add(compRef.TypeKey);
         }
         newPrefabData.InitialTypeKeys.Sort(_typeKeyComparer);
 
