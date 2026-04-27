@@ -5,24 +5,24 @@ using UnityEngine;
 namespace DevWorkbench
 {
     // ── 3D 触发器 ────────────────────────────────────────────────────
-    public interface IOnTriggerEnter    { void OnTriggerEntered(Collider other)    { } }
-    public interface IOnTriggerExit     { void OnTriggerExited(Collider other)     { } }
-    public interface IOnTriggerStay     { void OnTriggerStayed(Collider other)     { } }
+    public interface IOnTriggerEnter { void OnTriggerEntered(Collider other); }
+    public interface IOnTriggerExit { void OnTriggerExited(Collider other); }
+    public interface IOnTriggerStay { void OnTriggerStayed(Collider other); }
 
     // ── 3D 碰撞 ──────────────────────────────────────────────────────
-    public interface IOnCollisionEnter  { void OnCollisionEntered(Collision c)     { } }
-    public interface IOnCollisionExit   { void OnCollisionExited(Collision c)      { } }
-    public interface IOnCollisionStay   { void OnCollisionStayed(Collision c)      { } }
+    public interface IOnCollisionEnter { void OnCollisionEntered(Collision c); }
+    public interface IOnCollisionExit { void OnCollisionExited(Collision c); }
+    public interface IOnCollisionStay { void OnCollisionStayed(Collision c); }
 
     // ── 2D 触发器 ────────────────────────────────────────────────────
-    public interface IOnTriggerEnter2D  { void OnTriggerEntered2D(Collider2D other) { } }
-    public interface IOnTriggerExit2D   { void OnTriggerExited2D(Collider2D other)  { } }
-    public interface IOnTriggerStay2D   { void OnTriggerStayed2D(Collider2D other)  { } }
+    public interface IOnTriggerEnter2D { void OnTriggerEntered2D(Collider2D other); }
+    public interface IOnTriggerExit2D { void OnTriggerExited2D(Collider2D other); }
+    public interface IOnTriggerStay2D { void OnTriggerStayed2D(Collider2D other); }
 
     // ── 2D 碰撞 ──────────────────────────────────────────────────────
-    public interface IOnCollisionEnter2D { void OnCollisionEntered2D(Collision2D c) { } }
-    public interface IOnCollisionExit2D  { void OnCollisionExited2D(Collision2D c)  { } }
-    public interface IOnCollisionStay2D  { void OnCollisionStayed2D(Collision2D c)  { } }
+    public interface IOnCollisionEnter2D { void OnCollisionEntered2D(Collision2D c); }
+    public interface IOnCollisionExit2D { void OnCollisionExited2D(Collision2D c); }
+    public interface IOnCollisionStay2D { void OnCollisionStayed2D(Collision2D c); }
 
     internal sealed class Entity : MonoBehaviour
     {
@@ -59,7 +59,7 @@ namespace DevWorkbench
         private void OnCollisionStay2D(Collision2D c) => CollisionStay2D?.Invoke(gameObject, c);
 
         // ── Unity 组件租借池 ──────────────────────────────────────────
-        internal readonly Dictionary<Type, List<Component>>  All    = new();
+        internal readonly Dictionary<Type, List<Component>> All = new();
         internal readonly Dictionary<Type, Stack<Component>> InPool = new();
     }
 }

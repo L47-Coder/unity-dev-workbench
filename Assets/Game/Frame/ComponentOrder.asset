@@ -13,9 +13,12 @@ MonoBehaviour:
   m_Name: ComponentOrder
   m_EditorClassIdentifier: 
   _entries:
-  - AssemblyQualifiedName: TComponent, Game.Components, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
-    Name: TComponent
-  - AssemblyQualifiedName: AComponent, Game.Components, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
-    Name: AComponent
+  - AssemblyQualifiedName: Rigidbody2DComponent, Game.Components, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    Name: Rigidbody2DComponent
+  - AssemblyQualifiedName: BoxCollider2DComponent, Game.Components, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    Name: BoxCollider2DComponent
+  - AssemblyQualifiedName: SpriteRendererComponent, Game.Components, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    Name: SpriteRendererComponent

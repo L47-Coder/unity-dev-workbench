@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using DevWorkbench;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -432,13 +433,29 @@ namespace DevWorkbench.Editor
             object newValue;
 
             if (type == typeof(string))
-                newValue = EditorGUI.DelayedTextField(rect, value as string ?? string.Empty);
+            {
+                var dropdownAttr = field.GetCustomAttribute<DropdownAttribute>();
+                if (dropdownAttr != null)
+                {
+                    var options = InvokeDropdownMethod(field, dropdownAttr.MethodName);
+                    if (options is { Length: > 0 })
+                    {
+                        var cur = value as string ?? string.Empty;
+                        var idx = Math.Max(0, Array.IndexOf(options, cur));
+                        newValue = options[EditorGUI.Popup(rect, idx, options)];
+                    }
+                    else
+                        newValue = EditorGUI.DelayedTextField(rect, value as string ?? string.Empty);
+                }
+                else
+                    newValue = EditorGUI.DelayedTextField(rect, value as string ?? string.Empty);
+            }
             else if (type == typeof(int))
                 newValue = EditorGUI.DelayedIntField(rect, value is int iv ? iv : 0);
             else if (type == typeof(float))
                 newValue = EditorGUI.DelayedFloatField(rect, value is float fv ? fv : 0f);
             else if (type == typeof(bool))
-                newValue = EditorGUI.Toggle(rect, value is bool bv && bv);
+                newValue = DrawToggleCell(rect, value is bool bv && bv);
             else if (type.IsEnum)
                 newValue = EditorGUI.EnumPopup(rect, (Enum)value);
             else if (type == typeof(AnimationCurve))
@@ -480,6 +497,48 @@ namespace DevWorkbench.Editor
                 GUI.changed = true;
                 _onChange?.Invoke(index, boxed);
             }
+        }
+
+        private static readonly Color ToggleOnColor  = new(0.22f, 0.62f, 0.35f, 0.88f);
+        private static readonly Color ToggleOffColor = new(0.72f, 0.22f, 0.22f, 0.88f);
+
+        private static bool DrawToggleCell(Rect rect, bool current)
+        {
+            if (Event.current.type == EventType.Repaint)
+            {
+                EditorGUI.DrawRect(rect, current ? ToggleOnColor : ToggleOffColor);
+                GUI.Label(rect, current ? "✓" : "✕", new GUIStyle(EditorStyles.miniLabel)
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    normal    = { textColor = Color.white },
+                    fontStyle = FontStyle.Bold,
+                });
+            }
+
+            if (Event.current.type == EventType.MouseDown &&
+                Event.current.button == 0 &&
+                rect.Contains(Event.current.mousePosition))
+            {
+                GUI.changed = true;
+                Event.current.Use();
+                return !current;
+            }
+
+            return current;
+        }
+
+        private static string[] InvokeDropdownMethod(FieldInfo field, string methodName)
+        {
+            var method = field.DeclaringType?.GetMethod(
+                methodName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            if (method == null) return null;
+            return method.Invoke(null, null) switch
+            {
+                string[] arr          => arr,
+                List<string> list     => list.ToArray(),
+                IEnumerable<string> e => e.ToArray(),
+                _                     => null,
+            };
         }
 
         private static void DrawDragFloatingRowShadow(Rect rowRect)

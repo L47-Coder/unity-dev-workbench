@@ -55,8 +55,6 @@ internal sealed partial class PrefabManagerData
     [TableColumn(Editable = false)]
     public string PrefabAddress;
     public List<ComponentRef> InitialComponent = new();
-
-    public List<string> strings;
 }
 
 internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncInitManager

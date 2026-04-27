@@ -9,7 +9,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a544a889d6c21484bb752cdcea01d09c, type: 3}
-  m_Name: AssetManagerConfig
+  m_Script: {fileID: 11500000, guid: de6c0e13324f4244b8de6ccd18f90e9a, type: 3}
+  m_Name: BoxCollider2DComponentConfig
   m_EditorClassIdentifier: 
-  _configs: []
+  _configs:
+  - Key: default
+    IsTrigger: 0
+    Offset: {x: 0, y: 0}
+    Size: {x: 1, y: 1}
+    EdgeRadius: 0
+    UsedByEffector: 0
+    UsedByComposite: 0
