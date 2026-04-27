@@ -12,12 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51a62e11972ebb844bae0a0fa48c6ad8, type: 3}
   m_Name: PrefabManagerConfig
   m_EditorClassIdentifier: 
-  _configs:
-  - Key: 
-    PrefabAddress: 
-    InitialComponent: []
-    strings: []
-  - Key: 
-    PrefabAddress: 
-    InitialComponent: []
-    strings: []
+  _configs: []

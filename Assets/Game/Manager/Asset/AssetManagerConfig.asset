@@ -12,4 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a544a889d6c21484bb752cdcea01d09c, type: 3}
   m_Name: AssetManagerConfig
   m_EditorClassIdentifier: 
-  _configs: []
+  _configs:
+  - Key: Frame/ComponentOrder
+    AssetAddress: Frame/ComponentOrder
+  - Key: Frame/ManagerOrder
+    AssetAddress: Frame/ManagerOrder
+  - Key: ManagerConfig/Asset
+    AssetAddress: ManagerConfig/Asset
+  - Key: ManagerConfig/Component
+    AssetAddress: ManagerConfig/Component
+  - Key: ManagerConfig/Prefab
+    AssetAddress: ManagerConfig/Prefab

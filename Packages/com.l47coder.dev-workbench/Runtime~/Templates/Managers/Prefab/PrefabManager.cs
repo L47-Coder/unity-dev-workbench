@@ -40,7 +40,7 @@ internal sealed class PrefabHandle : IPrefabHandle
 internal sealed class PrefabData
 {
     public GameObject GameObject { get; }
-    public PhysicsBridge Bridge;
+    public Entity Entity;
     public List<string> InitialTypeKeys { get; } = new();
     public List<string> OrderedKeys { get; } = new();
     public Dictionary<string, BaseComponent> Components { get; } = new();
@@ -231,17 +231,22 @@ internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncI
         var newPrefabData = new PrefabData(gameObject);
         poolCache.AllInstances.Add(newPrefabData);
 
-        if (gameObject.GetComponent<ComponentBridgeBag>() == null)
-            gameObject.AddComponent<ComponentBridgeBag>();
+        var entity = gameObject.GetComponent<Entity>()
+                  ?? gameObject.AddComponent<Entity>();
+        newPrefabData.Entity = entity;
 
-        var bridge = gameObject.GetComponent<PhysicsBridge>()
-                  ?? gameObject.AddComponent<PhysicsBridge>();
-        newPrefabData.Bridge = bridge;
-
-        bridge.TriggerEnter   += (_, other) => DispatchTriggerEnter(newPrefabData, other);
-        bridge.TriggerExit    += (_, other) => DispatchTriggerExit(newPrefabData, other);
-        bridge.CollisionEnter += (_, c)     => DispatchCollisionEnter(newPrefabData, c);
-        bridge.CollisionExit  += (_, c)     => DispatchCollisionExit(newPrefabData, c);
+        entity.TriggerEnter     += (_, other) => DispatchTriggerEnter(newPrefabData, other);
+        entity.TriggerExit      += (_, other) => DispatchTriggerExit(newPrefabData, other);
+        entity.TriggerStay      += (_, other) => DispatchTriggerStay(newPrefabData, other);
+        entity.CollisionEnter   += (_, c)     => DispatchCollisionEnter(newPrefabData, c);
+        entity.CollisionExit    += (_, c)     => DispatchCollisionExit(newPrefabData, c);
+        entity.CollisionStay    += (_, c)     => DispatchCollisionStay(newPrefabData, c);
+        entity.TriggerEnter2D   += (_, other) => DispatchTriggerEnter2D(newPrefabData, other);
+        entity.TriggerExit2D    += (_, other) => DispatchTriggerExit2D(newPrefabData, other);
+        entity.TriggerStay2D    += (_, other) => DispatchTriggerStay2D(newPrefabData, other);
+        entity.CollisionEnter2D += (_, c)     => DispatchCollisionEnter2D(newPrefabData, c);
+        entity.CollisionExit2D  += (_, c)     => DispatchCollisionExit2D(newPrefabData, c);
+        entity.CollisionStay2D  += (_, c)     => DispatchCollisionStay2D(newPrefabData, c);
 
         foreach (var compRef in data.InitialComponent)
         {
@@ -474,17 +479,15 @@ internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncI
         }
     }
 
+    // ── 3D 分发 ──────────────────────────────────────────────────────
     private void DispatchTriggerEnter(PrefabData data, Collider other)
     {
         if (!_activeInstances.Contains(data)) return;
-
         FillDispatchBuffer(data);
         foreach (var comp in _dispatchBuffer)
         {
-            if (!comp.IsEnabled) continue;
-            if (comp is not IOnTrigger l) continue;
-            try { l.OnTriggerEntered(other); }
-            catch (Exception e) { Debug.LogException(e); }
+            if (!comp.IsEnabled || comp is not IOnTriggerEnter l) continue;
+            try { l.OnTriggerEntered(other); } catch (Exception e) { Debug.LogException(e); }
         }
         _dispatchBuffer.Clear();
     }
@@ -492,44 +495,132 @@ internal sealed partial class PrefabManager : IPrefabManager, ITickable, IAsyncI
     private void DispatchTriggerExit(PrefabData data, Collider other)
     {
         if (!_activeInstances.Contains(data)) return;
-
         FillDispatchBuffer(data);
         foreach (var comp in _dispatchBuffer)
         {
-            if (!comp.IsEnabled) continue;
-            if (comp is not IOnTrigger l) continue;
-            try { l.OnTriggerExited(other); }
-            catch (Exception e) { Debug.LogException(e); }
+            if (!comp.IsEnabled || comp is not IOnTriggerExit l) continue;
+            try { l.OnTriggerExited(other); } catch (Exception e) { Debug.LogException(e); }
         }
         _dispatchBuffer.Clear();
     }
 
-    private void DispatchCollisionEnter(PrefabData data, Collision collision)
+    private void DispatchTriggerStay(PrefabData data, Collider other)
     {
         if (!_activeInstances.Contains(data)) return;
-
         FillDispatchBuffer(data);
         foreach (var comp in _dispatchBuffer)
         {
-            if (!comp.IsEnabled) continue;
-            if (comp is not IOnCollision l) continue;
-            try { l.OnCollisionEntered(collision); }
-            catch (Exception e) { Debug.LogException(e); }
+            if (!comp.IsEnabled || comp is not IOnTriggerStay l) continue;
+            try { l.OnTriggerStayed(other); } catch (Exception e) { Debug.LogException(e); }
         }
         _dispatchBuffer.Clear();
     }
 
-    private void DispatchCollisionExit(PrefabData data, Collision collision)
+    private void DispatchCollisionEnter(PrefabData data, Collision c)
     {
         if (!_activeInstances.Contains(data)) return;
-
         FillDispatchBuffer(data);
         foreach (var comp in _dispatchBuffer)
         {
-            if (!comp.IsEnabled) continue;
-            if (comp is not IOnCollision l) continue;
-            try { l.OnCollisionExited(collision); }
-            catch (Exception e) { Debug.LogException(e); }
+            if (!comp.IsEnabled || comp is not IOnCollisionEnter l) continue;
+            try { l.OnCollisionEntered(c); } catch (Exception e) { Debug.LogException(e); }
+        }
+        _dispatchBuffer.Clear();
+    }
+
+    private void DispatchCollisionExit(PrefabData data, Collision c)
+    {
+        if (!_activeInstances.Contains(data)) return;
+        FillDispatchBuffer(data);
+        foreach (var comp in _dispatchBuffer)
+        {
+            if (!comp.IsEnabled || comp is not IOnCollisionExit l) continue;
+            try { l.OnCollisionExited(c); } catch (Exception e) { Debug.LogException(e); }
+        }
+        _dispatchBuffer.Clear();
+    }
+
+    private void DispatchCollisionStay(PrefabData data, Collision c)
+    {
+        if (!_activeInstances.Contains(data)) return;
+        FillDispatchBuffer(data);
+        foreach (var comp in _dispatchBuffer)
+        {
+            if (!comp.IsEnabled || comp is not IOnCollisionStay l) continue;
+            try { l.OnCollisionStayed(c); } catch (Exception e) { Debug.LogException(e); }
+        }
+        _dispatchBuffer.Clear();
+    }
+
+    // ── 2D 分发 ──────────────────────────────────────────────────────
+    private void DispatchTriggerEnter2D(PrefabData data, Collider2D other)
+    {
+        if (!_activeInstances.Contains(data)) return;
+        FillDispatchBuffer(data);
+        foreach (var comp in _dispatchBuffer)
+        {
+            if (!comp.IsEnabled || comp is not IOnTriggerEnter2D l) continue;
+            try { l.OnTriggerEntered2D(other); } catch (Exception e) { Debug.LogException(e); }
+        }
+        _dispatchBuffer.Clear();
+    }
+
+    private void DispatchTriggerExit2D(PrefabData data, Collider2D other)
+    {
+        if (!_activeInstances.Contains(data)) return;
+        FillDispatchBuffer(data);
+        foreach (var comp in _dispatchBuffer)
+        {
+            if (!comp.IsEnabled || comp is not IOnTriggerExit2D l) continue;
+            try { l.OnTriggerExited2D(other); } catch (Exception e) { Debug.LogException(e); }
+        }
+        _dispatchBuffer.Clear();
+    }
+
+    private void DispatchTriggerStay2D(PrefabData data, Collider2D other)
+    {
+        if (!_activeInstances.Contains(data)) return;
+        FillDispatchBuffer(data);
+        foreach (var comp in _dispatchBuffer)
+        {
+            if (!comp.IsEnabled || comp is not IOnTriggerStay2D l) continue;
+            try { l.OnTriggerStayed2D(other); } catch (Exception e) { Debug.LogException(e); }
+        }
+        _dispatchBuffer.Clear();
+    }
+
+    private void DispatchCollisionEnter2D(PrefabData data, Collision2D c)
+    {
+        if (!_activeInstances.Contains(data)) return;
+        FillDispatchBuffer(data);
+        foreach (var comp in _dispatchBuffer)
+        {
+            if (!comp.IsEnabled || comp is not IOnCollisionEnter2D l) continue;
+            try { l.OnCollisionEntered2D(c); } catch (Exception e) { Debug.LogException(e); }
+        }
+        _dispatchBuffer.Clear();
+    }
+
+    private void DispatchCollisionExit2D(PrefabData data, Collision2D c)
+    {
+        if (!_activeInstances.Contains(data)) return;
+        FillDispatchBuffer(data);
+        foreach (var comp in _dispatchBuffer)
+        {
+            if (!comp.IsEnabled || comp is not IOnCollisionExit2D l) continue;
+            try { l.OnCollisionExited2D(c); } catch (Exception e) { Debug.LogException(e); }
+        }
+        _dispatchBuffer.Clear();
+    }
+
+    private void DispatchCollisionStay2D(PrefabData data, Collision2D c)
+    {
+        if (!_activeInstances.Contains(data)) return;
+        FillDispatchBuffer(data);
+        foreach (var comp in _dispatchBuffer)
+        {
+            if (!comp.IsEnabled || comp is not IOnCollisionStay2D l) continue;
+            try { l.OnCollisionStayed2D(c); } catch (Exception e) { Debug.LogException(e); }
         }
         _dispatchBuffer.Clear();
     }
