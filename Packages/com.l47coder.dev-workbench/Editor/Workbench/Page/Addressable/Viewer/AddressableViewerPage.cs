@@ -135,7 +135,20 @@ namespace DevWorkbench.Editor
         {
             if (index < 0 || index >= _visibleGroups.Count) return;
             var group = _visibleGroups[index];
-            if (string.IsNullOrWhiteSpace(newName) || group.Name == newName) return;
+            newName = newName.Trim();
+            if (string.IsNullOrEmpty(newName) || group.Name == newName) return;
+
+            var assetPath = AssetDatabase.GetAssetPath(group);
+            if (!string.IsNullOrEmpty(assetPath))
+            {
+                var renameError = AssetDatabase.RenameAsset(assetPath, newName);
+                if (!string.IsNullOrEmpty(renameError))
+                {
+                    Debug.LogWarning($"[AddressableViewerPage] Failed to rename group asset \"{assetPath}\" to \"{newName}\": {renameError}");
+                    return;
+                }
+            }
+
             group.Name = newName;
             EditorUtility.SetDirty(group);
             AssetDatabase.SaveAssets();
