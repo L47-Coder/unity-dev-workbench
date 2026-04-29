@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Rigidbody2DComponentConfig
   m_EditorClassIdentifier: 
   _configs:
-  - Key: Ground
+  - Key: default
     BodyType: 0
     Simulated: 1
     UseAutoMass: 0
@@ -21,7 +21,7 @@ MonoBehaviour:
     Drag: 0
     AngularDrag: 0.05
     GravityScale: 1
-    CollisionDetectionMode: 1
-    SleepMode: 0
+    CollisionDetectionMode: 0
+    SleepMode: 1
     Interpolation: 0
-    Constraints: 7
+    Constraints: 0

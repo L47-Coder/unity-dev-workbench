@@ -29,5 +29,3 @@ MonoBehaviour:
     AssetAddress: ManagerConfig/Component
   - Key: ManagerConfig/Prefab
     AssetAddress: ManagerConfig/Prefab
-  - Key: Prefab/Ground
-    AssetAddress: Prefab/Ground

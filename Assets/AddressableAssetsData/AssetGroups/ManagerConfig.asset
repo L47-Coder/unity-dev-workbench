@@ -15,7 +15,7 @@ MonoBehaviour:
   m_GroupName: ManagerConfig
   m_Data:
     m_SerializedData: []
-  m_GUID: 228bb1190b3416c42bfedc72e2afaf55
+  m_GUID: bf8afc9d94faebe4e9da36006543988e
   m_SerializeEntries:
   - m_GUID: 98f9ab6b3d86c814ca0269c0dc492f0c
     m_Address: ManagerConfig/Component

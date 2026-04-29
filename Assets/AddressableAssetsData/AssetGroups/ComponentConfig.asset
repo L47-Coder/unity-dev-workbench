@@ -15,7 +15,7 @@ MonoBehaviour:
   m_GroupName: ComponentConfig
   m_Data:
     m_SerializedData: []
-  m_GUID: ba7f47d111d11de41945e9c556dac20d
+  m_GUID: ebc5d7801bdd498488670c76b8f4c63b
   m_SerializeEntries:
   - m_GUID: 19b66d233aeeefc4b8b53010f51042a4
     m_Address: ComponentConfig/BoxCollider2D
