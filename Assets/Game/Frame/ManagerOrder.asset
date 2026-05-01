@@ -13,12 +13,6 @@ MonoBehaviour:
   m_Name: ManagerOrder
   m_EditorClassIdentifier: 
   _entries:
-  - AssemblyQualifiedName: AssetManager, Game.Managers, Version=0.0.0.0, Culture=neutral,
+  - AssemblyQualifiedName: AManager, Game.Managers, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
-    Name: AssetManager
-  - AssemblyQualifiedName: ComponentManager, Game.Managers, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
-    Name: ComponentManager
-  - AssemblyQualifiedName: PrefabManager, Game.Managers, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
-    Name: PrefabManager
+    Name: AManager

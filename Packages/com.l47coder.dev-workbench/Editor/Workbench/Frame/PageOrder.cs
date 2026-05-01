@@ -13,14 +13,16 @@ namespace DevWorkbench.Editor
             "Addressable",
             "Manager",
             "Component",
+            "Prefab",
         };
 
         private static readonly Dictionary<string, IReadOnlyList<string>> TabsByGroup = new()
         {
-            ["Framework"] = new[] { "Sync" },
+            ["Framework"]  = new[] { "Sync" },
             ["Addressable"] = new[] { "Viewer" },
-            ["Manager"] = new[] { "Viewer", "Creator", "Order", "Installer" },
-            ["Component"] = new[] { "Viewer", "Creator", "Order", "Installer" },
+            ["Manager"]    = new[] { "Viewer", "Creator", "Order", "Installer" },
+            ["Component"]  = new[] { "Viewer", "Creator", "Order", "Installer" },
+            ["Prefab"]     = new[] { "Viewer" },
         };
 
         public static IReadOnlyList<string> GetTabs(string group) =>

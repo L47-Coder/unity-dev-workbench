@@ -290,6 +290,9 @@ namespace DevWorkbench.Editor
             _renameGeneration++;
             _renamingPath = node.FullPath;
             _renameBuffer = node.Name;
+
+            _renameBuffer = StripKnownExtension(_renameBuffer);
+
             _renameFocusRequest = true;
             _renameHadFocus = false;
         }

@@ -16,22 +16,7 @@ MonoBehaviour:
   m_Data:
     m_SerializedData: []
   m_GUID: ebc5d7801bdd498488670c76b8f4c63b
-  m_SerializeEntries:
-  - m_GUID: 19b66d233aeeefc4b8b53010f51042a4
-    m_Address: ComponentConfig/BoxCollider2D
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9e3ad3b63332f104393f1e71358faff6
-    m_Address: ComponentConfig/SpriteRenderer
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f4ab7266d66a5874c8e5e20d80db49f8
-    m_Address: ComponentConfig/Rigidbody2D
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
+  m_SerializeEntries: []
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 1334c67fee1d15d45b12dccff7e140e5, type: 2}
   m_SchemaSet:

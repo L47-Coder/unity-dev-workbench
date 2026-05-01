@@ -232,6 +232,9 @@ namespace DevWorkbench.Editor
         {
             if (!CanOperateNode(node) || string.IsNullOrWhiteSpace(newName)) return;
             newName = newName.Trim();
+
+            newName = RestoreKnownExtension(node.Name, newName);
+
             if (string.Equals(node.Name, newName, StringComparison.Ordinal)) return;
             var oldPath = node.FullPath;
             var destPath = $"{GetParentPath(oldPath)}/{newName}";
@@ -376,6 +379,26 @@ namespace DevWorkbench.Editor
                 if (found != null) return found;
             }
             return null;
+        }
+
+        internal string StripKnownExtension(string name)
+        {
+            if (StripDisplayExtensions == null) return name;
+            foreach (var ext in StripDisplayExtensions)
+                if (!string.IsNullOrEmpty(ext) && name.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
+                    return name[..^ext.Length];
+            return name;
+        }
+
+        private string RestoreKnownExtension(string originalName, string newName)
+        {
+            if (StripDisplayExtensions == null) return newName;
+            foreach (var ext in StripDisplayExtensions)
+                if (!string.IsNullOrEmpty(ext) &&
+                    originalName.EndsWith(ext, StringComparison.OrdinalIgnoreCase) &&
+                    !newName.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
+                    return newName + ext;
+            return newName;
         }
     }
 }

@@ -161,6 +161,9 @@ namespace DevWorkbench.Editor
                 var isSearching = !string.IsNullOrEmpty(_searchNormalized);
                 var displayName = node.Kind == NodeKind.Root && isSearching ? "Search results" : node.Name;
 
+                if (node.Kind is NodeKind.FileLeaf or NodeKind.ReadOnlyFile)
+                    displayName = StripKnownExtension(displayName);
+
                 var prevColor = GUI.contentColor;
                 GUI.contentColor = isSelected ? new Color(1f, 1f, 1f, 1f) : NodeTextColor(node.Kind);
                 GUI.Label(labelRect, displayName, node.Kind == NodeKind.Root ? LabelStyleBold : LabelStyle);

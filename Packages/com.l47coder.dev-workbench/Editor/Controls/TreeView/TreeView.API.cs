@@ -31,6 +31,13 @@ namespace DevWorkbench.Editor
         /// <summary>File / folder names to ignore (glob patterns supported).</summary>
         public List<string> IgnoredNames { get; set; } = new();
 
+        /// <summary>
+        /// Extensions to strip from file-leaf display labels (e.g. <c>".cs"</c>,
+        /// <c>".asset"</c>, <c>".prefab"</c>). The rename field will also strip and
+        /// restore the matched extension automatically so users never need to type it.
+        /// </summary>
+        public List<string> StripDisplayExtensions { get; set; }
+
         /// <summary>Asset path of the currently selected node (null if nothing is selected).</summary>
         public string SelectedPath => _selectedPathBacking;
 

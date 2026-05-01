@@ -45,3 +45,8 @@ MonoBehaviour:
       Order: 2
     - Title: Installer
       Order: 3
+  - Title: Prefab
+    Order: 4
+    Tabs:
+    - Title: Viewer
+      Order: 0

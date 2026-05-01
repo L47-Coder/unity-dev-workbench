@@ -17,18 +17,8 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: bf8afc9d94faebe4e9da36006543988e
   m_SerializeEntries:
-  - m_GUID: 98f9ab6b3d86c814ca0269c0dc492f0c
-    m_Address: ManagerConfig/Component
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b88a55679f56b3e4f90f49c546524a9e
-    m_Address: ManagerConfig/Asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e50ce6362085e0b49bb4fe11e20e9245
-    m_Address: ManagerConfig/Prefab
+  - m_GUID: 3d9b5ef108d55224b9349afd7d583ae2
+    m_Address: ManagerConfig/A
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
