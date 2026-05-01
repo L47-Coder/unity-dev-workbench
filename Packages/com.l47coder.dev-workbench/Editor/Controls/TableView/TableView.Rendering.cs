@@ -325,7 +325,18 @@ namespace DevWorkbench.Editor
                 var field = _columns[i].Field;
                 PaintCellFrame(cell, fill, GridLineColor);
 
-                if (Event.current.type == EventType.ContextClick && cell.Contains(Event.current.mousePosition))
+                if (_columns[i].IsButton)
+                {
+                    using (new EditorGUI.DisabledScope(isDragFloating))
+                    {
+                        if (GUI.Button(PaddedRect(cell), _columns[i].ButtonLabel, EditorStyles.miniButton))
+                        {
+                            GUI.FocusControl(null);
+                            _columns[i].ButtonCallback?.Invoke(dataIndex);
+                        }
+                    }
+                }
+                else if (Event.current.type == EventType.ContextClick && cell.Contains(Event.current.mousePosition))
                 {
                     var text = field != null ? GetFieldStringValue(field.GetValue(list[dataIndex])) : string.Empty;
                     var menu = new GenericMenu();
@@ -338,7 +349,7 @@ namespace DevWorkbench.Editor
                 else
                 {
                     using (new EditorGUI.DisabledScope(!_columns[i].Editable || isDragFloating))
-                        DrawCellField(PaddedRect(cell), list, dataIndex, field);
+                        DrawCellField(PaddedRect(cell), list, dataIndex, field, _columns[i].DropdownMethodName);
                 }
                 cursorX = cell.xMax;
             }
@@ -376,7 +387,7 @@ namespace DevWorkbench.Editor
         }
 
         // 仅允许常见基础类型 + Unity 原生单行控件类型直接编辑，其他类型保持只读显示。
-        private void DrawCellField<T>(Rect rect, List<T> list, int index, FieldInfo field)
+        private void DrawCellField<T>(Rect rect, List<T> list, int index, FieldInfo field, string dropdownMethodName)
         {
             var boxed = (object)list[index];
             var value = field.GetValue(boxed);
@@ -434,10 +445,9 @@ namespace DevWorkbench.Editor
 
             if (type == typeof(string))
             {
-                var dropdownAttr = field.GetCustomAttribute<DropdownAttribute>();
-                if (dropdownAttr != null)
+                if (dropdownMethodName != null)
                 {
-                    var options = InvokeDropdownMethod(field, dropdownAttr.MethodName);
+                    var options = InvokeDropdownMethod(field, dropdownMethodName);
                     if (options is { Length: > 0 })
                     {
                         var cur = value as string ?? string.Empty;
@@ -529,16 +539,21 @@ namespace DevWorkbench.Editor
 
         private static string[] InvokeDropdownMethod(FieldInfo field, string methodName)
         {
+            // 每个字段的选项列表只需计算一次，后续直接走缓存
+            if (_dropdownOptionsCache.TryGetValue(field, out var cached)) return cached;
+
             var method = field.DeclaringType?.GetMethod(
                 methodName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
             if (method == null) return null;
-            return method.Invoke(null, null) switch
+            var result = method.Invoke(null, null) switch
             {
                 string[] arr          => arr,
                 List<string> list     => list.ToArray(),
                 IEnumerable<string> e => e.ToArray(),
                 _                     => null,
             };
+            if (result != null) _dropdownOptionsCache[field] = result;
+            return result;
         }
 
         private static void DrawDragFloatingRowShadow(Rect rowRect)

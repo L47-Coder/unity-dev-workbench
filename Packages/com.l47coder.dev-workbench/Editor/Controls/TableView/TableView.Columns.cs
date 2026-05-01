@@ -19,13 +19,43 @@ namespace DevWorkbench.Editor
             /// <summary>该列允许的最小像素宽（由字段类型推导）。</summary>
             public readonly float MinWidth;
 
+            // ── 按钮列专用 ──────────────────────────────────────────────────────
+            /// <summary>true 表示该列是纯按钮列，不绑定字段。</summary>
+            public readonly bool IsButton;
+            /// <summary>按钮列的按钮文字。</summary>
+            public readonly string ButtonLabel;
+            /// <summary>按钮列点击时回调，参数为行数据索引。</summary>
+            public readonly Action<int> ButtonCallback;
+
+            /// <summary>[Dropdown] 的方法名（构建列时预计算，避免每帧反射查特性）。</summary>
+            public readonly string DropdownMethodName;
+
+            /// <summary>字段列构造函数。</summary>
             public ColumnDefinition(string header, string relPath, bool editable, FieldInfo field, float minWidth)
             {
-                Header = header;
+                Header               = header;
                 RelativePropertyPath = relPath;
-                Editable = editable;
-                Field = field;
-                MinWidth = minWidth;
+                Editable             = editable;
+                Field                = field;
+                MinWidth             = minWidth;
+                IsButton             = false;
+                ButtonLabel          = null;
+                ButtonCallback       = null;
+                DropdownMethodName   = field?.GetCustomAttribute<DropdownAttribute>(false)?.MethodName;
+            }
+
+            /// <summary>按钮列构造函数。</summary>
+            public ColumnDefinition(string header, string buttonLabel, float fixedWidth, Action<int> callback)
+            {
+                Header               = header;
+                RelativePropertyPath = header;
+                Editable             = false;
+                Field                = null;
+                MinWidth             = fixedWidth;
+                IsButton             = true;
+                ButtonLabel          = buttonLabel;
+                ButtonCallback       = callback;
+                DropdownMethodName   = null;
             }
         }
 

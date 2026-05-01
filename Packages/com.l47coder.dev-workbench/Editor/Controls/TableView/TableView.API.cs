@@ -73,6 +73,31 @@ namespace DevWorkbench.Editor
         public void OnViewRefresherClicked(Action callback) =>
             _onViewRefresherClicked = callback;
 
+        /// <summary>
+        /// 追加一个按钮列（显示在所有数据列右侧、"−" 删除列之前）。
+        /// 首次调用 <see cref="Draw{T}"/> 时自动合并进列定义。
+        /// </summary>
+        /// <param name="header">列头文字。</param>
+        /// <param name="buttonLabel">每行按钮的文字。</param>
+        /// <param name="width">列宽（像素）。</param>
+        /// <param name="callback">点击时回调，参数为行数据索引。</param>
+        public void AddButtonColumn(string header, string buttonLabel, float width, Action<int> callback)
+        {
+            _pendingButtonColumns.Add(new ColumnDefinition(header, buttonLabel, width, callback));
+            _columns = null; // 强制在下次 Draw 时重建列
+            _columnMinWidths = null;
+            _columnPreferredWidths = null;
+        }
+
+        /// <summary>清空所有已添加的按钮列。</summary>
+        public void ClearButtonColumns()
+        {
+            _pendingButtonColumns.Clear();
+            _columns = null;
+            _columnMinWidths = null;
+            _columnPreferredWidths = null;
+        }
+
         // ── Draw ────────────────────────────────────────────────────────────
 
         /// <summary>
@@ -81,7 +106,12 @@ namespace DevWorkbench.Editor
         /// </summary>
         public void Draw<T>(Rect rect, List<T> list)
         {
-            _columns ??= BuildColumnsFromElementType(typeof(T));
+            if (_columns == null)
+            {
+                _columns = BuildColumnsFromElementType(typeof(T));
+                if (_pendingButtonColumns.Count > 0)
+                    _columns.AddRange(_pendingButtonColumns);
+            }
             ConsumePendingDirty();
 
             var evt = Event.current;

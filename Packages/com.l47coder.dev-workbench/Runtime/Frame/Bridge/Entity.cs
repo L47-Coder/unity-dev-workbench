@@ -24,8 +24,10 @@ namespace DevWorkbench
     public interface IOnCollisionExit2D { void OnCollisionExited2D(Collision2D c); }
     public interface IOnCollisionStay2D { void OnCollisionStayed2D(Collision2D c); }
 
-    internal sealed class Entity : MonoBehaviour
+    public sealed class Entity : MonoBehaviour
     {
+        public List<EntityComponentEntry> Components = new();
+
         // ── 3D 事件 ──────────────────────────────────────────────────
         internal event Action<GameObject, Collider> TriggerEnter;
         internal event Action<GameObject, Collider> TriggerExit;

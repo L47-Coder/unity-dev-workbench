@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -37,6 +38,10 @@ namespace DevWorkbench.Editor
         private static GUIStyle _headerCellLabelStyleCache;
         private static GUIStyle _bodyIndexLabelStyleCache;
 
+        // Dropdown 选项结果缓存：每个 FieldInfo 只调用一次 [Dropdown] 方法，后续复用。
+        // 使用 static 字典，跨 TableView 实例共享，编译后选项不变所以不需要失效机制。
+        private static readonly Dictionary<FieldInfo, string[]> _dropdownOptionsCache = new();
+
         // ── Instance state ──────────────────────────────────────────────────
 
         private List<ColumnDefinition> _columns;
@@ -54,6 +59,10 @@ namespace DevWorkbench.Editor
         private Action<int, object> _onRowSelected;
         private Action _onRefreshClicked;
         private Action _onViewRefresherClicked;
+
+        // ── 待追加的按钮列（AddButtonColumn 调用时暂存，Draw 首次调用时合并进 _columns）────
+
+        private readonly List<ColumnDefinition> _pendingButtonColumns = new();
 
         // ── Configurable labels ─────────────────────────────────────────────
 
