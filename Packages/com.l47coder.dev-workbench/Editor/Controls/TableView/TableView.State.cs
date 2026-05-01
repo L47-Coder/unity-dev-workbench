@@ -9,8 +9,6 @@ namespace DevWorkbench.Editor
 {
     public sealed partial class TableView
     {
-        // ── Layout constants ────────────────────────────────────────────────
-
         private const float GripCellWidth = 22f;
         private const float IndexColumnWidth = 28f;
         private const float RowButtonWidth = 24f;
@@ -18,17 +16,11 @@ namespace DevWorkbench.Editor
         private const float GridThickness = 1f;
         private const float DefaultFallbackMinWidth = 80f;
 
-        // 滚动条实际尺寸统一从 ControlsToolbar 读取，避免各控件硬编码不一致。
-
-        // ── Reorder animation constants ─────────────────────────────────────
-
         private const float RowMoveSmoothTime = 0.1f;
         private const float GapMoveSmoothTime = 0.09f;
         private const float DragRowSmoothTime = 0.065f;
 
         private static readonly int RowReorderControlHintHash = "TableListAttribute.Row".GetHashCode();
-
-        // ── Static / shared state ───────────────────────────────────────────
 
         private static ReorderSession _reorder;
         private static TableView _draggingOwner;
@@ -38,11 +30,7 @@ namespace DevWorkbench.Editor
         private static GUIStyle _headerCellLabelStyleCache;
         private static GUIStyle _bodyIndexLabelStyleCache;
 
-        // Dropdown 选项结果缓存：每个 FieldInfo 只调用一次 [Dropdown] 方法，后续复用。
-        // 使用 static 字典，跨 TableView 实例共享，编译后选项不变所以不需要失效机制。
         private static readonly Dictionary<FieldInfo, string[]> _dropdownOptionsCache = new();
-
-        // ── Instance state ──────────────────────────────────────────────────
 
         private List<ColumnDefinition> _columns;
         private float[] _columnPreferredWidths;
@@ -53,35 +41,19 @@ namespace DevWorkbench.Editor
         private int _selectedIndex = -1;
         private Vector2 _scrollPos;
 
-        // ── Event callbacks ─────────────────────────────────────────────────
-
         private Action<int, object> _onChange;
         private Action<int, object> _onRowSelected;
-        private Action _onRefreshClicked;
-        private Action _onViewRefresherClicked;
 
-        // ── 待追加的按钮列（AddButtonColumn 调用时暂存，Draw 首次调用时合并进 _columns）────
-
-        private readonly List<ColumnDefinition> _pendingButtonColumns = new();
-
-        // ── Configurable labels ─────────────────────────────────────────────
-
-        private string _searchPlaceholder = "Search...";
         private string _copyLabel = "Copy";
-
-        // ── Internal types ──────────────────────────────────────────────────
 
         private struct TableLayout
         {
-            /// <summary>整张表（固定列 + 数据列）的实际绘制宽度。可能超过视口宽（此时外层出现水平滚动）。</summary>
             public float TotalWidth;
             public float GripWidth;
             public float IndexWidth;
             public float ActionsWidth;
-            /// <summary>数据列宽度之和。</summary>
             public float DataColumnsWidth;
             public float[] DataColumnWidths;
-            /// <summary>表总宽是否超过了视口宽（意味着需要水平滚动）。</summary>
             public bool NeedsHorizontalScroll;
         }
 

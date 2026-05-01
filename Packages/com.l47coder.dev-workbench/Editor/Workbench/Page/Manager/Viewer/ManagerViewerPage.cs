@@ -152,7 +152,6 @@ namespace DevWorkbench.Editor
                         _cachedDrawMethod = typeof(TableView).GetMethod(nameof(TableView.Draw)).MakeGenericMethod(elemType);
 
                         ResolveRefresherScript(path);
-                        _tableView.OnViewRefresherClicked(OpenRefresherScript);
                     }
                 }
             }

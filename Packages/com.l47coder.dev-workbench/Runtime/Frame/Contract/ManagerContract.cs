@@ -15,7 +15,7 @@ namespace DevWorkbench
         internal Dictionary<string, BaseManagerData> ExportManagerDataDict() => GetManagerDataDict();
     }
 
-    public abstract class BaseManagerData { }
+    public abstract class BaseManagerData : ITableViewItem { }
 
     public abstract class BaseManager
     {

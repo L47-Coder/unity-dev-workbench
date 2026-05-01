@@ -309,7 +309,7 @@ namespace DevWorkbench.Editor
         }
     }
 
-    internal sealed class AddressableEntryRow
+    internal sealed class AddressableEntryRow : ITableViewItem
     {
         [TableColumn(Header = "Address")] public string Address;
         [TableColumn(Header = "AssetPath", Editable = false)] public string AssetPath;
@@ -324,7 +324,6 @@ namespace DevWorkbench.Editor
             CanAdd = false,
             CanRemove = false,
             CanDrag = false,
-            ShowToolbarButtons = false,
             SearchField = "Address",
         };
 

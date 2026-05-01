@@ -5,7 +5,7 @@ using UnityEngine;
 namespace DevWorkbench
 {
     [Serializable]
-    public sealed class EntityComponentEntry
+    public sealed class EntityComponentEntry : ITableViewItem
     {
         [TableColumn(Header = "初始化")]
         public bool InitOnStart = true;

@@ -57,7 +57,6 @@ namespace DevWorkbench.Editor
             var e = Event.current;
             if (GUIUtility.hotControl != _reorder.ControlId)
             {
-                // 其他控件抢占 hotControl 时，仍要兜底结束拖拽。
                 if (e.rawType == EventType.MouseUp || e.rawType == EventType.Ignore)
                     EndReorderSession();
                 return;

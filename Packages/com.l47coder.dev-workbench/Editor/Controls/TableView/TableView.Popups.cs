@@ -8,10 +8,6 @@ namespace DevWorkbench.Editor
 {
     public sealed partial class TableView
     {
-        // ── Pending dirty flag ─────────────────────────────────────────────
-        // Popup 是独立窗口，其内部的 GUI.changed 不会传到父窗口。
-        // Popup 修改数据时置位该标记，Draw<T> 开头消费一次把 GUI.changed=true 传给父面板。
-
         private bool _pendingDirty;
 
         private void ConsumePendingDirty()
@@ -20,8 +16,6 @@ namespace DevWorkbench.Editor
             _pendingDirty = false;
             GUI.changed = true;
         }
-
-        // ── List<ComponentRef> cell ────────────────────────────────────────
 
         private void DrawComponentRefListCell(Rect rect, List<ComponentRef> refList, int rowIndex, object rowItem)
         {
@@ -41,8 +35,6 @@ namespace DevWorkbench.Editor
                 PopupWindow.Show(rect, popup);
             }
         }
-
-        // ── List<string> cell ──────────────────────────────────────────────
 
         private static bool IsStringList(Type type) =>
             type.IsGenericType &&
@@ -75,8 +67,6 @@ namespace DevWorkbench.Editor
                 clipping = TextClipping.Clip,
                 padding = new RectOffset(4, 4, 0, 0),
             };
-
-        // ── StringListPopup ────────────────────────────────────────────────
 
         private sealed class StringListPopup : PopupWindowContent
         {
@@ -192,10 +182,6 @@ namespace DevWorkbench.Editor
                 GUI.EndScrollView();
             }
         }
-
-        // ── ComponentRefListPopup ──────────────────────────────────────────
-        // 与 StringListPopup 架构完全相同（PopupWindowContent + PopupWindow.Show）。
-        // 每行改为双下拉框：左侧选组件类型，右侧选数据 Key。
 
         private sealed class ComponentRefListPopup : PopupWindowContent
         {

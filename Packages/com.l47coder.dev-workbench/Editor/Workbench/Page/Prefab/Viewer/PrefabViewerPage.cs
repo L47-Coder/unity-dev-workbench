@@ -360,11 +360,9 @@ namespace DevWorkbench.Editor
             _tableView.CanDrag            = true;
             _tableView.CanRemove          = true;
             _tableView.CanSelect          = false;
-            _tableView.ShowToolbarButtons = false;
             _tableView.SearchField        = "ComponentType";
 
             _tableView.OnRowChanged<EntityComponentEntry>((i, entry) => OnEntryChanged(i, entry));
-            _tableView.AddButtonColumn("操作", "配置", 40f, i => OpenConfigPopup(i));
         }
 
         private void OnEntryChanged(int index, EntityComponentEntry entry)

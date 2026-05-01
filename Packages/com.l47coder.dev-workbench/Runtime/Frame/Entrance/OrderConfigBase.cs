@@ -13,7 +13,7 @@ namespace DevWorkbench
     }
 
     [Serializable]
-    public abstract class OrderEntryBase
+    public abstract class OrderEntryBase : ITableViewItem
     {
         [TableColumn(Visible = false)]
         public string AssemblyQualifiedName;

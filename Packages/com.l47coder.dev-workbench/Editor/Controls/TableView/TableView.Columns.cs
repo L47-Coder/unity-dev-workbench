@@ -16,21 +16,9 @@ namespace DevWorkbench.Editor
             public readonly string RelativePropertyPath;
             public readonly bool Editable;
             public readonly FieldInfo Field;
-            /// <summary>该列允许的最小像素宽（由字段类型推导）。</summary>
             public readonly float MinWidth;
-
-            // ── 按钮列专用 ──────────────────────────────────────────────────────
-            /// <summary>true 表示该列是纯按钮列，不绑定字段。</summary>
-            public readonly bool IsButton;
-            /// <summary>按钮列的按钮文字。</summary>
-            public readonly string ButtonLabel;
-            /// <summary>按钮列点击时回调，参数为行数据索引。</summary>
-            public readonly Action<int> ButtonCallback;
-
-            /// <summary>[Dropdown] 的方法名（构建列时预计算，避免每帧反射查特性）。</summary>
             public readonly string DropdownMethodName;
 
-            /// <summary>字段列构造函数。</summary>
             public ColumnDefinition(string header, string relPath, bool editable, FieldInfo field, float minWidth)
             {
                 Header               = header;
@@ -38,24 +26,7 @@ namespace DevWorkbench.Editor
                 Editable             = editable;
                 Field                = field;
                 MinWidth             = minWidth;
-                IsButton             = false;
-                ButtonLabel          = null;
-                ButtonCallback       = null;
                 DropdownMethodName   = field?.GetCustomAttribute<DropdownAttribute>(false)?.MethodName;
-            }
-
-            /// <summary>按钮列构造函数。</summary>
-            public ColumnDefinition(string header, string buttonLabel, float fixedWidth, Action<int> callback)
-            {
-                Header               = header;
-                RelativePropertyPath = header;
-                Editable             = false;
-                Field                = null;
-                MinWidth             = fixedWidth;
-                IsButton             = true;
-                ButtonLabel          = buttonLabel;
-                ButtonCallback       = callback;
-                DropdownMethodName   = null;
             }
         }
 
@@ -96,10 +67,6 @@ namespace DevWorkbench.Editor
             !field.IsDefined(typeof(HideInInspector), false) &&
             (field.IsPublic || field.IsDefined(typeof(SerializeField), false));
 
-        /// <summary>
-        /// 按字段类型返回该列的默认最小像素宽度。
-        /// 这些数值基于 Unity 编辑器默认字号下、单行控件不被明显截断的最小可读宽度。
-        /// </summary>
         private static float GetDefaultMinWidth(Type type)
         {
             if (type == typeof(bool)) return 40f;
@@ -122,10 +89,6 @@ namespace DevWorkbench.Editor
             type.GetGenericTypeDefinition() == typeof(List<>) &&
             type.GetGenericArguments()[0] == typeof(ComponentRef);
 
-        /// <summary>
-        /// 确保 <see cref="_columnMinWidths"/> / <see cref="_columnPreferredWidths"/> 与当前列集合匹配。
-        /// 首次分配时把 Preferred 初始化为 Min；列数变化时重建。
-        /// </summary>
         private void EnsureColumnSizing()
         {
             var count = _columns.Count;

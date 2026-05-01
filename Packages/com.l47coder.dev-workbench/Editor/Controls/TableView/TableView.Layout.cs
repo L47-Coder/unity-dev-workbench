@@ -6,15 +6,6 @@ namespace DevWorkbench.Editor
 {
     public sealed partial class TableView
     {
-        /// <summary>
-        /// 计算当前帧的表格布局。规则：
-        /// <list type="bullet">
-        /// <item>每列先取 <c>base[i] = max(PreferredWidth[i], MinWidth[i])</c>；</item>
-        /// <item>若 <c>Σ base &gt;= 可用数据宽</c>：用 base 作为最终列宽，总宽溢出 → 外层水平滚动；</item>
-        /// <item>若 <c>Σ base &lt; 可用数据宽</c>：把剩余空间按列数均摊到每列（纯视觉拉伸，不改 Preferred）。</item>
-        /// </list>
-        /// </summary>
-        /// <param name="viewWidth">视口宽度（绘制区域宽度，已扣除竖向滚动条）。</param>
         private TableLayout BuildLayout(float viewWidth)
         {
             var gripWidth = CanDrag ? GripCellWidth + CellPadding * 2f : 0f;
@@ -44,7 +35,6 @@ namespace DevWorkbench.Editor
             }
             else if (baseTotal >= availableForData || _resizeColumnIndex >= 0)
             {
-                // 拖动列宽期间一律不均摊：让被拖列的右边界精确贴合鼠标。
                 dataColumnsWidth = baseTotal;
                 needsHorizontalScroll = baseTotal > availableForData + 0.5f;
             }

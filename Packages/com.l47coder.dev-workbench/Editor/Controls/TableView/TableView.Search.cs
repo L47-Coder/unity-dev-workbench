@@ -10,13 +10,11 @@ namespace DevWorkbench.Editor
         private SearchField _searchField;
         private string _searchText = string.Empty;
 
-        private void DrawSearchBar<T>(Rect rect, List<T> list)
+        private void DrawSearchBar(Rect rect)
         {
-            _ = list;
             var searchCol = FindSearchColumn();
             var hasSearchCol = searchCol.HasValue;
 
-            // 由表头文本（而非字段名）决定占位文本，用户可读性更高。
             var displayName = hasSearchCol ? searchCol.Value.Header : SearchField;
             var placeholder = $"Search by {displayName}...";
             var disabledHint = $"No \"{displayName}\" column in this table";
@@ -30,7 +28,7 @@ namespace DevWorkbench.Editor
 
         private ColumnDefinition? FindSearchColumn()
         {
-            if (_columns == null || string.IsNullOrEmpty(SearchField)) return null;
+            if (!CanSearch || _columns == null || string.IsNullOrEmpty(SearchField)) return null;
             for (var i = 0; i < _columns.Count; i++)
             {
                 var col = _columns[i];
@@ -43,6 +41,8 @@ namespace DevWorkbench.Editor
 
         private List<int> GetFilteredIndices<T>(List<T> list)
         {
+            if (!CanSearch) return AllIndices(list.Count);
+
             var searchCol = FindSearchColumn();
             var hasSearch = !string.IsNullOrWhiteSpace(_searchText) && searchCol.HasValue;
 

@@ -14,7 +14,7 @@ namespace DevWorkbench
         internal Dictionary<string, BaseComponentData> ExportComponentDataDict() => GetComponentDataDict();
     }
 
-    public abstract class BaseComponentData
+    public abstract class BaseComponentData : ITableViewItem
     {
         protected abstract BaseComponent CreateComponent();
         internal BaseComponent InternalCreateComponent() => CreateComponent();

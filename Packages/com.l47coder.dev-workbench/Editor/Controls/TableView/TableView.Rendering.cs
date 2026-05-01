@@ -12,20 +12,7 @@ namespace DevWorkbench.Editor
 {
     public sealed partial class TableView
     {
-        // ── Toolbar icons (table-specific) ──────────────────────────────────
-
-        private static GUIContent _refreshIcon;
-        private static GUIContent _viewScriptIcon;
-
-        private static GUIContent RefreshIcon =>
-            _refreshIcon ??= EditorGUIUtility.IconContent("Refresh");
-
-        private static GUIContent ViewScriptIcon =>
-            _viewScriptIcon ??= EditorGUIUtility.IconContent("d_cs Script Icon");
-
-        // ── Toolbar drawing ─────────────────────────────────────────────────
-
-        private void DrawToolbar<T>(Rect toolbarRect, List<T> list)
+        private void DrawToolbar(Rect toolbarRect)
         {
             ControlsToolbar.DrawToolbarSeparator(toolbarRect);
 
@@ -33,43 +20,12 @@ namespace DevWorkbench.Editor
             var left = toolbarRect.x;
             var right = toolbarRect.xMax - pad;
 
-            if (ShowToolbarButtons)
-            {
-                var btnSize = ControlsToolbar.SearchFieldHeight;
-                var btnY = toolbarRect.y + Mathf.Max(0f, pad - 0.5f);
-                var anyButton = false;
-
-                // 按"是否订阅回调"决定按钮是否显示，避免在没人接收的情况下画一个"按了没反应"的按钮。
-                if (_onRefreshClicked != null)
-                {
-                    right -= btnSize;
-                    if (GUI.Button(new Rect(right, btnY, btnSize, btnSize), RefreshIcon, ControlsToolbar.ButtonStyle))
-                        _onRefreshClicked.Invoke();
-                    right -= ControlsToolbar.ToolbarButtonSpacing;
-                    anyButton = true;
-                }
-
-                if (_onViewRefresherClicked != null)
-                {
-                    right -= btnSize;
-                    if (GUI.Button(new Rect(right, btnY, btnSize, btnSize), ViewScriptIcon, ControlsToolbar.ButtonStyle))
-                        _onViewRefresherClicked.Invoke();
-                    anyButton = true;
-                }
-
-                if (anyButton) right -= pad;
-            }
-
-            // ── Search bar (fills remaining space) ──────────────────────────
             var searchW = Mathf.Max(right - left, 20f);
-            DrawSearchBar(new Rect(left, toolbarRect.y, searchW, toolbarRect.height), list);
+            DrawSearchBar(new Rect(left, toolbarRect.y, searchW, toolbarRect.height));
         }
-
-        // ── Header & rows ───────────────────────────────────────────────────
 
         private void DrawHeader<T>(Rect rowRect, List<T> list, TableLayout layout)
         {
-            // 表内容总宽可能超过视口宽，用一个"不显示滚动条"的 ScrollView 与 body 的水平滚动同步。
             var contentWidth = Mathf.Max(rowRect.width, layout.TotalWidth);
             var viewRect = new Rect(0f, 0f, contentWidth, rowRect.height);
             var headerScroll = new Vector2(_scrollPos.x, 0f);
@@ -103,7 +59,6 @@ namespace DevWorkbench.Editor
                 PaintCellFrame(cell, HeaderCellBackground, GridLineColor);
                 GUI.Label(PaddedRect(cell), _columns[i].Header, HeaderCellLabelStyle);
 
-                // 所有数据列右边界都可拖（含最后一列 → 超出视口即出水平滚动）。
                 HandleColumnResize(cell, innerRect, layout, i);
 
                 cursorX = cell.xMax;
@@ -129,11 +84,6 @@ namespace DevWorkbench.Editor
             GUI.EndScrollView();
         }
 
-        /// <summary>
-        /// 拖动列右边界调整列宽。
-        /// 只修改被拖列自身的 <see cref="_columnPreferredWidths"/>，不动右邻居。
-        /// <para>MouseDown 时把所有列的"当前视觉宽度"烘焙到 Preferred，避免进入"拖动期禁用均摊"后的跳变。</para>
-        /// </summary>
         private void HandleColumnResize(Rect cell, Rect rowRect, TableLayout layout, int columnIndex)
         {
             var splitterRect = new Rect(cell.xMax - 3f, rowRect.y, 6f, rowRect.height);
@@ -149,8 +99,6 @@ namespace DevWorkbench.Editor
                         GUIUtility.hotControl = controlId;
                         _resizeColumnIndex = columnIndex;
                         _resizeStartMouseX = e.mousePosition.x;
-                        // 把当前视觉宽度烘焙到 Preferred：若当前处于"均摊拉伸态"，
-                        // 这一步会把每列的拉伸份额固化，接下来的拖动期（不再均摊）就不会跳变。
                         for (var j = 0; j < _columns.Count; j++)
                             _columnPreferredWidths[j] = Mathf.Max(_columnMinWidths[j], layout.DataColumnWidths[j]);
                         _resizeStartPreferredWidth = _columnPreferredWidths[columnIndex];
@@ -191,9 +139,6 @@ namespace DevWorkbench.Editor
             if (isSearching && _draggingOwner == this)
                 EndReorderSession();
 
-            // viewRect 宽度 = 表内容总宽（可能超过视口宽 → 触发水平滚动条）。
-            // viewRect 高度就用真实内容高度 totalH，不要 Max 到 bodyRect.height，
-            // 否则当水平条出现占掉底部高度后，Unity 会连锁加一条无用的竖向滚动条。
             var rowsContentWidth = Mathf.Max(viewWidth, layout.TotalWidth);
             var totalH = displayCount * rowHeight;
             var viewRect = new Rect(0f, 0f, rowsContentWidth, totalH);
@@ -325,18 +270,7 @@ namespace DevWorkbench.Editor
                 var field = _columns[i].Field;
                 PaintCellFrame(cell, fill, GridLineColor);
 
-                if (_columns[i].IsButton)
-                {
-                    using (new EditorGUI.DisabledScope(isDragFloating))
-                    {
-                        if (GUI.Button(PaddedRect(cell), _columns[i].ButtonLabel, EditorStyles.miniButton))
-                        {
-                            GUI.FocusControl(null);
-                            _columns[i].ButtonCallback?.Invoke(dataIndex);
-                        }
-                    }
-                }
-                else if (Event.current.type == EventType.ContextClick && cell.Contains(Event.current.mousePosition))
+                if (Event.current.type == EventType.ContextClick && cell.Contains(Event.current.mousePosition))
                 {
                     var text = field != null ? GetFieldStringValue(field.GetValue(list[dataIndex])) : string.Empty;
                     var menu = new GenericMenu();
@@ -386,7 +320,6 @@ namespace DevWorkbench.Editor
             Event.current.Use();
         }
 
-        // 仅允许常见基础类型 + Unity 原生单行控件类型直接编辑，其他类型保持只读显示。
         private void DrawCellField<T>(Rect rect, List<T> list, int index, FieldInfo field, string dropdownMethodName)
         {
             var boxed = (object)list[index];
@@ -539,7 +472,6 @@ namespace DevWorkbench.Editor
 
         private static string[] InvokeDropdownMethod(FieldInfo field, string methodName)
         {
-            // 每个字段的选项列表只需计算一次，后续直接走缓存
             if (_dropdownOptionsCache.TryGetValue(field, out var cached)) return cached;
 
             var method = field.DeclaringType?.GetMethod(
@@ -585,7 +517,6 @@ namespace DevWorkbench.Editor
                 EditorGUI.DrawRect(new Rect(cx, cy + row * 3.2f - dotH * 0.5f, dotW, dotH), c);
         }
 
-        // 若元素含有 string Key 字段，则标记重复项。
         private static HashSet<int> BuildDuplicateKeyIndices<T>(List<T> list)
         {
             var keyField = typeof(T).GetField("Key",
